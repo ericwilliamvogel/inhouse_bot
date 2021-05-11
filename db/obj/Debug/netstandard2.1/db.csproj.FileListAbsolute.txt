@@ -1,0 +1,9 @@
+C:\Users\Jonathan\source\repos\bot_2\db\bin\Debug\netstandard2.1\db.deps.json
+C:\Users\Jonathan\source\repos\bot_2\db\bin\Debug\netstandard2.1\db.dll
+C:\Users\Jonathan\source\repos\bot_2\db\obj\Debug\netstandard2.1\db.csprojAssemblyReference.cache
+C:\Users\Jonathan\source\repos\bot_2\db\obj\Debug\netstandard2.1\db.AssemblyInfoInputs.cache
+C:\Users\Jonathan\source\repos\bot_2\db\obj\Debug\netstandard2.1\db.AssemblyInfo.cs
+C:\Users\Jonathan\source\repos\bot_2\db\bin\Debug\netstandard2.1\db.pdb
+C:\Users\Jonathan\source\repos\bot_2\db\obj\Debug\netstandard2.1\db.csproj.CoreCompileInputs.cache
+C:\Users\Jonathan\source\repos\bot_2\db\obj\Debug\netstandard2.1\db.dll
+C:\Users\Jonathan\source\repos\bot_2\db\obj\Debug\netstandard2.1\db.pdb

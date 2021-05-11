@@ -1,0 +1,12 @@
+C:\Users\Jonathan\source\repos\bot_2\Migrations\bin\Debug\netcoreapp3.1\Migrations.deps.json
+C:\Users\Jonathan\source\repos\bot_2\Migrations\bin\Debug\netcoreapp3.1\Migrations.dll
+C:\Users\Jonathan\source\repos\bot_2\Migrations\bin\Debug\netcoreapp3.1\Migrations.pdb
+C:\Users\Jonathan\source\repos\bot_2\Migrations\obj\Debug\netcoreapp3.1\Migrations.csprojAssemblyReference.cache
+C:\Users\Jonathan\source\repos\bot_2\Migrations\obj\Debug\netcoreapp3.1\Migrations.AssemblyInfoInputs.cache
+C:\Users\Jonathan\source\repos\bot_2\Migrations\obj\Debug\netcoreapp3.1\Migrations.AssemblyInfo.cs
+C:\Users\Jonathan\source\repos\bot_2\Migrations\obj\Debug\netcoreapp3.1\Migrations.dll
+C:\Users\Jonathan\source\repos\bot_2\Migrations\obj\Debug\netcoreapp3.1\Migrations.pdb
+C:\Users\Jonathan\source\repos\bot_2\Migrations\obj\Debug\netcoreapp3.1\Migrations.csproj.CoreCompileInputs.cache
+C:\Users\Jonathan\source\repos\bot_2\Migrations\bin\Debug\netcoreapp3.1\db.dll
+C:\Users\Jonathan\source\repos\bot_2\Migrations\bin\Debug\netcoreapp3.1\db.pdb
+C:\Users\Jonathan\source\repos\bot_2\Migrations\obj\Debug\netcoreapp3.1\Migrations.csproj.CopyComplete
