@@ -12,12 +12,130 @@ using Microsoft.EntityFrameworkCore;
 
 namespace bot_2.Commands
 {
-    public class Sorter
+    public class LobbySorterUtilities
     {
         Context _context;
-        public Sorter(Context _context)
+        public LobbySorterUtilities(Context context)
         {
-            this._context = _context;
+            this._context = context;
+        }
+        public async Task<DiscordRole> RecursiveCreateRole(CommandContext context, string type)
+        {
+            return await RecursiveCreateRole(context, type, 0);
+        }
+        public async Task<DiscordRole> RecursiveCreateRole(CommandContext context, string type, int counter)
+        {
+            var roles = context.Guild.Roles;
+            var target = roles.FirstOrDefault(x => x.Value.Name == type + "Lobby" + counter).Value;
+
+            if (target == null)
+            {
+                var role = await context.Guild.CreateRoleAsync(type + "Lobby" + counter);
+                return role;
+
+            }
+            else
+            {
+                return await RecursiveCreateRole(context, type, counter + 1);
+            }
+        }
+
+        public async Task<int> RecursiveGetLobbyNumber(CommandContext context)
+        {
+            return await RecursiveGetLobbyNumber(context, 0);
+        }
+
+        public async Task<int> RecursiveGetLobbyNumber(CommandContext context, int start)
+        {
+            var roles = context.Guild.Roles;
+            var target = roles.FirstOrDefault(x => x.Value.Name == "radiantLobby" + start).Value;
+            if (target == null)
+            {
+
+                return start;
+
+            }
+            else
+            {
+                return await RecursiveGetLobbyNumber(context, start + 1);
+            }
+        }
+
+        public DiscordChannel GetLobby(CommandContext context, int identifier)
+        {
+            var roles = context.Guild.Channels;
+            var target = roles.FirstOrDefault(x => x.Value.Name == "Lobby" + identifier).Value;
+            return target;
+        }
+
+        public List<DiscordRole> GetRoles(CommandContext context, int identifier)
+        {
+            List<DiscordRole> returnedRoles = new List<DiscordRole>();
+            if (context.Guild != null)
+            {
+                var roles = context.Guild.Roles;
+
+
+
+                List<string> definedRoles = new List<string> { "radiant", "dire", "spectator" };
+
+                foreach (string role in definedRoles)
+                {
+                    var target = roles.FirstOrDefault(x => x.Value.Name == role.ToLower() + "Lobby" + identifier).Value;
+                    if (target != null)
+                    {
+                        returnedRoles.Add(target);
+                    }
+
+                }
+
+
+            }
+            return returnedRoles;
+        }
+        public int GetTeamTrueMmr(List<Player> team)
+        {
+            int counter = 0;
+            foreach (Player player in team)
+            {
+                counter += player._truemmr;
+            }
+
+            return counter;
+        }
+        public string GetTeamLineup(CommandContext context, List<Player> team)
+        {
+            string text = "";
+
+            for (int i = 0; i < team.Count; i++)
+            {
+                string addon = "<not_found>";
+                if (context.Guild.Members.ContainsKey(team[i]._id))
+                {
+                    addon = context.Guild.Members[team[i]._id].Mention;
+                }
+                text += addon + "\n";
+            }
+
+            return text;
+        }
+        public async Task GrantRole(CommandContext context, List<Player> players, DiscordRole role)
+        {
+            var members = context.Guild.Members;
+            for (int i = 0; i < players.Count; i++)
+            {
+
+
+                if (members.ContainsKey(players[i]._id))
+                {
+                    //await context.Channel.SendMessageAsync("granting role WORKED");
+                    await members[players[i]._id].GrantRoleAsync(role);
+                }
+                else
+                {
+                    //await context.Channel.SendMessageAsync("granting role did not work, not found in db");
+                }
+            }
         }
 
         public DiscordRole GetRole(CommandContext context, string role)
@@ -25,11 +143,6 @@ namespace bot_2.Commands
             var roles = context.Guild.Roles;
             var target = roles.FirstOrDefault(x => x.Value.Name == role).Value;
             return target;
-        }
-
-        public async Task RevokeAllPermissions(DiscordChannel channel, DiscordRole role)
-        {
-            await channel.AddOverwriteAsync(role, DSharpPlus.Permissions.None, DSharpPlus.Permissions.AccessChannels);
         }
 
         public async Task ReportWinner(CommandContext context, string side, long steamid)
@@ -125,7 +238,7 @@ namespace bot_2.Commands
         public async Task CreditPlayer(ulong player, int increment)
         {
             var playerRecord = await _context.player_data.FindAsync(player);
-            if(playerRecord != null)
+            if (playerRecord != null)
             {
                 playerRecord._ihlmmr += increment;
                 playerRecord._gameswon += 1;
@@ -185,42 +298,46 @@ namespace bot_2.Commands
         public async Task ChangeGameStatus(ulong player, int status) //0 for notocc //1 for occ
         {
             var record = await _context.player_data.FindAsync(player);
-            if(record != null)
+            if (record != null)
             {
                 record._gamestatus = status;
                 await _context.SaveChangesAsync();
             }
 
         }
+    }
+
+    public class LobbySorter
+    {
+        Context _context;
+        public LobbySorterUtilities _utilities;
+
+        public LobbySorter(Context context)
+        {
+            this._context = context;
+            this._utilities = new LobbySorterUtilities(context);
+        }
+
+
+        public async Task RevokeAllPermissions(DiscordChannel channel, DiscordRole role)
+        {
+            await channel.AddOverwriteAsync(role, DSharpPlus.Permissions.None, DSharpPlus.Permissions.AccessChannels);
+        }
+
+
         public async Task Setup(CommandContext context)
         {
             try
             {
 
-                var LobbyNumber = await RecursiveGetLobbyNumber(context);
+                var LobbyNumber = await _utilities.RecursiveGetLobbyNumber(context);
 
-                var LobbyRoleRadiant = await RecursiveCreateRole(context, "radiant");
-                var LobbyRoleDire = await RecursiveCreateRole(context, "dire");
+                var LobbyRoleRadiant = await _utilities.RecursiveCreateRole(context, "radiant");
+                var LobbyRoleDire = await _utilities.RecursiveCreateRole(context, "dire");
                 //var LobbyRoleSpectator = await RecursiveCreateRole(context, "spectator");
 
-
-                //string radiant, dire, spectator, general, lobby
-
-                //await _context.SaveChangesAsync();
-                //ulong id = record._id;
-
-
-                //_context.player_queue.Remove(record);
-                //await _context.SaveChangesAsync();
-
-
-
-                //var playerInfo = await _context.player_data.FindAsync(id);
-                //temp.Add(new Player(newId, playerInfo._dotammr, playerInfo._ihlmmr, playerInfo._adjmmr));
-
-                //
-                var AverageRole = GetRole(context, "member");
-                var TrustedRole = GetRole(context, "trusted");
+                var AverageRole = _utilities.GetRole(context, "Member");
+                var TrustedRole = _utilities.GetRole(context, "Trusted");
 
                 var maxPlayers = 10;
 
@@ -265,40 +382,24 @@ namespace bot_2.Commands
 
 
                 var databaseList = await _context.game_data.ToListAsync();
-                var orderedGames = databaseList.OrderByDescending(p => p._id);
+                var orderedGames = databaseList.OrderByDescending(p => p._id).ToList();
 
                 var gameid = orderedGames[0];
 
-
-
-
-                var latestGame = await _context.game_data.FindAsync(gameid);
-
-                if (latestGame == null)
-                {
-                    return;
-                    //await context.Channel.SendMessageAsync("RECORD WASN'T FOUND AT ALL, numOfGames returning as = " + numOfGames.ToString());
-                }
-                else
-                {
-                    //await context.Channel.SendMessageAsync("latest game found, returning as " + numOfGames.ToString());
-                }
-
-
-                await _context.discord_channel_info.AddAsync(new ChannelInfo { _id = leader._id, _number = LobbyNumber, _gameid = gameid });
+                await _context.discord_channel_info.AddAsync(new ChannelInfo { _id = leader._id, _number = LobbyNumber, _gameid = gameid._id });
                 await _context.SaveChangesAsync();
                 
 
-                //players.OrderBy(p => p._truemmr).ToList();
+                players = players.OrderByDescending(p => p._truemmr).ToList();
 
 
                 List<Player> team1 = new List<Player>();
 
                 team1.Add(players[0]);
-                team1.Add(players[1]);
-                team1.Add(players[5]);
+                team1.Add(players[3]);
+                team1.Add(players[4]);
                 team1.Add(players[7]);
-                team1.Add(players[9]);
+                team1.Add(players[8]);
 
 
 
@@ -314,8 +415,8 @@ namespace bot_2.Commands
 
                 int basemmr = 15;
 
-                int team1mmr = GetTeamTrueMmr(team1);
-                int team2mmr = GetTeamTrueMmr(team2);
+                int team1mmr = _utilities.GetTeamTrueMmr(team1);
+                int team2mmr = _utilities.GetTeamTrueMmr(team2);
 
                 int team1gain = basemmr * team2mmr / team1mmr;
 
@@ -323,38 +424,31 @@ namespace bot_2.Commands
 
                 if (maxPlayers != 10)
                 {
-                    var recordRadiant = await _context.game_record.AddAsync(new TeamRecord { _side = 0, _gameid = latestGame._id, _onwin = team1gain, _onlose = team1loss, _p1 = team1[0]._id });
+                    var recordRadiant = await _context.game_record.AddAsync(new TeamRecord { _side = 0, _gameid = gameid._id, _onwin = team1gain, _onlose = team1loss, _p1 = team1[0]._id });
                     await _context.SaveChangesAsync();
 
-                    var recordDire = await _context.game_record.AddAsync(new TeamRecord { _side = 1, _gameid = latestGame._id, _onwin = team1loss, _onlose = team1gain, _p1 = team2[0]._id });
+                    var recordDire = await _context.game_record.AddAsync(new TeamRecord { _side = 1, _gameid = gameid._id, _onwin = team1loss, _onlose = team1gain, _p1 = team2[0]._id });
                     await _context.SaveChangesAsync();
                 }
                 else
                 {
-                    var recordRadiant = await _context.game_record.AddAsync(new TeamRecord { _side = 0, _gameid = latestGame._id, _onwin = team1gain, _onlose = team1loss, _p1 = team1[0]._id, _p2 = team1[1]._id, _p3 = team1[2]._id, _p4 = team1[3]._id, _p5 = team1[4]._id });
+                    var recordRadiant = await _context.game_record.AddAsync(new TeamRecord { _side = 0, _gameid = gameid._id, _onwin = team1gain, _onlose = team1loss, _p1 = team1[0]._id, _p2 = team1[1]._id, _p3 = team1[2]._id, _p4 = team1[3]._id, _p5 = team1[4]._id });
                     await _context.SaveChangesAsync();
-                    var recordDire = await _context.game_record.AddAsync(new TeamRecord { _side = 1, _gameid = latestGame._id, _onwin = team1loss, _onlose = team1gain, _p1 = team2[0]._id, _p2 = team2[1]._id, _p3 = team2[2]._id, _p4 = team2[3]._id, _p5 = team2[4]._id });
+                    var recordDire = await _context.game_record.AddAsync(new TeamRecord { _side = 1, _gameid = gameid._id, _onwin = team1loss, _onlose = team1gain, _p1 = team2[0]._id, _p2 = team2[1]._id, _p3 = team2[2]._id, _p4 = team2[3]._id, _p5 = team2[4]._id });
                     await _context.SaveChangesAsync();
                 }
 
 
-                var team1record = _context.game_record.FirstOrDefault(p => p._gameid == gameid && p._side == 0);
-                //team1record._onwin = team1gain;
-                //team1record._onlose = team1loss;
-
-                await ChangeTeamStatus(team1record, 1);
-
-                var team2record = _context.game_record.FirstOrDefault(p => p._gameid == gameid && p._side == 1);
-                //team2record._onwin = team1loss;
-                //team2record._onlose = team1gain;
-                //logic logic logic log ic
-                await ChangeTeamStatus(team2record, 1);
+                var team1record = _context.game_record.FirstOrDefault(p => p._gameid == gameid._id && p._side == 0);
+                await _utilities.ChangeTeamStatus(team1record, 1);
+                var team2record = _context.game_record.FirstOrDefault(p => p._gameid == gameid._id && p._side == 1);
+                await _utilities.ChangeTeamStatus(team2record, 1);
 
 
 
 
-                await GrantRole(context, team1, LobbyRoleRadiant);
-                await GrantRole(context, team2, LobbyRoleDire);
+                await _utilities.GrantRole(context, team1, LobbyRoleRadiant);
+                await _utilities.GrantRole(context, team2, LobbyRoleDire);
                 //grant role to casters later
 
                 var parent = await context.Guild.CreateChannelCategoryAsync("Lobby" + LobbyNumber);
@@ -362,9 +456,6 @@ namespace bot_2.Commands
                 var generaltext = await context.Guild.CreateChannelAsync("general", DSharpPlus.ChannelType.Text, parent);
                 var radiantvoice = await context.Guild.CreateChannelAsync("Radiant", DSharpPlus.ChannelType.Voice, parent);
                 var direvoice = await context.Guild.CreateChannelAsync("Dire", DSharpPlus.ChannelType.Voice, parent);
-
-                //await RevokeAllPermissions(generaltext, AverageRole);
-                //await RevokeAllPermissions(generaltext, TrustedRole);
 
                 await generaltext.AddOverwriteAsync(LobbyRoleRadiant, DSharpPlus.Permissions.AccessChannels);
                 await generaltext.AddOverwriteAsync(LobbyRoleDire, DSharpPlus.Permissions.AccessChannels);
@@ -374,9 +465,6 @@ namespace bot_2.Commands
 
                 await generaltext.AddOverwriteAsync(LobbyRoleRadiant, DSharpPlus.Permissions.ReadMessageHistory);
                 await generaltext.AddOverwriteAsync(LobbyRoleDire, DSharpPlus.Permissions.ReadMessageHistory);
-
-                //await generaltext.AddOverwriteAsync(TrustedRole, DSharpPlus.Permissions.None, DSharpPlus.Permissions.AccessChannels);
-                //await generaltext.AddOverwriteAsync(AverageRole, DSharpPlus.Permissions.None, DSharpPlus.Permissions.AccessChannels);
 
                 await generaltext.AddOverwriteAsync(LobbyRoleRadiant, DSharpPlus.Permissions.SendMessages);
                 await generaltext.AddOverwriteAsync(LobbyRoleDire, DSharpPlus.Permissions.SendMessages);
@@ -412,12 +500,12 @@ namespace bot_2.Commands
                 }
 
                 string radiantMention = "Radiant = \n" +
-                    "Win: " + team1gain + " mmr /// Lose: " +team1loss + " mmr \n" + GetTeamLineup(context, team1);
+                    "Win: " + team1gain + " mmr /// Lose: " +team1loss + " mmr \n" + _utilities.GetTeamLineup(context, team1);
                 string direMention = "Dire = \n" +
-                    "Win: " + team1loss + " mmr /// Lose: " + team1gain + " mmr \n" + GetTeamLineup(context, team2);
+                    "Win: " + team1loss + " mmr /// Lose: " + team1gain + " mmr \n" + _utilities.GetTeamLineup(context, team2);
 
-                string lobbyName = "grin" + gameid;
-                string lobbyPass = DateTime.Now.Millisecond.ToString("fff");
+                string lobbyName = "grin" + gameid._id;
+                string lobbyPass = "grin" + DateTime.Now.Millisecond;
 
                 string preinstructions = "\n\nLobby host can now create the game under **LobbyName = " + lobbyName + "**, and **Password = " + lobbyPass + "**.\n\n";
                 string instructions = preinstructions + "After the game, the host can report the winner by command '!radiant game_id_here' , '!dire game_id_here', or !draw 'game_id_here. If you need any help or something isn't working please contact an admin/mod.";
@@ -443,63 +531,18 @@ namespace bot_2.Commands
 
         }
 
-        public int GetTeamTrueMmr(List<Player> team)
-        {
-            int counter = 0;
-            foreach (Player player in team)
-            {
-                counter += player._truemmr;
-            }
 
-            return counter;
-        }
-        public string GetTeamLineup(CommandContext context, List<Player> team)
-        {
-            string text = "";
-
-            for (int i = 0; i < team.Count; i++)
-            {
-                string addon = "<not_found>";
-                if (context.Guild.Members.ContainsKey(team[i]._id))
-                {
-                    addon = context.Guild.Members[team[i]._id].Mention;
-                }
-                text += addon + "\n";
-            }
-
-            return text;
-        }
-        public async Task CreateRoom(CommandContext context, DiscordRole radiant, DiscordRole dire)
-        {
-            await Task.CompletedTask;
-        }
-
-        public async Task GrantRole(CommandContext context, List<Player> players, DiscordRole role)
-        {
-            var members = context.Guild.Members;
-            for (int i = 0; i < players.Count; i++)
-            {
-
-
-                if (members.ContainsKey(players[i]._id))
-                {
-                    //await context.Channel.SendMessageAsync("granting role WORKED");
-                    await members[players[i]._id].GrantRoleAsync(role);
-                }
-                else
-                {
-                    //await context.Channel.SendMessageAsync("granting role did not work, not found in db");
-                }
-            }
-        }
 
         public async Task<List<Player>> FormPlayerList(int maxPlayers)
         {
             List<Player> temp = new List<Player>();
 
+            var list = await _context.player_queue.ToListAsync();
+
+
             for (int i = 0; i < maxPlayers; i++)
             {
-                var list = await _context.player_queue.ToListAsync();
+
                 var record = list.First();
                 ulong id = record._id;
 
@@ -518,79 +561,6 @@ namespace bot_2.Commands
             return temp;
         }
 
-        public async Task<DiscordRole> RecursiveCreateRole(CommandContext context, string type)
-        {
-            return await RecursiveCreateRole(context, type, 0);
-        }
-        public async Task<DiscordRole> RecursiveCreateRole(CommandContext context, string type, int counter)
-        {
-            var roles = context.Guild.Roles;
-            var target = roles.FirstOrDefault(x => x.Value.Name == type + "Lobby" + counter).Value;
 
-            if (target == null)
-            {
-                var role = await context.Guild.CreateRoleAsync(type + "Lobby" + counter);
-                return role;
-
-            }
-            else
-            {
-                return await RecursiveCreateRole(context, type, counter + 1);
-            }
-        }
-
-        public async Task<int> RecursiveGetLobbyNumber(CommandContext context)
-        {
-            return await RecursiveGetLobbyNumber(context, 0);
-        }
-
-        public async Task<int> RecursiveGetLobbyNumber(CommandContext context, int start)
-        {
-            var roles = context.Guild.Roles;
-            var target = roles.FirstOrDefault(x => x.Value.Name == "radiantLobby" + start).Value;
-            if (target == null)
-            {
-
-                return start;
-
-            }
-            else
-            {
-                return await RecursiveGetLobbyNumber(context, start + 1);
-            }
-        }
-
-        public DiscordChannel GetLobby(CommandContext context, int identifier)
-        {
-            var roles = context.Guild.Channels;
-            var target = roles.FirstOrDefault(x => x.Value.Name == "Lobby" + identifier).Value;
-            return target;
-        }
-
-        public List<DiscordRole> GetRoles(CommandContext context, int identifier)
-        {
-            List<DiscordRole> returnedRoles = new List<DiscordRole>();
-            if (context.Guild != null)
-            {
-                var roles = context.Guild.Roles;
-
-
-
-                List<string> definedRoles = new List<string> { "radiant", "dire", "spectator" };
-
-                foreach (string role in definedRoles)
-                {
-                    var target = roles.FirstOrDefault(x => x.Value.Name == role.ToLower() + "Lobby" + identifier).Value;
-                    if (target != null)
-                    {
-                        returnedRoles.Add(target);
-                    }
-
-                }
-
-
-            }
-            return returnedRoles;
-        }
     }
 }

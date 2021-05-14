@@ -35,6 +35,7 @@
           "Migrations": "1.0.0",
           "Newtonsoft.Json": "13.0.1",
           "db": "1.0.0",
+          "OpenDota.NET": "2.2.0.0",
           "Microsoft.AspNetCore.Antiforgery": "3.1.0.0",
           "Microsoft.AspNetCore.Authentication.Abstractions": "3.1.0.0",
           "Microsoft.AspNetCore.Authentication.Cookies": "3.1.0.0",
@@ -2196,6 +2197,17 @@
         },
         "compile": {
           "Migrations.dll": {}
+        }
+      },
+      "OpenDota.NET/2.2.0.0": {
+        "runtime": {
+          "OpenDota.NET.dll": {
+            "assemblyVersion": "2.2.0.0",
+            "fileVersion": "2.2.0.0"
+          }
+        },
+        "compile": {
+          "OpenDota.NET.dll": {}
         }
       },
       "Microsoft.AspNetCore.Antiforgery/3.1.0.0": {
@@ -4870,6 +4882,11 @@
     },
     "Migrations/1.0.0": {
       "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "OpenDota.NET/2.2.0.0": {
+      "type": "reference",
       "serviceable": false,
       "sha512": ""
     },

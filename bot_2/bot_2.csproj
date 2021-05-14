@@ -25,4 +25,10 @@
     <ProjectReference Include="..\Migrations\Migrations.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Reference Include="OpenDota.NET">
+      <HintPath>OpenDota.NET.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
 </Project>

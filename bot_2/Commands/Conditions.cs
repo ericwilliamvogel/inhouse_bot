@@ -2,6 +2,7 @@
 using DSharpPlus.CommandsNext;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -26,6 +27,14 @@ namespace bot_2.Commands
         public Argument IsntQueued { get; set; }
 
         public Argument IsQueued { get; set; }
+
+        public Argument HasAtLeastAdminRole { get; set; }
+
+        public Argument HasAtLeastModRole { get; set; }
+
+        public Argument HasAtLeastMemberRole { get; set; }
+
+        public Argument HasAtLeastTrustedRole { get; set; }
         public Conditions(Context context)
         {
             _context = context;
@@ -101,13 +110,6 @@ namespace bot_2.Commands
 
             };
 
-            ///<summary>
-            ///
-            /// Double checking if our CorrectChannelFunction works
-            /// 
-            /// </summary>
-            /// 
-
             IsInCommandChannel = CorrectChannel(839336462431289374);
             IsInAdminCommandChannel = CorrectChannel(839336496484974622);
 
@@ -138,6 +140,16 @@ namespace bot_2.Commands
                     return false;
                 }
             };
+
+            HasAtLeastAdminRole = CorrectRole("Administration");
+
+            HasAtLeastModRole = CorrectRole("Mod");
+
+            HasAtLeastTrustedRole = CorrectRole("Trusted");
+
+            HasAtLeastMemberRole = CorrectRole("Member");
+
+
         }
 
         public Argument CorrectChannel(ulong id)
@@ -166,6 +178,32 @@ namespace bot_2.Commands
             return args;
         }
 
+        public Argument CorrectRole(string roleName)
+        {
+            Argument args = async (CommandContext context, Profile _profile) =>
+            {
+
+                var role = context.Guild.Roles.FirstOrDefault(p => p.Value.Name == roleName).Value; //i dont think we can access value if it returns null? could cause errors, kinda spooky
+                if(role == null)
+                {
+                    await _profile.SendDm("Role check for '" + roleName + "' was not found. The check for the role is case sensitive, this may be on the dev end to fix! Please open a ticket to report the issue.");
+                    return false;
+                }
+
+
+                if(_profile._member.Roles.Contains(role))
+                {
+                    return true;
+                }
+                else
+                {
+                    await _profile.SendDm("You don't have the minimum role necessary to execute this command.");
+                }
+                return false;
+            };
+
+            return args;
+        }
 
         public async Task<bool> AreMet(CommandContext context, Profile _profile, List<Argument> tasks)
         {
@@ -184,6 +222,30 @@ namespace bot_2.Commands
             }
 
             return true;
+
+        }
+
+        public async Task TryConditionedAction(CommandContext context, Profile _profile, List<Argument> tasks, Action action)
+        {
+            var conditions = await AreMet(context, _profile, tasks);
+
+            if(!conditions)
+            {
+                await context.Message.DeleteAsync();
+                return;
+            }
+            
+
+            try
+            {
+                action();
+                await context.Message.DeleteAsync();
+            }
+            catch(Exception e)
+            {
+                Console.WriteLine(e.ToString());
+            }
+
 
         }
 

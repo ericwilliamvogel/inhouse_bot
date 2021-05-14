@@ -29,7 +29,7 @@ namespace bot_2.Commands
         {
             get
             {
-                return _mmr + _ihlmmr * 3 + _adjmmr;
+                return _mmr + _ihlmmr * 3;
             }
         }
         public int _mmr { private get; set; }

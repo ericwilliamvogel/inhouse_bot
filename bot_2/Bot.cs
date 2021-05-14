@@ -45,10 +45,6 @@ CREATE TABLE primary_table(
 
             var configJson = JsonConvert.DeserializeObject<ConfigJson>(json);
 
-
-
-
-
             var config = new DiscordConfiguration
             {
                 Token = configJson.Token,
@@ -60,9 +56,10 @@ CREATE TABLE primary_table(
 
             Client = new DiscordClient(config);
 
-            Client.Ready += OnClientReady;
+            //Client.Ready += OnClientReady;
+            Client.Resumed += OnClientReady;
 
-            Client.MessageCreated += OnMessage;
+            //Client.MessageCreated += OnMessage;
             /*Client.UseInteractivity(new InteractivityConfiguration
             {
                 Timeout = TimeSpan.FromMinutes(2)
@@ -83,77 +80,17 @@ CREATE TABLE primary_table(
             Commands = Client.UseCommandsNext(commandsConfig);
 
             Commands.RegisterCommands<StandardCommands>();
-            //Commands.RegisterCommands<ItemCommands>();
+            Commands.RegisterCommands<AdminCommands>();
             //Commands.RegisterCommands<ProfileCommands>();
             //Commands.RegisterCommands<TeamCommands>();
 
             Client.ConnectAsync();
         }
 
-        private async Task OnMessage(DiscordClient c, MessageCreateEventArgs a)
-        {
-            if(a.Channel.Id != 838883268413620256)
-            {
-            }
-           
-        }
-        private async Task UpdateMessage()
-        {
-            var first = Client.Guilds.First().Value;
-            if(first == null)
-            {
-                Console.WriteLine("badkey guild");
-
-            }
-
-            ulong specificChannel = 774822115194699807;
-
-            ulong preloadedID = 838232985919946763;
-
-            if(first.Channels.ContainsKey(specificChannel))
-            {
-                Console.WriteLine("channel loaded");
-            }
-            else
-            {
-                Console.WriteLine("badkey channel");
-            }
-            Console.WriteLine(Client.Guilds.Count);
-            Console.WriteLine(first.Channels.Count);
-            var channel = first.Channels[specificChannel];
-            try
-            {
-                var message = await first.Channels[specificChannel].GetMessageAsync(preloadedID);
-                if (message == null)
-                {
-                    Console.WriteLine("was null");
-                }
-
-                await message.ModifyAsync("swaggy : " + DateTime.Now.ToString());
-
-                await Task.Delay(1000);
-
-                Console.WriteLine("trying");
-            }
-            catch(Exception e)
-            {
-                Console.WriteLine(e);
-            }
-
-        }
-
         private async Task OnClientReady(DiscordClient c, ReadyEventArgs e)
         {
-            
-            /*Task task = Task.Factory.StartNew(() =>
-            {
-               Task.Delay(3000);
-            }, TaskCreationOptions.LongRunning);
-
-
-            */
-            //await UpdateMessage();
-            //await Task.Delay(1000);
+            await UpdatedQueue.ResetVariables();
+            Console.WriteLine("Variables reset, new update thread should've been started");
         }
     }
 }

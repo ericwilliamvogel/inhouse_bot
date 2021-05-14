@@ -98,3 +98,4 @@ C:\Users\Jonathan\source\repos\bot_2\bot_2\bin\Debug\netcoreapp3.1\System.Runtim
 C:\Users\Jonathan\source\repos\bot_2\bot_2\obj\Debug\netcoreapp3.1\bot_2.csproj.CoreCompileInputs.cache
 C:\Users\Jonathan\source\repos\bot_2\bot_2\obj\Debug\netcoreapp3.1\bot_2.MvcApplicationPartsAssemblyInfo.cache
 C:\Users\Jonathan\source\repos\bot_2\bot_2\bin\Debug\netcoreapp3.1\channelConfig.json
+C:\Users\Jonathan\source\repos\bot_2\bot_2\bin\Debug\netcoreapp3.1\OpenDota.NET.dll
