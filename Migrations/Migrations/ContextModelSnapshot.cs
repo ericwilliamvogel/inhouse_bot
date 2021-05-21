@@ -66,9 +66,16 @@ namespace Migrations.Migrations
                 b.Property<int>("_status")
 .HasColumnType("int");
 
-
-
                 b.Property<int>("_gamestatus")
+.HasColumnType("int");
+
+                b.Property<int>("_region")
+.HasColumnType("int");
+
+                b.Property<int>("_role1")
+.HasColumnType("int");
+
+                b.Property<int>("_role2")
 .HasColumnType("int");
 
 
@@ -80,16 +87,62 @@ namespace Migrations.Migrations
 
             modelBuilder.Entity("db.QueueData", b =>
             {
-                            b.Property<ulong>("_id")
-                                    .ValueGeneratedOnAdd()
-                    .HasColumnType("NUMERIC(20,0)")
-                                    .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
-                            b.Property<DateTime>("_start")
-                    .HasColumnType("datetime");
+                b.Property<ulong>("_id")
+                        .ValueGeneratedOnAdd()
+        .HasColumnType("NUMERIC(20,0)")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                b.Property<DateTime>("_start")
+        .HasColumnType("datetime");
 
                 b.HasKey("_id");
 
                 b.ToTable("player_queue");
+            });
+
+            modelBuilder.Entity("db.LobbyPool", b =>
+            {
+                b.Property<int>("_id")
+                        .ValueGeneratedOnAdd()
+        .HasColumnType("NUMERIC(20,0)")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                b.Property<int>("_gameid")
+.HasColumnType("int");
+
+                b.Property<ulong>("_discordid")
+.HasColumnType("NUMERIC(20,0)");
+
+                b.HasKey("_id");
+
+                b.ToTable("lobby_pool");
+            });
+
+            modelBuilder.Entity("db.SpectatorQueueData", b =>
+            {
+                b.Property<ulong>("_id")
+                        .ValueGeneratedOnAdd()
+        .HasColumnType("NUMERIC(20,0)")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                b.Property<DateTime>("_start")
+        .HasColumnType("datetime");
+
+                b.HasKey("_id");
+
+                b.ToTable("spectator_queue");
+            });
+
+            modelBuilder.Entity("db.CasterQueueData", b =>
+            {
+                b.Property<ulong>("_id")
+                        .ValueGeneratedOnAdd()
+        .HasColumnType("NUMERIC(20,0)")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                b.Property<DateTime>("_start")
+        .HasColumnType("datetime");
+
+                b.HasKey("_id");
+
+                b.ToTable("caster_queue");
             });
 
 
@@ -102,6 +155,9 @@ namespace Migrations.Migrations
 
                 b.Property<int>("_side")
                         .HasColumnType("int");
+
+                b.Property<int>("_canpick")
+.HasColumnType("int");
 
                 b.Property<int>("_gameid")
         .HasColumnType("int");

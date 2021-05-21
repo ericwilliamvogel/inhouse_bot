@@ -55,29 +55,36 @@ namespace bot_2.Commands
                 started = true;
                 Task task = await Task.Factory.StartNew(async () =>
                 {
-                                await UpdateMessage(context);
+                   await UpdateMessage(context);
 
                 }, TaskCreationOptions.LongRunning);
 
 
             }
+            /*else
+            {
+                Profile profile = new Profile(context);
+                profile.SendDm("Queue thread has already been started. If it's still not moving for you, create a ticket and an admin can manually reset it.");
+            }*/
         }
         public async Task UpdateMessage(CommandContext context)
         {
 
-            if (context.Guild.Channels.ContainsKey(PreLoadedChannel))
-            {
-                Console.WriteLine("channel loaded");
-            }
-            else
-            {
-                Console.WriteLine("badkey channel");
-                return;
-            }
 
-            var channel = context.Guild.Channels[PreLoadedChannel];
             try
             {
+                if (context.Guild.Channels.ContainsKey(PreLoadedChannel))
+                {
+                    Console.WriteLine("channel loaded");
+                }
+                else
+                {
+                    Console.WriteLine("badkey channel");
+                    return;
+                }
+
+                var channel = context.Guild.Channels[PreLoadedChannel];
+
                 var message = await context.Guild.Channels[PreLoadedChannel].GetMessageAsync(PreLoadedMessage);
                 if (message == null)
                 {
@@ -86,8 +93,32 @@ namespace bot_2.Commands
                 }
 
                 var playersInQueue = await _context.player_queue.ToListAsync();
+                var castersInQueue = await _context.caster_queue.ToListAsync();
+                var spectatorsInQueue = await _context.spectator_queue.ToListAsync();
                 var gamesBeingPlayed = await _context.discord_channel_info.ToListAsync();
+
                 string players = "----------\nPlayers queueing: \n";
+
+                string casters = "----------\nCasters queueing: \n";
+
+                string spectators = "----------\nSpectators queueing: \n";
+
+                string stringend = "----------";
+                //string availableplayers = "----------\nPlayers afk/online: \n";
+                /*var playersNotInQueue = await _context.player_data.ToListAsync();
+                var x = playersNotInQueue.FindAll(p => p._gamestatus == 0);
+                foreach(var player in playersNotInQueue)
+                {
+                    var playerMMR = await _context.player_data.FindAsync(player._id);
+                    string mmr = "<mmr_not_found>";
+                    string othermmr = mmr;
+                    if (playerMMR != null)
+                    {
+                        mmr = playerMMR._ihlmmr.ToString();
+                        othermmr = playerMMR._dotammr.ToString();
+                    }
+                    availableplayers += "<@" + player._id + "> -- " + mmr + " inhouse mmr / " + othermmr + " dota mmr.\n";
+                }*/
                 DateTime end = DateTime.Now;
                 foreach (var player in playersInQueue)
                 {
@@ -105,19 +136,48 @@ namespace bot_2.Commands
 
                     players += "<@" + player._id + ">" + " : " + timespan + " -- " + mmr + " inhouse mmr / " + othermmr + " dota mmr.\n";
 
-                    /*
-                    if (context.Guild.Members.ContainsKey(player._id))
+                }
+
+                foreach (var caster in castersInQueue)
+                {
+                    var playerMMR = await _context.player_data.FindAsync(caster._id);
+                    string mmr = "<mmr_not_found>";
+                    string othermmr = mmr;
+                    if (playerMMR != null)
                     {
-                        
+                        mmr = playerMMR._ihlmmr.ToString();
+                        othermmr = playerMMR._dotammr.ToString();
                     }
-                    else
-                    {
-                        players += "Unknown player" + " : " + timespan + " -- " + " inhouse mmr.\n";
-                    }*/
+                    DateTime start = Convert.ToDateTime(caster._start);
+                    TimeSpan timespan = end - start; 
+                    timespan = StripMilliseconds(timespan);
+
+                    casters += "<@" + caster._id + ">" + " : " + timespan + "\n";
 
                 }
 
-                players += "----------";
+
+                foreach (var spectator in spectatorsInQueue)
+                {
+                    var playerMMR = await _context.player_data.FindAsync(spectator._id);
+                    string mmr = "<mmr_not_found>";
+                    string othermmr = mmr;
+                    if (playerMMR != null)
+                    {
+                        mmr = playerMMR._ihlmmr.ToString();
+                        othermmr = playerMMR._dotammr.ToString();
+                    }
+                    DateTime start = Convert.ToDateTime(spectator._start);
+                    TimeSpan timespan = end - start;
+                    timespan = StripMilliseconds(timespan);
+
+                    spectators += "<@" + spectator._id + ">" + " : " + timespan + " -- " + mmr + " inhouse mmr / " + othermmr + " dota mmr.\n";
+
+                }
+
+                players += stringend;
+                casters += stringend;
+                spectators += stringend;
 
                 string currentGames = await _utilities.CreateGameProfile(context, gamesBeingPlayed);
 
@@ -135,7 +195,17 @@ namespace bot_2.Commands
                 }
                 leaderboard += "---------------------\n\n";
 
-                string finalString = DateTime.Now.ToString() + "\nWelcome to GrinHouseLeague. There are **" + playersInQueue.Count + " players** in queue and **" + gamesBeingPlayed.Count + " games** currently being played.\n\n" + leaderboard + players + "\n\n" + currentGames;
+
+                string finalString = DateTime.Now.ToString() + "\nWelcome to GrinHouseLeague. There are **" + playersInQueue.Count + " players** in queue and **" + gamesBeingPlayed.Count + " games** currently being played.\n\n" + leaderboard +
+                    players +
+                    "\n\n" +
+                    casters +
+                    "\n\n" +
+                    spectators +
+                    "\n\n" +
+                    //availableplayers +
+                    //"\n\n" +
+                    currentGames;
 
 
 
@@ -144,8 +214,6 @@ namespace bot_2.Commands
                 await Task.Delay(2000);
 
                 await UpdateMessage(context);
-
-                Console.WriteLine("trying");
             }
             catch (Exception e)
             {

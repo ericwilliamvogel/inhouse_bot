@@ -18,6 +18,7 @@ namespace db
 
         public int _onwin { get; set; }
 
+        public int _canpick { get; set; }
         public int _onlose { get; set; }
 
         public ulong _p1 { get; set; }

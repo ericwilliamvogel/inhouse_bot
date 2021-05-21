@@ -38,6 +38,13 @@ namespace bot_2.Commands
                 mention += " / " + record._ihlmmr.ToString() + " GrinhouseMMR / " + record._dotammr.ToString() + " DotaMMR.";
             }
             mention += "\n";
+
+            if (player == 0)
+            {
+                mention = "";
+            }
+
+
             return mention;
         }
         public async Task<string> CreateGameProfile(CommandContext context, List<ChannelInfo> records)
@@ -64,6 +71,8 @@ namespace bot_2.Commands
 
                 string dMen = await GetTeamMention(context, dire);
                 string rMen = await GetTeamMention(context, radiant);
+                string cMen = await GetTeamMention(context, radiant);
+                string sMen = await GetTeamMention(context, dire);
 
                 string radiantMention = "Radiant = \n" +
                     "Win: " + radiantGain + " mmr /// Lose: " + radiantLoss + " mmr \n" + rMen;

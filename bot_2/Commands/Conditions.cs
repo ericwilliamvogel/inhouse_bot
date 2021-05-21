@@ -8,6 +8,29 @@ using System.Threading.Tasks;
 
 namespace bot_2.Commands
 {
+    public enum Arg
+    {
+        IsReady,
+        IsRegistered,
+        IsntRegistered,
+        IsInCommandChannel,
+        IsInAdminCommandChannel,
+        IsntQueued,
+        IsQueued,
+        IsntSpectatorQueued,
+        IsSpectatorQueued,
+        IsntCasterQueued,
+        IsCasterQueued,
+        HasAdminRole,
+        HasModRole,
+        HasMemberRole,
+        HasTrustedRole,
+        HasCasterRole,
+        IsLobbyCaptain,
+        CanPick,
+        HasMention,
+        ProfileComplete
+    }
     public class Conditions
     {
         Context _context;
@@ -17,6 +40,8 @@ namespace bot_2.Commands
         /// We should make an argument dictionary and an enum key????
         /// 
         /// </summary>
+        /// 
+        public Dictionary<Arg, Argument> _check;
         public Argument IsReady { get; set; } //not occupied code 0
         public Argument IsRegistered { get; set; } //already !registered
 
@@ -28,6 +53,14 @@ namespace bot_2.Commands
 
         public Argument IsQueued { get; set; }
 
+        public Argument IsntSpectatorQueued { get; set; }
+
+        public Argument IsSpectatorQueued { get; set; }
+
+        public Argument IsntCasterQueued { get; set; }
+
+        public Argument IsCasterQueued { get; set; }
+
         public Argument HasAtLeastAdminRole { get; set; }
 
         public Argument HasAtLeastModRole { get; set; }
@@ -35,112 +68,267 @@ namespace bot_2.Commands
         public Argument HasAtLeastMemberRole { get; set; }
 
         public Argument HasAtLeastTrustedRole { get; set; }
+
+        public Argument HasCasterRole { get; set; }
         public Conditions(Context context)
         {
             _context = context;
-            IsReady = async (CommandContext context, Profile _profile) =>
-            {
-                var record = await _context.player_data.FindAsync(_profile._id);
-                if (record == null)
-                    return false;
-
-                if (record._gamestatus == 0) //notocc
+            _check = new Dictionary<Arg, Argument>();
+            _check.Add(
+                Arg.IsReady,
+                async (CommandContext context, Profile _profile) =>
                 {
-                    return true;
-                }
-                else //occ
-                {
-                    await _profile.SendDm("Our records show that you are already in a game. Some restrictions apply if you are already occupied, an example being you cannot queue.");
-                }
+                    var record = await _context.player_data.FindAsync(_profile._id);
+                    if (record == null)
+                        return false;
 
-                return false;
-            };
+                    if (record._gamestatus == 0) //notocc
+                    {
+                        return true;
+                    }
+                    else //occ
+                    {
+                        await _profile.SendDm("Our records show that you are already in a game/already in a queue. Some restrictions apply if you are already occupied, an example being you cannot queue.");
+                    }
 
-            IsRegistered = async (CommandContext context, Profile _profile) =>
-            {
-                var checkIfRegistered = await _context.player_data.FindAsync(_profile._id);
-                if (checkIfRegistered != null)
-                {
-                    return true;
-                }
-                else
-                {
-                    await _profile.SendDm("You aren't registered. Register by going to the #commands channel and typing !register your_steam_id_here to get signed up. We need you to register in order to track your GHL mmr after every game.");
-                }
-
-                return false;
-
-            };
-
-            IsntRegistered = async (CommandContext context, Profile _profile) =>
-            {
-                var checkIfRegistered = await _context.player_data.FindAsync(_profile._id);
-                if (checkIfRegistered == null)
-                {
-                    return true;
-                }
-                else
-                {
-                    await _profile.SendDm("You're already registered.");
-                }
-
-                return false;
-
-            };
-
-            IsInCommandChannel = async (CommandContext context, Profile _profile) =>
-            {
-                ulong channel = 838883268413620256;
-                string channelName = "<channel_not_found>";
-
-                if (context.Guild.Channels.ContainsKey(channel))
-                {
-                    channelName = context.Guild.Channels[channel].Name;
-                }
-
-                if (context.Channel.Id == channel)
-                {
-                    return true;
-                }
-                else
-                {
-                    await _profile.SendDm("You cannot issue this command in this channel. This command can only be executed in channel '" + channelName + "'.");
-                }
-                return false;
-
-            };
-
-            IsInCommandChannel = CorrectChannel(839336462431289374);
-            IsInAdminCommandChannel = CorrectChannel(839336496484974622);
-
-            IsntQueued = async (CommandContext context, Profile _profile) =>
-            {
-                var player = await _context.player_queue.FindAsync(_profile._id);
-                if (player == null)
-                {
-                    return true;
-                }
-                else
-                {
-                    await _profile.SendDm("You're already in queue.");
                     return false;
                 }
-            };
 
-            IsQueued = async (CommandContext context, Profile _profile) =>
-            {
-                var player = await _context.player_queue.FindAsync(_profile._id);
-                if (player != null)
+            );
+
+            _check.Add(
+                Arg.IsRegistered,
+                async (CommandContext context, Profile _profile) =>
                 {
-                    return true;
-                }
-                else
-                {
-                    await _profile.SendDm("You're not in any queue.");
+                    var checkIfRegistered = await _context.player_data.FindAsync(_profile._id);
+                    if (checkIfRegistered != null)
+                    {
+                        return true;
+                    }
+                    else
+                    {
+                        await _profile.SendDm("You aren't registered. Register by going to the #commands channel and typing !register your_steam_id_here to get signed up. We need you to register in order to track your GHL mmr after every game.");
+                    }
+
                     return false;
                 }
-            };
 
+            );
+
+            _check.Add(
+                Arg.IsntRegistered,
+                async (CommandContext context, Profile _profile) =>
+                {
+                    var checkIfRegistered = await _context.player_data.FindAsync(_profile._id);
+                    if (checkIfRegistered == null)
+                    {
+                        return true;
+                    }
+                    else
+                    {
+                        await _profile.SendDm("You're already registered.");
+                    }
+
+                    return false;
+                }
+
+            );
+            _check.Add(
+                Arg.IsInCommandChannel, CorrectChannel(839336462431289374)
+            );
+            _check.Add(
+                Arg.IsInAdminCommandChannel, CorrectChannel(839336496484974622)
+            );
+
+            _check.Add(
+                Arg.IsntQueued,
+                async (CommandContext context, Profile _profile) =>
+                {
+                    var player = await _context.player_queue.FindAsync(_profile._id);
+                    if (player == null)
+                    {
+                        return true;
+                    }
+                    else
+                    {
+                        await _profile.SendDm("You're already in queue.");
+                        return false;
+                    }
+                }
+
+            );
+            _check.Add(
+                Arg.IsQueued,
+                async (CommandContext context, Profile _profile) =>
+                {
+                    var player = await _context.player_queue.FindAsync(_profile._id);
+                    if (player != null)
+                    {
+                        return true;
+                    }
+                    else
+                    {
+                        await _profile.SendDm("You're not in any queue.");
+                        return false;
+                    }
+                }
+
+                );
+            _check.Add(
+                Arg.IsntCasterQueued,
+                async (CommandContext context, Profile _profile) =>
+                {
+                    var player = await _context.caster_queue.FindAsync(_profile._id);
+                    if (player == null)
+                    {
+                        return true;
+                    }
+                    else
+                    {
+                        await _profile.SendDm("You're already in queue.");
+                        return false;
+                    }
+                }
+
+                );
+            _check.Add(
+                Arg.IsCasterQueued,
+                async (CommandContext context, Profile _profile) =>
+                {
+                    var player = await _context.caster_queue.FindAsync(_profile._id);
+                    if (player != null)
+                    {
+                        return true;
+                    }
+                    else
+                    {
+                        await _profile.SendDm("You're not in any queue.");
+                        return false;
+                    }
+                }
+
+                );
+            _check.Add(
+                Arg.IsntSpectatorQueued,
+                async (CommandContext context, Profile _profile) =>
+                {
+                    var player = await _context.spectator_queue.FindAsync(_profile._id);
+                    if (player == null)
+                    {
+                        return true;
+                    }
+                    else
+                    {
+                        await _profile.SendDm("You're already in queue.");
+                        return false;
+                    }
+                }
+
+                );
+            _check.Add(
+                Arg.IsSpectatorQueued,
+                async (CommandContext context, Profile _profile) =>
+                {
+                    var player = await _context.spectator_queue.FindAsync(_profile._id);
+                    if (player != null)
+                    {
+                        return true;
+                    }
+                    else
+                    {
+                        await _profile.SendDm("You're not in any queue.");
+                        return false;
+                    }
+                }
+
+                );
+
+            _check.Add(
+                Arg.HasAdminRole,
+                CorrectRole("Administration")
+                );
+            _check.Add(
+                Arg.HasModRole,
+                CorrectRole("Mod")
+                );
+            _check.Add(
+            Arg.HasTrustedRole,
+            CorrectRole("Trusted")
+            );
+                        _check.Add(
+            Arg.HasMemberRole,
+            CorrectRole("Member")
+            );
+                        _check.Add(
+            Arg.HasCasterRole,
+            CorrectRole("Caster")
+            );
+
+            _check.Add(Arg.IsLobbyCaptain,
+                async (CommandContext context, Profile _profile) =>
+                { 
+                    var record = _context.game_record.FirstOrDefault(p => p._p1 == _profile._id && p._p5 == 0);
+                    if(record == null)
+                    {
+                        await _profile.SendDm("You were not found as a leader in any database records.");
+                        return false;
+                    }
+                    else
+                    {
+                        return true;
+                    }
+
+                }
+            );
+
+            _check.Add(Arg.CanPick,
+                async (CommandContext context, Profile _profile) =>
+                {
+                    var record = _context.game_record.First(p => p._p1 == _profile._id && p._p5 == 0);
+                    if (record == null)
+                    {
+                        await _profile.SendDm("You were not found as a leader in any database records.");
+                        return false;
+                    }
+
+                    if(record._canpick == 0)
+                    {
+                        await _profile.SendDm("It's not your turn to pick.");
+                        return false;
+                    }
+
+                    return true;
+
+
+                });
+
+            _check.Add(Arg.HasMention,
+                async (CommandContext context, Profile _profile) =>
+                {
+                    if (context.Message.MentionedUsers.Count > 0)
+                    {
+                        return true;
+                    }
+
+                    await _profile.SendDm("There were no mentions recognized in your command.");
+                    return false;
+
+                });
+
+            _check.Add(Arg.ProfileComplete,
+                    async (CommandContext context, Profile _profile) =>
+                    {
+                        var record = await _context.player_data.FindAsync(_profile._id);
+                        if (record._role1 != 0 && record._role2 != 1 && record._region != (int)Region.NONE)
+                        {
+                            return true;
+                        }
+
+                        await _profile.SendDm("Your profile is incomplete, please type !preferences for information on how to complete your profile.");
+                        return false;
+
+                    });
+            /*
             HasAtLeastAdminRole = CorrectRole("Administration");
 
             HasAtLeastModRole = CorrectRole("Mod");
@@ -149,7 +337,8 @@ namespace bot_2.Commands
 
             HasAtLeastMemberRole = CorrectRole("Member");
 
-
+            HasCasterRole = CorrectRole("Caster");
+            */
         }
 
         public Argument CorrectChannel(ulong id)
@@ -205,17 +394,20 @@ namespace bot_2.Commands
             return args;
         }
 
-        public async Task<bool> AreMet(CommandContext context, Profile _profile, List<Argument> tasks)
+        public async Task<bool> AreMet(CommandContext context, Profile _profile, List<Arg> tasks)
         {
             bool pass = true;
-            foreach (Argument task in tasks)
+            foreach (Arg task in tasks)
             {
-                var conf = await task(context, _profile);
+                var conf = await _check[task](context, _profile);
                 if (conf == false)
                 {
-                    pass = false;
+                    return false;
                 }
             }
+
+
+            //deprecated, but may need in future 5/20/21 
             if (!pass)
             {
                 return false;
@@ -225,29 +417,31 @@ namespace bot_2.Commands
 
         }
 
-        public async Task TryConditionedAction(CommandContext context, Profile _profile, List<Argument> tasks, Action action)
+        public async Task TryConditionedAction(CommandContext context, Profile _profile, List<Arg> tasks, Action action)
         {
             var conditions = await AreMet(context, _profile, tasks);
 
-            if(!conditions)
+            if (!conditions)
             {
                 await context.Message.DeleteAsync();
                 return;
             }
-            
+
 
             try
             {
                 action();
                 await context.Message.DeleteAsync();
             }
-            catch(Exception e)
+            catch (Exception e)
             {
-                Console.WriteLine(e.ToString());
+                await _profile.ReportError(context, e);
             }
 
 
         }
+
+
 
     }
 }

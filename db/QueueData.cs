@@ -8,4 +8,10 @@ namespace db
     {
         public string _start;
     }
+
+    //this is for dbset, the conversion will likely return errors cuz it cant differentiate between different lists of queuedata.
+    //so we have to use inheritance
+
+
+
 }

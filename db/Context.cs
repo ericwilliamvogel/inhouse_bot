@@ -12,7 +12,13 @@ namespace db
 
         public DbSet<PlayerData> player_data { get; set; }
 
+        public DbSet<LobbyPool> lobby_pool { get; set; }
+
         public DbSet<QueueData> player_queue { get; set; }
+
+        public DbSet<CasterQueueData> caster_queue { get; set; }
+
+        public DbSet<SpectatorQueueData> spectator_queue { get; set; }
 
         public DbSet<GameData> game_data { get; set; }
 

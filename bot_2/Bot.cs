@@ -56,10 +56,9 @@ CREATE TABLE primary_table(
 
             Client = new DiscordClient(config);
 
-            //Client.Ready += OnClientReady;
             Client.Resumed += OnClientReady;
+            Client.MessageCreated += OnMessageCreated;
 
-            //Client.MessageCreated += OnMessage;
             /*Client.UseInteractivity(new InteractivityConfiguration
             {
                 Timeout = TimeSpan.FromMinutes(2)
@@ -81,8 +80,7 @@ CREATE TABLE primary_table(
 
             Commands.RegisterCommands<StandardCommands>();
             Commands.RegisterCommands<AdminCommands>();
-            //Commands.RegisterCommands<ProfileCommands>();
-            //Commands.RegisterCommands<TeamCommands>();
+            Commands.RegisterCommands<CasterCommands>();
 
             Client.ConnectAsync();
         }
@@ -91,6 +89,72 @@ CREATE TABLE primary_table(
         {
             await UpdatedQueue.ResetVariables();
             Console.WriteLine("Variables reset, new update thread should've been started");
+        }
+
+        private async Task OnMessageCreated(DiscordClient c, MessageCreateEventArgs e)
+        {
+            try
+            {
+
+                var array = e.Message.Content;
+                char prefix;
+
+                if(array !=null)
+                prefix = array[0];
+
+                if(e!=null)
+                {
+                    if(e.Guild !=null)
+                    {
+                        if (e.Guild.Channels.ContainsKey(839336462431289374))
+                        {
+                            if (e.Channel == e.Guild.Channels[839336462431289374])
+                            {
+                                Task task = await Task.Factory.StartNew(async () =>
+                                {
+                                    await Task.Delay(3000);
+
+                                    if (e != null)
+                                    {
+                                        if (e.Message != null)
+                                        {
+                                            await e.Message.DeleteAsync();
+                                        }
+                                    }
+
+                                }, TaskCreationOptions.LongRunning);
+
+
+
+                            }
+                        }
+
+                    }
+                }
+
+                /*var newmsg = array.Substring(1);
+
+
+                //hard coded this cuz we dont know what prefix is?
+                if (prefix == '!' && !Commands.RegisteredCommands.ContainsKey(newmsg))
+                {
+                    Task task = await Task.Factory.StartNew(async () =>
+                    {
+                        var msg = await e.Channel.SendMessageAsync(e.Author.Mention + ", '" + e.Message.Content + "' is an invalid command. Check the #commands channel to see valid commands.");
+
+                        await e.Message.DeleteAsync();
+
+
+                    }, TaskCreationOptions.LongRunning);
+
+                }
+                */
+            }
+            catch(Exception exc)
+            {
+                Console.WriteLine(exc.ToString());
+            }
+
         }
     }
 }

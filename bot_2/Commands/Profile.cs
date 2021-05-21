@@ -17,13 +17,11 @@ namespace bot_2.Commands
         public ulong _id;
         public int _status { get; set; }
         //ihlmmr starts at 400? increments by 20.
-        public Player(ulong _id, int _mmr, int _ihlmmr, int _adjmmr, int _status)
+        public Player(ulong _id, int _mmr, int _ihlmmr)
         {
             this._id = _id;
             this._mmr = _mmr;
             this._ihlmmr = _ihlmmr;
-            this._adjmmr = _adjmmr;
-            this._status = _status;
         }
         public int _truemmr
         {
@@ -32,10 +30,8 @@ namespace bot_2.Commands
                 return _mmr + _ihlmmr * 3;
             }
         }
-        public int _mmr { private get; set; }
-        public int _ihlmmr { private get; set; }
-        public int _adjmmr { private get; set; }
-
+        public int _mmr { get; set; }
+        public int _ihlmmr { get; set; }
     }
 
     public class Profile
@@ -95,9 +91,21 @@ namespace bot_2.Commands
 
             }
         }
-        public async Task ReportError(Exception input)
+        public async Task ReportError(CommandContext context, Exception input)
         {
-            await SendDm("Some weird error occurred. Send a screenshot of this to #bugs or an admin/mod. Thank you. \n Details = \n" + input.ToString());
+            if(context.Guild.Channels.ContainsKey(844949177347604531))
+            {
+                //error log channel
+                var channel = context.Guild.Channels[844949177347604531];
+                //tag me
+                await channel.SendMessageAsync("<@126922582208282624> : " + input.ToString());
+            }
+            else
+            {
+                await SendDm("Some weird error occurred. Send a screenshot of this to #bugs or an admin/mod. Thank you. \n Details = \n" + input.ToString());
+            }
+
+
         }
     }
 }

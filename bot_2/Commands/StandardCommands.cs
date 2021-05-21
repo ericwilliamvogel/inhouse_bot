@@ -1,16 +1,12 @@
 ﻿using db;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
-using DSharpPlus.Entities;
 using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json;
+using OpenDotaDotNet;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using OpenDotaDotNet;
 
 namespace bot_2.Commands
 {
@@ -42,16 +38,103 @@ namespace bot_2.Commands
 
 
 
+        [Command("spectatorqueue")]
+        public async Task SpectatorQueue(CommandContext context)
+        {
+            Profile _profile = new Profile(context);
+
+            var verified = await _conditions.AreMet(context, _profile,
+                new List<Arg> {
+                    Arg.IsRegistered,
+                    Arg.IsInCommandChannel
+                });
+
+            if (!verified)
+            {
+                await context.Message.DeleteAsync();
+                return;
+            }
+
+            //we need to seperate the two bundles of arguments because we'll return a null error if the user doesn't have a record under player_data/player_record
+            await _conditions.TryConditionedAction(context, _profile,
+
+                new List<Arg> {
+                       Arg.IsReady,
+                       Arg.IsntSpectatorQueued
+                },
+
+                async () =>
+                {
+
+                    string dt = DateTime.Now.ToString();
+                    await _context.spectator_queue.AddAsync(new SpectatorQueueData { _id = _profile._id, _start = dt }).ConfigureAwait(false);
+                    var record = await _context.player_data.FindAsync(_profile._id);
+                    record._gamestatus = 1;
+                    await _context.SaveChangesAsync().ConfigureAwait(false);
+
+
+                    await _updatedQueue.StartThread(context);
+                    await _profile.SendDm("You've been placed in SPECTATOR queue. You will be notified via DM when it pops. In the server's command channel type !spectatorleave if you would like to leave the queue.");
 
 
 
-        /*[Command("generatemessage")]
+
+                });
+
+
+
+
+
+        }
+
+        [Command("spectatorleave")]
+        public async Task SpectatorLeaveQueue(CommandContext context)
+        {
+            Profile _profile = new Profile(context);
+
+            await _conditions.TryConditionedAction(context, _profile,
+
+                new List<Arg> {
+                            Arg.IsRegistered,
+                            Arg.IsInCommandChannel,
+                            Arg.IsSpectatorQueued
+                },
+
+                async () =>
+                {
+
+
+                    var record = _context.spectator_queue.First(p => p._id == _profile._id);
+                    if (record == null)
+                    {
+                        await _profile.SendDm("Error, I have no idea how this could happen. Spectator queue record not recognized on leave. Create a ticket and report this message please.");
+                    }
+
+
+
+                    _context.spectator_queue.Remove(record);
+
+
+                    var s_record = await _context.player_data.FindAsync(_profile._id);
+                    s_record._gamestatus = 0;
+                    await _context.SaveChangesAsync();
+
+
+                    await _profile.SendDm("You've been removed from queue.");
+
+
+                });
+        }
+
+
+
+        [Command("generatemessage")]
         public async Task GenMessage(CommandContext context)
         {
             Profile _profile = new Profile(context);
 
             var verified = await _conditions.AreMet(context, _profile,
-                new List<Argument> {
+                new List<Arg> {
 
                 });
 
@@ -63,7 +146,49 @@ namespace bot_2.Commands
             await context.Channel.SendMessageAsync("manuallygeneratedmessage");
             await context.Message.DeleteAsync();
         
-        }*/
+        }
+
+        /*[Command("deletemessage")]
+        public async Task RefreshQueue(CommandContext context, ulong id)
+        {
+            Profile _profile = new Profile(context);
+
+            await _conditions.TryConditionedAction(context, _profile,
+
+                new List<Argument> {
+                            _conditions.IsRegistered,
+                            _conditions.IsInCommandChannel
+                },
+
+                async () =>
+                {
+
+                    var msg = await context.Channel.GetMessageAsync(id);
+                    await msg.DeleteAsync();
+                });
+        }
+        */
+        [Command("refresh")]
+        public async Task RefreshQueue(CommandContext context)
+        {
+            Profile _profile = new Profile(context);
+
+            await _conditions.TryConditionedAction(context, _profile,
+
+                new List<Arg> {
+                            Arg.IsRegistered,
+                            Arg.IsInCommandChannel
+                },
+
+                async () =>
+                {
+
+                    await _updatedQueue.StartThread(context);
+
+                });
+        }
+
+
 
         [Command("leave")]
         public async Task LeaveQueue(CommandContext context)
@@ -72,10 +197,10 @@ namespace bot_2.Commands
 
             await _conditions.TryConditionedAction(context, _profile,
 
-                new List<Argument> {
-                            _conditions.IsRegistered,
-                            _conditions.IsInCommandChannel,
-                            _conditions.IsQueued
+                new List<Arg> {
+                            Arg.IsRegistered,
+                            Arg.IsInCommandChannel,
+                            Arg.IsQueued
                 },
 
                 async () =>
@@ -89,6 +214,9 @@ namespace bot_2.Commands
                     }
 
                     _context.player_queue.Remove(record);
+
+                    var p_record = await _context.player_data.FindAsync(_profile._id);
+                    p_record._gamestatus = 0;
                     await _context.SaveChangesAsync();
                     await _profile.SendDm("You've been removed from queue.");
 
@@ -105,9 +233,9 @@ namespace bot_2.Commands
 
             await _conditions.TryConditionedAction(context, _profile,
 
-                new List<Argument> {
-                            _conditions.IsRegistered,
-                            _conditions.IsInCommandChannel
+                new List<Arg> {
+                            Arg.IsRegistered,
+                            Arg.IsInCommandChannel
                 },
 
                 async () =>
@@ -127,9 +255,9 @@ namespace bot_2.Commands
 
             await _conditions.TryConditionedAction(context, _profile,
 
-            new List<Argument> {
-                            _conditions.IsRegistered,
-                            _conditions.IsInCommandChannel
+            new List<Arg> {
+                            Arg.IsRegistered,
+                            Arg.IsInCommandChannel
             },
 
             async () =>
@@ -152,9 +280,9 @@ namespace bot_2.Commands
 
             await _conditions.TryConditionedAction(context, _profile,
 
-            new List<Argument> {
-                            _conditions.IsRegistered,
-                            _conditions.IsInCommandChannel
+            new List<Arg> {
+                            Arg.IsRegistered,
+                            Arg.IsInCommandChannel
             },
 
             async () =>
@@ -185,9 +313,9 @@ namespace bot_2.Commands
 
             await _conditions.TryConditionedAction(context, _profile,
 
-            new List<Argument> {
-                            _conditions.IsRegistered,
-                            _conditions.IsInCommandChannel
+            new List<Arg> {
+                            Arg.IsRegistered,
+                            Arg.IsInCommandChannel
             },
 
             async () =>
@@ -203,14 +331,136 @@ namespace bot_2.Commands
             });
 
         }
+
+        [Command("updateregion")]
+        public async Task UpdateRegion(CommandContext context, string input)
+        {
+            Profile _profile = new Profile(context);
+
+            await _conditions.TryConditionedAction(context, _profile,
+
+            new List<Arg> {
+                            Arg.IsRegistered,
+                            Arg.IsInCommandChannel
+            },
+
+            async () =>
+            {
+
+                var player = await _context.player_data.FindAsync(_profile._id);
+                string msg = input.ToLower();
+                if(msg == "east" || msg == "useast" || msg == "use")
+                {
+                    player._region = (int)Region.USEAST;
+                    await _context.SaveChangesAsync();
+                    await _profile.SendDm("Updated your region to " + (Region)player._region);
+                }
+                else if (msg == "west" || msg == "uswest" || msg == "usw")
+                {
+                    player._region = (int)Region.USWEST;
+                    await _context.SaveChangesAsync();
+                    await _profile.SendDm("Updated your region to " + (Region)player._region);
+                }
+                else
+                {
+                    await _profile.SendDm("Input " + input + " was not recognized as valid. Just type west or east :)");
+                }
+
+            });
+
+        }
+
+        [Command("updatepositions")]
+        public async Task UpdateRoleOne(CommandContext context, int input, int input2)
+        {
+            Profile _profile = new Profile(context);
+
+            await _conditions.TryConditionedAction(context, _profile,
+
+            new List<Arg> {
+                    Arg.IsRegistered,
+                    Arg.IsInCommandChannel
+            },
+
+            async () =>
+            {
+                var player = await _context.player_data.FindAsync(_profile._id);
+                if (input <= 0 || input >= 6 || input2 <= 0 || input2 >= 6)
+                {
+                    await _profile.SendDm("Input " + input + " was not recognized as valid. Use a number between 1 and 5.");
+                }
+                else
+                {
+                    player._role1 = input;
+                    player._role2 = input2;
+                    await _context.SaveChangesAsync();
+                    await _profile.SendDm("Updated your primary role to " + player._role1 + ". Your second role has been set as " + player._role2 + ".");
+                }
+
+
+            });
+
+        }
+
+        [Command("preferences")]
+        public async Task Preferences(CommandContext context)
+        {
+            Profile _profile = new Profile(context);
+
+            await _conditions.TryConditionedAction(context, _profile,
+
+            new List<Arg> {
+                    Arg.IsRegistered,
+                    Arg.IsInCommandChannel
+            },
+
+            async () =>
+            {
+                var player = await _context.player_data.FindAsync(_profile._id);
+
+                string error = "";
+                string info = "Your profile:";
+                info += "\nDotaFriendID = " + player._steamid;
+                info += "\nRegion = " + (Region)player._region;
+                info += "\nRole1 = " + player._role1;
+                info += "\nRole2 = " + player._role2;
+
+                if (player._steamid == 0)
+                {
+                    error += "\n\nYou can update your friendid by using !updateid your_steam_id. Example: !updateid 199304122";
+                }
+                if (player._region == (int)Region.NONE)
+                {
+                    error += "\n\nYou can update your region by using !updateregion your_region. Examples: !updateregion useast, !updateregion east, !updateregion uswest, !updateregion west";
+                }
+                if (player._role1 <= 0 || player._role1 > 5)
+                {
+                    error += "\n\nYou can update your positions by using !updatepositions most_comfortable second_most_comfortable. 2 positions must be entered. Examples: !updatepositions 5 4, !updatepositions 1 3, etc. ";
+                }
+                await _profile.SendDm(info + error);
+                if (error == "")
+                {
+                    await _profile.SendDm("\n\nYour profile is up to date, nothing is missing.");
+                }
+    
+
+
+
+            });
+
+        }
+
+
+
+
         [Command("queue")]
         public async Task EnterQueue(CommandContext context)
         {
             Profile _profile = new Profile(context);
             var verified = await _conditions.AreMet(context, _profile,
-                new List<Argument> {
-                    _conditions.IsRegistered,
-                    _conditions.IsInCommandChannel
+                new List<Arg> {
+                    Arg.IsRegistered,
+                    Arg.IsInCommandChannel
                 });
 
             if (!verified)
@@ -222,9 +472,10 @@ namespace bot_2.Commands
             //we need to seperate the two bundles of arguments because we'll return a null error if the user doesn't have a record under player_data/player_record
             await _conditions.TryConditionedAction(context, _profile,
 
-                new List<Argument> {
-                       _conditions.IsReady,
-                       _conditions.IsntQueued
+                new List<Arg> {
+                       Arg.IsReady,
+                       Arg.IsntQueued,
+                       Arg.ProfileComplete
                 },
 
                 async () =>
@@ -232,7 +483,10 @@ namespace bot_2.Commands
 
                     string dt = DateTime.Now.ToString();
                     await _context.player_queue.AddAsync(new QueueData { _id = _profile._id, _start = dt }).ConfigureAwait(false);
-                    await _context.SaveChangesAsync().ConfigureAwait(false);
+                    var record = await _context.player_data.FindAsync(_profile._id);
+                    record._gamestatus = 1;
+
+                    await _context.SaveChangesAsync();
 
 
                     var list = await _context.player_queue.ToListAsync();
@@ -243,7 +497,7 @@ namespace bot_2.Commands
                     if (count >= 10)
                     {
                         LobbySorter sorter = new LobbySorter(_context);
-                        await sorter.Setup(context);
+                        await sorter.Setup(context, _profile);
                     }
                     else
                     {
@@ -267,9 +521,9 @@ namespace bot_2.Commands
             Profile _profile = new Profile(context);
             await _conditions.TryConditionedAction(context, _profile,
 
-                new List<Argument> {
-                    _conditions.IsntRegistered,
-                    _conditions.IsInCommandChannel
+                new List<Arg> {
+                    Arg.IsntRegistered,
+                    Arg.IsInCommandChannel
                 },
 
                 async () =>
@@ -286,7 +540,16 @@ namespace bot_2.Commands
                     }
                     else
                     {
-                        await _context.player_data.AddAsync(new PlayerData { _id = _profile._id, _steamid = steamid, _status = 1, _ihlmmr = 400, _dotammr = (int)playerDetails.MmrEstimate.Estimate }).ConfigureAwait(false);
+                        if(playerDetails.MmrEstimate == null)
+                        {
+
+                            await _context.player_data.AddAsync(new PlayerData { _id = _profile._id, _steamid = steamid, _status = 1, _ihlmmr = 400, _dotammr = 0, _region = 0, _role1 = 0, _role2 = 0 }).ConfigureAwait(false);
+                        }
+                        else
+                        {
+                            await _context.player_data.AddAsync(new PlayerData { _id = _profile._id, _steamid = steamid, _status = 1, _ihlmmr = 400, _dotammr = (int)playerDetails.MmrEstimate.Estimate, _region = 0, _role1 = 0, _role2 = 0 }).ConfigureAwait(false);
+                        }
+
                         await _context.SaveChangesAsync().ConfigureAwait(false);
                         await _profile.SendDm("You are now registered. Type !queue to enter the queue and !leave to leave the queue. Your GHL mmr starts at 400 and has a base increment of 15. Your initial mmr was recognized as " + (int)playerDetails.MmrEstimate.Estimate + ". If this is off by 300mmr or above,  create a ticket and screenshot your mmr from the DotA client and send it via the ticket.").ConfigureAwait(false);
                     }
@@ -305,9 +568,9 @@ namespace bot_2.Commands
             Profile _profile = new Profile(context);
             await _conditions.TryConditionedAction(context, _profile,
 
-                new List<Argument> {
-                    _conditions.IsRegistered,
-                    _conditions.IsInCommandChannel
+                new List<Arg> {
+                    Arg.IsRegistered,
+                    Arg.IsInCommandChannel
                 },
 
                 async () =>
@@ -341,9 +604,9 @@ namespace bot_2.Commands
             Profile _profile = new Profile(context);
             await _conditions.TryConditionedAction(context, _profile,
 
-                new List<Argument> {
-                    _conditions.IsRegistered,
-                    _conditions.IsInCommandChannel
+                new List<Arg> {
+                    Arg.IsRegistered,
+                    Arg.IsInCommandChannel
                 },
 
                 async () =>
@@ -366,8 +629,93 @@ namespace bot_2.Commands
                         record._dotammr = (int)playerDetails.MmrEstimate.Estimate;
                         await _context.SaveChangesAsync();
 
-                        await _profile.SendDm("Your player id was updated and your mmr was recognized as " + (int)playerDetails.MmrEstimate.Estimate + ". If this is off by 300mmr or above,  create a ticket and screenshot your mmr from the DotA client and send it via the ticket.");
+                        await _profile.SendDm("Your player id was updated and your mmr was recognized as " + (int)playerDetails.MmrEstimate.Estimate + ". If this is off by 300mmr or above, use !updaterank medal number. Example: !updaterank ancient 5");
                     }
+
+                });
+        }
+
+        [Command("pick")]
+        public async Task Pick(CommandContext context, string irrelevant)
+        {
+            
+            Profile _profile = new Profile(context);
+            await _conditions.TryConditionedAction(context, _profile,
+
+                new List<Arg> {
+                    Arg.IsRegistered,
+                    Arg.IsInCommandChannel,
+                    Arg.IsLobbyCaptain,
+                    Arg.CanPick,
+                    Arg.HasMention
+                },
+
+                async () =>
+                {
+                    var playerid = context.Message.MentionedUsers.First().Id;
+                    var record = await _context.game_record.FirstAsync(p => p._p1 == _profile._id && p._p5 == 0);
+                    var player = await _context.lobby_pool.FirstAsync(p => p._discordid == playerid && p._gameid == record._id);
+                    if(player != null)
+                    {
+                        if (record != null)
+                        {
+                            if (record._p2 == 0)
+                            {
+                                record._p2 = playerid;
+                            }
+                            else if (record._p3 == 0)
+                            {
+                                record._p3 = playerid;
+                            }
+                            else if (record._p4 == 0)
+                            {
+                                record._p4 = playerid;
+                            }
+                            else if (record._p5 == 0)
+                            {
+                                record._p5 = playerid;
+                            }
+
+                            var gameid = record._gameid;
+                            record._canpick = 0;
+                            await _context.SaveChangesAsync();
+                            int side = record._side;
+
+                            //update
+
+                            var newRecord = await _context.game_record.FirstAsync(p => p._side != side && p._gameid == gameid);
+                            if(record._p5 != 0 && newRecord._p5 != 0)
+                            {
+                                LobbySorter sorter = new LobbySorter(_context);
+                                await sorter.FormLobby(context, _profile, gameid);
+
+                            }
+                            else
+                            {
+                                LobbySorter sorter = new LobbySorter(_context);
+                                await sorter.UpdateLobbyPool(context, _profile, gameid);
+
+
+                                newRecord._canpick = 1;
+                                await _context.SaveChangesAsync();
+                            }
+
+                        }
+
+                        _context.lobby_pool.Remove(player);
+                        await _context.SaveChangesAsync();
+                    }
+                    else
+                    {
+                        await _profile.SendDm("That player is not available to be drafted.");
+                    }
+
+
+
+
+                    //update message in general
+
+                    //
 
                 });
         }
