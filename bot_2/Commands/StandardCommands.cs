@@ -357,10 +357,17 @@ namespace bot_2.Commands
                     {
                         var record = await _context.player_data.FindAsync(_profile._id);
                         record._steamid = steamid;
-                        record._dotammr = (int)playerDetails.MmrEstimate.Estimate;
+                        if(playerDetails.MmrEstimate.Estimate!=null)
+                        {
+                            record._dotammr = (int)playerDetails.MmrEstimate.Estimate;
+                        }
+                        else
+                        {
+                            record._dotammr = 0;
+                        }
                         await _context.SaveChangesAsync();
 
-                        await _profile.SendDm("Your player id was updated and your mmr was recognized as " + (int)playerDetails.MmrEstimate.Estimate + ". If this is off by 300mmr or above, use !updaterank medal number. Example: !updaterank ancient 5");
+                        await _profile.SendDm("Your player id was updated.");
                     }
 
                 });

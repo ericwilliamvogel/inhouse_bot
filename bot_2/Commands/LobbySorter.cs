@@ -567,7 +567,7 @@ namespace bot_2.Commands
             await perms.Get(context, _utilities, gameid);
 
             string msg = await GetLobbyPoolInfo(context, gameid);
-            await perms.message.ModifyAsync(msg);
+            await perms.generaltext.SendMessageAsync(msg);
         }
 
         private async Task<string> GetLobbyPoolInfo(CommandContext context, int gameid)
@@ -690,7 +690,7 @@ namespace bot_2.Commands
             await _utilities.GrantRole(context, direteam, perms.LobbyRoleDire);
 
             string lobbyinfo = GetFullLobbyInfo(context, radiantteam, direteam, gameid);
-            await perms.message.ModifyAsync(lobbyinfo);
+            await perms.generaltext.SendMessageAsync(lobbyinfo);
         }
 
         public async Task<List<Player>> GetPlayers(TeamRecord teamrecord)
