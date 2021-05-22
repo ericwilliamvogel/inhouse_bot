@@ -9,5 +9,7 @@ namespace db
         public int _number { get; set; }
 
         public int _gameid { get; set; }
+
+        public ulong _messageid { get; set; }
     }
 }

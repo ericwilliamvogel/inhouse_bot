@@ -218,6 +218,8 @@ namespace bot_2.Commands
             catch (Exception e)
             {
                 Console.WriteLine(e);
+                await Task.Delay(2000);
+                await UpdateMessage(context);
             }
 
         }

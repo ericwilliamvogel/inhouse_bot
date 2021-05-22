@@ -134,7 +134,23 @@ namespace bot_2.Commands
 
             );
             _check.Add(
-                Arg.IsInCommandChannel, CorrectChannel(839336462431289374)
+                Arg.IsInCommandChannel,
+
+                    async (CommandContext context, Profile _profile) =>
+                    {
+                        ulong channel = 839331703776083989;
+                        ulong channel2 = 839336462431289374;
+
+                        if (context.Channel.Id == channel || context.Channel.Id == channel2)
+                        {
+                            return true;
+                        }
+                        else
+                        {
+                            await _profile.SendDm("You cannot issue this command in this channel. This command can only be executed in channel '#commands'.");
+                        }
+                        return false;
+                    }
             );
             _check.Add(
                 Arg.IsInAdminCommandChannel, CorrectChannel(839336496484974622)
@@ -284,14 +300,18 @@ namespace bot_2.Commands
             _check.Add(Arg.CanPick,
                 async (CommandContext context, Profile _profile) =>
                 {
-                    var record = _context.game_record.First(p => p._p1 == _profile._id && p._p5 == 0);
+                    var record = _context.game_record.FirstOrDefault(p => p._p1 == _profile._id && p._p5 == 0);
                     if (record == null)
                     {
                         await _profile.SendDm("You were not found as a leader in any database records.");
                         return false;
                     }
 
-                    if(record._canpick == 0)
+                    if(record._canpick == 1)
+                    {
+                        return true;
+                    }
+                    else if(record._canpick == 0)
                     {
                         await _profile.SendDm("It's not your turn to pick.");
                         return false;
@@ -319,7 +339,7 @@ namespace bot_2.Commands
                     async (CommandContext context, Profile _profile) =>
                     {
                         var record = await _context.player_data.FindAsync(_profile._id);
-                        if (record._role1 != 0 && record._role2 != 1 && record._region != (int)Region.NONE)
+                        if (record._role1 != 0 && record._role2 != 0 && record._region != (int)Region.NONE)
                         {
                             return true;
                         }
@@ -435,6 +455,7 @@ namespace bot_2.Commands
             }
             catch (Exception e)
             {
+                await _profile.SendDm("The command you entered may have encountered an error(probably from a large amount of commands coming from different users). Try entering it again. If it still doesn't work, create a ticket and detail the problem. Thank you.");
                 await _profile.ReportError(context, e);
             }
 

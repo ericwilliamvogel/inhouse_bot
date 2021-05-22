@@ -50,11 +50,12 @@ namespace bot_2.Commands
 
         }
 
-        public void Get(CommandContext context, LobbySorterUtilities _utilities, int gameid)
+        public async Task Get(CommandContext context, LobbySorterUtilities _utilities, int gameid)
         {
             AverageRole = _utilities.GetRole(context, "Member");
             TrustedRole = _utilities.GetRole(context, "Trusted");
 
+            //HERE
             var record =  _context.discord_channel_info.First(p => p._gameid == gameid);
 
             LobbyNumber = record._number;
@@ -75,7 +76,9 @@ namespace bot_2.Commands
             LobbyRoleCaster = roles.First(p => p.Name == "casterLobby" + LobbyNumber);
             LobbyRoleSpectator = roles.First(p => p.Name == "spectatorLobby" + LobbyNumber);
 
-
+            message = await generaltext.GetMessageAsync(record._messageid);
+            //var msg = await generaltext.GetMessagesBeforeAsync(0, 1);
+            //message = msg.First();
 
         }
         public async Task Create(CommandContext context, LobbySorterUtilities _utilities)

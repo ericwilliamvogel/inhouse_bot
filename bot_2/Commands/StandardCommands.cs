@@ -38,94 +38,7 @@ namespace bot_2.Commands
 
 
 
-        [Command("spectatorqueue")]
-        public async Task SpectatorQueue(CommandContext context)
-        {
-            Profile _profile = new Profile(context);
-
-            var verified = await _conditions.AreMet(context, _profile,
-                new List<Arg> {
-                    Arg.IsRegistered,
-                    Arg.IsInCommandChannel
-                });
-
-            if (!verified)
-            {
-                await context.Message.DeleteAsync();
-                return;
-            }
-
-            //we need to seperate the two bundles of arguments because we'll return a null error if the user doesn't have a record under player_data/player_record
-            await _conditions.TryConditionedAction(context, _profile,
-
-                new List<Arg> {
-                       Arg.IsReady,
-                       Arg.IsntSpectatorQueued
-                },
-
-                async () =>
-                {
-
-                    string dt = DateTime.Now.ToString();
-                    await _context.spectator_queue.AddAsync(new SpectatorQueueData { _id = _profile._id, _start = dt }).ConfigureAwait(false);
-                    var record = await _context.player_data.FindAsync(_profile._id);
-                    record._gamestatus = 1;
-                    await _context.SaveChangesAsync().ConfigureAwait(false);
-
-
-                    await _updatedQueue.StartThread(context);
-                    await _profile.SendDm("You've been placed in SPECTATOR queue. You will be notified via DM when it pops. In the server's command channel type !spectatorleave if you would like to leave the queue.");
-
-
-
-
-                });
-
-
-
-
-
-        }
-
-        [Command("spectatorleave")]
-        public async Task SpectatorLeaveQueue(CommandContext context)
-        {
-            Profile _profile = new Profile(context);
-
-            await _conditions.TryConditionedAction(context, _profile,
-
-                new List<Arg> {
-                            Arg.IsRegistered,
-                            Arg.IsInCommandChannel,
-                            Arg.IsSpectatorQueued
-                },
-
-                async () =>
-                {
-
-
-                    var record = _context.spectator_queue.First(p => p._id == _profile._id);
-                    if (record == null)
-                    {
-                        await _profile.SendDm("Error, I have no idea how this could happen. Spectator queue record not recognized on leave. Create a ticket and report this message please.");
-                    }
-
-
-
-                    _context.spectator_queue.Remove(record);
-
-
-                    var s_record = await _context.player_data.FindAsync(_profile._id);
-                    s_record._gamestatus = 0;
-                    await _context.SaveChangesAsync();
-
-
-                    await _profile.SendDm("You've been removed from queue.");
-
-
-                });
-        }
-
+        
 
 
         [Command("generatemessage")]
@@ -168,142 +81,14 @@ namespace bot_2.Commands
                 });
         }
         */
-        [Command("refresh")]
-        public async Task RefreshQueue(CommandContext context)
-        {
-            Profile _profile = new Profile(context);
-
-            await _conditions.TryConditionedAction(context, _profile,
-
-                new List<Arg> {
-                            Arg.IsRegistered,
-                            Arg.IsInCommandChannel
-                },
-
-                async () =>
-                {
-
-                    await _updatedQueue.StartThread(context);
-
-                });
-        }
-
-
-
-        [Command("leave")]
-        public async Task LeaveQueue(CommandContext context)
-        {
-            Profile _profile = new Profile(context);
-
-            await _conditions.TryConditionedAction(context, _profile,
-
-                new List<Arg> {
-                            Arg.IsRegistered,
-                            Arg.IsInCommandChannel,
-                            Arg.IsQueued
-                },
-
-                async () =>
-                {
-
-
-                    var record = _context.player_queue.First(p => p._id == _profile._id);
-                    if (record == null)
-                    {
-                        await _profile.SendDm("Error, I have no idea how this could happen. DM an admin or something to get it fixed.");
-                    }
-
-                    _context.player_queue.Remove(record);
-
-                    var p_record = await _context.player_data.FindAsync(_profile._id);
-                    p_record._gamestatus = 0;
-                    await _context.SaveChangesAsync();
-                    await _profile.SendDm("You've been removed from queue.");
-
-
-                });
-        }
-
-
-
-        [Command("radiant")]
-        public async Task RadiantWin(CommandContext context, long steamid)
-        {
-            Profile _profile = new Profile(context);
-
-            await _conditions.TryConditionedAction(context, _profile,
-
-                new List<Arg> {
-                            Arg.IsRegistered,
-                            Arg.IsInCommandChannel
-                },
-
-                async () =>
-                {
-
-                    LobbySorter sorter = new LobbySorter(_context);
-                    await sorter._utilities.ReportWinner(context, "radiant", steamid);
-
-
-                });
-        }
-
-        [Command("dire")]
-        public async Task DireWin(CommandContext context, long steamid)
-        {
-            Profile _profile = new Profile(context);
-
-            await _conditions.TryConditionedAction(context, _profile,
-
-            new List<Arg> {
-                            Arg.IsRegistered,
-                            Arg.IsInCommandChannel
-            },
-
-            async () =>
-            {
-
-
-
-                LobbySorter sorter = new LobbySorter(_context);
-                await sorter._utilities.ReportWinner(context, "dire", steamid);
-
-            });
-
-        }
-
-        [Command("draw")]
-        public async Task DrawGame(CommandContext context, long steamid)
-        {
-            Profile _profile = new Profile(context);
-
-
-            await _conditions.TryConditionedAction(context, _profile,
-
-            new List<Arg> {
-                            Arg.IsRegistered,
-                            Arg.IsInCommandChannel
-            },
-
-            async () =>
-            {
-
-
-                LobbySorter sorter = new LobbySorter(_context);
-                await sorter._utilities.ReportWinner(context, "draw", steamid);
-
-            });
 
 
 
 
-        }
 
-        [Command("q")]
-        public async Task q(CommandContext context)
-        {
-            await EnterQueue(context);
-        }
+
+
+
 
 
         [Command("mmr")]
@@ -402,6 +187,12 @@ namespace bot_2.Commands
 
         }
 
+        [Command("updateposition")]
+        public async Task URO(CommandContext context, int input, int input2)
+        {
+            await UpdateRoleOne(context, input, input2);
+        }
+
         [Command("preferences")]
         public async Task Preferences(CommandContext context)
         {
@@ -427,15 +218,15 @@ namespace bot_2.Commands
 
                 if (player._steamid == 0)
                 {
-                    error += "\n\nYou can update your friendid by using !updateid your_steam_id. Example: !updateid 199304122";
+                    error += "\n\nYou can update your friendid by using !updateid your_steam_id in the general #commands channel. Example: !updateid 199304122";
                 }
                 if (player._region == (int)Region.NONE)
                 {
-                    error += "\n\nYou can update your region by using !updateregion your_region. Examples: !updateregion useast, !updateregion east, !updateregion uswest, !updateregion west";
+                    error += "\n\nYou can update your region by using !updateregion your_region in the general #commands channel. Examples: !updateregion useast, !updateregion east, !updateregion uswest, !updateregion west";
                 }
                 if (player._role1 <= 0 || player._role1 > 5)
                 {
-                    error += "\n\nYou can update your positions by using !updatepositions most_comfortable second_most_comfortable. 2 positions must be entered. Examples: !updatepositions 5 4, !updatepositions 1 3, etc. ";
+                    error += "\n\nYou can update your positions by using !updatepositions most_comfortable second_most_comfortable in the general #commands channel. 2 positions must be entered. Examples: !updatepositions 5 4, !updatepositions 1 3, etc. ";
                 }
                 await _profile.SendDm(info + error);
                 if (error == "")
@@ -453,67 +244,7 @@ namespace bot_2.Commands
 
 
 
-        [Command("queue")]
-        public async Task EnterQueue(CommandContext context)
-        {
-            Profile _profile = new Profile(context);
-            var verified = await _conditions.AreMet(context, _profile,
-                new List<Arg> {
-                    Arg.IsRegistered,
-                    Arg.IsInCommandChannel
-                });
-
-            if (!verified)
-            {
-                await context.Message.DeleteAsync();
-                return;
-            }
-
-            //we need to seperate the two bundles of arguments because we'll return a null error if the user doesn't have a record under player_data/player_record
-            await _conditions.TryConditionedAction(context, _profile,
-
-                new List<Arg> {
-                       Arg.IsReady,
-                       Arg.IsntQueued,
-                       Arg.ProfileComplete
-                },
-
-                async () =>
-                {
-
-                    string dt = DateTime.Now.ToString();
-                    await _context.player_queue.AddAsync(new QueueData { _id = _profile._id, _start = dt }).ConfigureAwait(false);
-                    var record = await _context.player_data.FindAsync(_profile._id);
-                    record._gamestatus = 1;
-
-                    await _context.SaveChangesAsync();
-
-
-                    var list = await _context.player_queue.ToListAsync();
-                    int count = list.Count();
-
-                    await _updatedQueue.StartThread(context);
-
-                    if (count >= 10)
-                    {
-                        LobbySorter sorter = new LobbySorter(_context);
-                        await sorter.Setup(context, _profile);
-                    }
-                    else
-                    {
-                        await _profile.SendDm("You've been placed in queue. You will be notified via DM when it pops. In the server's command channel type !leave if you would like to leave the queue.");
-
-                    }
-
-
-
-                });
-
-
-
-
-
-        }
+        
 
         [Command("register")]
         public async Task RegisterPlayer(CommandContext context, long steamid)
@@ -635,90 +366,7 @@ namespace bot_2.Commands
                 });
         }
 
-        [Command("pick")]
-        public async Task Pick(CommandContext context, string irrelevant)
-        {
-            
-            Profile _profile = new Profile(context);
-            await _conditions.TryConditionedAction(context, _profile,
 
-                new List<Arg> {
-                    Arg.IsRegistered,
-                    Arg.IsInCommandChannel,
-                    Arg.IsLobbyCaptain,
-                    Arg.CanPick,
-                    Arg.HasMention
-                },
-
-                async () =>
-                {
-                    var playerid = context.Message.MentionedUsers.First().Id;
-                    var record = await _context.game_record.FirstAsync(p => p._p1 == _profile._id && p._p5 == 0);
-                    var player = await _context.lobby_pool.FirstAsync(p => p._discordid == playerid && p._gameid == record._id);
-                    if(player != null)
-                    {
-                        if (record != null)
-                        {
-                            if (record._p2 == 0)
-                            {
-                                record._p2 = playerid;
-                            }
-                            else if (record._p3 == 0)
-                            {
-                                record._p3 = playerid;
-                            }
-                            else if (record._p4 == 0)
-                            {
-                                record._p4 = playerid;
-                            }
-                            else if (record._p5 == 0)
-                            {
-                                record._p5 = playerid;
-                            }
-
-                            var gameid = record._gameid;
-                            record._canpick = 0;
-                            await _context.SaveChangesAsync();
-                            int side = record._side;
-
-                            //update
-
-                            var newRecord = await _context.game_record.FirstAsync(p => p._side != side && p._gameid == gameid);
-                            if(record._p5 != 0 && newRecord._p5 != 0)
-                            {
-                                LobbySorter sorter = new LobbySorter(_context);
-                                await sorter.FormLobby(context, _profile, gameid);
-
-                            }
-                            else
-                            {
-                                LobbySorter sorter = new LobbySorter(_context);
-                                await sorter.UpdateLobbyPool(context, _profile, gameid);
-
-
-                                newRecord._canpick = 1;
-                                await _context.SaveChangesAsync();
-                            }
-
-                        }
-
-                        _context.lobby_pool.Remove(player);
-                        await _context.SaveChangesAsync();
-                    }
-                    else
-                    {
-                        await _profile.SendDm("That player is not available to be drafted.");
-                    }
-
-
-
-
-                    //update message in general
-
-                    //
-
-                });
-        }
 
 
 

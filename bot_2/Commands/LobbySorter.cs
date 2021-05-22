@@ -500,7 +500,7 @@ namespace bot_2.Commands
 
 
 
-                Console.WriteLine("Selecting ledaer...");
+                Console.WriteLine("Selecting leader...");
 
                 Player leader = GetLeader(context, players);
 
@@ -518,7 +518,7 @@ namespace bot_2.Commands
                 var gameid = orderedGames[0];
 
                 Console.WriteLine("Creating DCI record...");
-                await _context.discord_channel_info.AddAsync(new ChannelInfo { _id = leader._id, _number = _perms.LobbyNumber, _gameid = gameid._id });
+                await _context.discord_channel_info.AddAsync(new ChannelInfo { _id = leader._id, _number = _perms.LobbyNumber, _gameid = gameid._id, _messageid = _perms.message.Id });
                 await _context.SaveChangesAsync();
 
                 players = players.OrderByDescending(p => p._truemmr).ToList();
@@ -541,6 +541,7 @@ namespace bot_2.Commands
                     await _context.SaveChangesAsync();
                 }
 
+                await UpdateLobbyPool(context, _profile, gameid._id);
 
 
 
@@ -563,7 +564,7 @@ namespace bot_2.Commands
         public async Task UpdateLobbyPool(CommandContext context, Profile _profile, int gameid)
         {
             Permissions perms = new Permissions(_context);
-            perms.Get(context, _utilities, gameid);
+            await perms.Get(context, _utilities, gameid);
 
             string msg = await GetLobbyPoolInfo(context, gameid);
             await perms.message.ModifyAsync(msg);
@@ -573,24 +574,66 @@ namespace bot_2.Commands
         {
             var list = await _context.lobby_pool.ToListAsync();
             var players = list.FindAll(p => p._gameid == gameid);
-            var radiant = await _context.game_record.FirstAsync(p => p._gameid == gameid && p._side == (int)Side.Radiant);
-            var dire = await _context.game_record.FirstAsync(p => p._gameid == gameid && p._side == (int)Side.Dire);
+            var radiant = await _context.game_record.FirstOrDefaultAsync(p => p._gameid == gameid && p._side == (int)Side.Radiant);
+            var dire = await _context.game_record.FirstOrDefaultAsync(p => p._gameid == gameid && p._side == (int)Side.Dire);
 
              
             string lobby = "--- Game ID = " + gameid + "---\n";
-            lobby += "Radiant Captain = <@" + radiant._p1 + ">, Picking? = " + CanPick(radiant) + "\n";
-            lobby += "Dire Captain = <@" + dire._p1 + ">, Picking? = " + CanPick(dire) + "\n";
+            lobby += "Radiant Captain = <@" + radiant._p1 + ">\n";
+            lobby += "Dire Captain = <@" + dire._p1 + ">\n";
+
+
+            if(radiant._canpick == 1)
+            {
+                lobby += "Picking = Radiant\n";
+            }
+            if(dire._canpick == 1)
+            {
+                lobby += "Picking = Dire\n";
+            }
+
+            lobby += "\n";
+
+            lobby += "Team Radiant = \n\n" + await GetTeamDesc(radiant) + "\n\n";
+
+            lobby += "Team Dire = \n\n" + await GetTeamDesc(dire) + "\n";
+
+
             lobby += "\n\nPool = \n";
 
             foreach (var player in players)
             {
-                var record = await _context.player_data.FindAsync(player._discordid);
-                lobby += "<@" + player._discordid + ">, Dotammr = " + record._dotammr + ", Ihlmmr = " + record._ihlmmr + ", Preferred roles = " + record._role1  +"(Best), " + record._role2 + ".\n";
+                string des = await GetPlayerDesc(player._discordid);
+                lobby += des;
             }
 
             return lobby;
         }
 
+        private async Task<string> GetTeamDesc(TeamRecord record)
+        {
+            string players = "";
+
+            players += await GetPlayerDesc(record._p1);
+            players += await GetPlayerDesc(record._p2);
+            players += await GetPlayerDesc(record._p3);
+            players += await GetPlayerDesc(record._p4);
+            players += await GetPlayerDesc(record._p5);
+
+            return players;
+        }
+
+        private async Task<string> GetPlayerDesc(ulong id)
+        {
+            string player = "";
+
+            var record = await _context.player_data.FindAsync(id);
+
+            if(record!=null)
+            player += "<@" + record._id + ">, " + (Region)record._region +" - Dotammr = " + record._dotammr + ", Ihlmmr = " + record._ihlmmr + ", Preferred roles = " + record._role1 + "(Best), " + record._role2 + ".\n";
+
+            return player;
+        }
         private string CanPick(TeamRecord record)
         {
             if(record._canpick == 0)
@@ -604,14 +647,18 @@ namespace bot_2.Commands
             Player leader = null;
             foreach (Player player in players)
             {
-                var member = context.Guild.Members[player._id];
-                var role = context.Guild.Roles.FirstOrDefault(p => p.Value.Name == "Trusted").Value;
-
-                if (member.Roles.Contains(role))
+                if(context.Guild.Members.ContainsKey(player._id))
                 {
-                    leader = player;
-                    break;
+                    var member = context.Guild.Members[player._id];
+                    var role = context.Guild.Roles.FirstOrDefault(p => p.Value.Name == "Trusted").Value;
+
+                    if (member.Roles.Contains(role))
+                    {
+                        leader = player;
+                        break;
+                    }
                 }
+
 
             }
 
@@ -630,19 +677,20 @@ namespace bot_2.Commands
         public async Task FormLobby(CommandContext context, Profile _profile, int gameid)
         {
             Permissions perms = new Permissions(_context);
-            perms.Get(context, _utilities, gameid);
+            await perms.Get(context, _utilities, gameid);
 
-            var radiant = await _context.game_record.FirstAsync(p => p._gameid == gameid && p._side == (int)Side.Radiant);
-            var dire = await _context.game_record.FirstAsync(p => p._gameid == gameid && p._side == (int)Side.Dire);
+            var radiant = await _context.game_record.FirstOrDefaultAsync(p => p._gameid == gameid && p._side == (int)Side.Radiant);
+            var dire = await _context.game_record.FirstOrDefaultAsync(p => p._gameid == gameid && p._side == (int)Side.Dire);
 
             var radiantteam = await GetPlayers(radiant);
             var direteam = await GetPlayers(dire);
 
+            
             await _utilities.GrantRole(context, radiantteam, perms.LobbyRoleRadiant);
             await _utilities.GrantRole(context, direteam, perms.LobbyRoleDire);
 
-
-            await perms.message.ModifyAsync(GetFullLobbyInfo(context, radiantteam, direteam, gameid));
+            string lobbyinfo = GetFullLobbyInfo(context, radiantteam, direteam, gameid);
+            await perms.message.ModifyAsync(lobbyinfo);
         }
 
         public async Task<List<Player>> GetPlayers(TeamRecord teamrecord)
@@ -662,11 +710,63 @@ namespace bot_2.Commands
             var player = await _context.player_data.FindAsync(id);
             players.Add(new Player(player._id, player._dotammr, player._ihlmmr));
         }
+
+        public Region GetRegion(List<Player> team1, List<Player> team2)
+        {
+            int east = 0;
+            int west = 0;
+            foreach (Player player in team1)
+            {
+                var rec = _context.player_data.Find(player._id);
+                if (rec != null)
+                {
+                    if (rec._region == (int)Region.USEAST)
+                    {
+                        east++;
+                    }
+                    if (rec._region == (int)Region.USWEST)
+                    {
+                        west++;
+                    }
+                }
+            }
+
+            foreach (Player player in team2)
+            {
+                var rec = _context.player_data.Find(player._id);
+                if(rec!=null)
+                {
+                    if (rec._region == (int)Region.USEAST)
+                    {
+                        east++;
+                    }
+                    if (rec._region == (int)Region.USWEST)
+                    {
+                        west++;
+                    }
+                }
+
+            }
+
+            if(east > west)
+            {
+                return Region.USEAST;
+            }
+            else if(west > east)
+            {
+                return Region.USWEST;
+            }
+            else
+            {
+                return Region.USEAST;
+            }
+        }
         public string GetFullLobbyInfo(CommandContext context, List<Player> team1, List<Player> team2, int gameid)
         {
-            var game = _context.discord_channel_info.First(p => p._gameid == gameid);
+            var game = _context.discord_channel_info.FirstOrDefault(p => p._gameid == gameid);
             ulong leaderid = game._id;
             int basemmr = 15;
+
 
             int team1mmr = _utilities.GetTeamTrueMmr(team1);
             int team2mmr = _utilities.GetTeamTrueMmr(team2);
@@ -674,6 +774,8 @@ namespace bot_2.Commands
             int team1gain = basemmr * team2mmr / team1mmr;
 
             int team1loss = basemmr * team1mmr / team2mmr;
+
+            Region region = GetRegion(team1, team2);
 
             string hostMention = "<host_not_found>";
             if (context.Guild.Members.ContainsKey(leaderid))
@@ -699,7 +801,7 @@ namespace bot_2.Commands
             string preinstructions = "\n\nLobby host can now create the game under **LobbyName = " + lobbyName + "**, and **Password = " + lobbyPass + "**.\n\n";
             string instructions = preinstructions + "After the game, the host can report the winner by command '!radiant game_id_here' , '!dire game_id_here', or !draw 'game_id_here. If you need any help or something isn't working please contact an admin/mod.";
 
-            string final = "Lobby Created. \n" +
+            string final = "Server = " + region + "\n" +
                 "Game ID = " + gameid + ". \n\n" +
                 "Lobby host = " + hostMention + "\n\n" +
 
@@ -751,7 +853,7 @@ namespace bot_2.Commands
             for (int i = 0; i < list.Count; i++)
             {
 
-                var record = list.First();
+                var record = list.FirstOrDefault();
                 ulong id = record._id;
 
 
@@ -784,7 +886,7 @@ namespace bot_2.Commands
             for (int i = 0; i < list.Count; i++)
             {
 
-                var record = list.First();
+                var record = list.FirstOrDefault();
                 ulong id = record._id;
 
                 tempo.Add(record);

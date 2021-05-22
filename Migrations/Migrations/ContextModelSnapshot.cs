@@ -91,8 +91,10 @@ namespace Migrations.Migrations
                         .ValueGeneratedOnAdd()
         .HasColumnType("NUMERIC(20,0)")
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
-                b.Property<DateTime>("_start")
-        .HasColumnType("datetime");
+
+
+                b.Property<string>("_start")
+        .HasColumnType("nvarchar(max)");
 
                 b.HasKey("_id");
 
@@ -227,6 +229,9 @@ namespace Migrations.Migrations
 
                 b.Property<int>("_gameid")
 .HasColumnType("int");
+
+                b.Property<ulong>("_meessageid")
+.HasColumnType("NUMERIC(20,0)");
 
 
                 b.HasKey("_id");
