@@ -1,5 +1,6 @@
 ﻿using db;
 using DSharpPlus.CommandsNext;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -283,7 +284,7 @@ namespace bot_2.Commands
             _check.Add(Arg.IsLobbyCaptain,
                 async (CommandContext context, Profile _profile) =>
                 { 
-                    var record = _context.game_record.FirstOrDefault(p => p._p1 == _profile._id && p._p5 == 0);
+                    var record = await _context.game_record.FirstOrDefaultAsync(p => p._p1 == _profile._id && p._p5 == 0);
                     if(record == null)
                     {
                         await _profile.SendDm("You were not found as a leader in any database records.");
@@ -300,7 +301,7 @@ namespace bot_2.Commands
             _check.Add(Arg.CanPick,
                 async (CommandContext context, Profile _profile) =>
                 {
-                    var record = _context.game_record.FirstOrDefault(p => p._p1 == _profile._id && p._p5 == 0);
+                    var record = await _context.game_record.FirstOrDefaultAsync(p => p._p1 == _profile._id && p._p5 == 0);
                     if (record == null)
                     {
                         await _profile.SendDm("You were not found as a leader in any database records.");
@@ -450,6 +451,7 @@ namespace bot_2.Commands
 
             try
             {
+
                 action();
                 await context.Message.DeleteAsync();
             }

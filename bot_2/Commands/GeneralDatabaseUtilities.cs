@@ -1,5 +1,6 @@
 ﻿using db;
 using DSharpPlus.CommandsNext;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,11 +9,11 @@ using System.Threading.Tasks;
 
 namespace bot_2.Commands
 {
-    public class GeneralDatabaseUtilities
+    public class GeneralDatabaseInfo
     {
         private Context _context;
 
-        public GeneralDatabaseUtilities(Context context)
+        public GeneralDatabaseInfo(Context context)
         {
             this._context = context;
         }
@@ -60,8 +61,8 @@ namespace bot_2.Commands
 
                 string starter = "---Lobby" + gameid + "---\n";
 
-                var radiant = _context.game_record.FirstOrDefault(e => e._gameid == gameid && e._side == 0);
-                var dire = _context.game_record.FirstOrDefault(e => e._gameid == gameid && e._side == 1);
+                var radiant = await _context.game_record.FirstOrDefaultAsync(e => e._gameid == gameid && e._side == 0);
+                var dire = await _context.game_record.FirstOrDefaultAsync(e => e._gameid == gameid && e._side == 1);
 
                 var radiantGain = radiant._onwin;
                 var radiantLoss = radiant._onlose;

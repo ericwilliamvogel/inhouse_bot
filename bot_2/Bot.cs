@@ -101,7 +101,7 @@ CREATE TABLE primary_table(
                 var array = e.Message.Content;
                 char prefix;
 
-                if(array !=null)
+                if(array !=null && array != "")
                 prefix = array[0];
 
                 if(e!=null)

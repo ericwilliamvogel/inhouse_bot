@@ -220,6 +220,10 @@ namespace bot_2.Commands
                 {
                     error += "\n\nYou can update your friendid by using !updateid your_steam_id in the general #commands channel. Example: !updateid 199304122";
                 }
+                if (player._dotammr == 0)
+                {
+                    error += "\n\nYou can update your mmr by using !updateran in the general #commands channel. Example: !updaterank ancient 5";
+                }
                 if (player._region == (int)Region.NONE)
                 {
                     error += "\n\nYou can update your region by using !updateregion your_region in the general #commands channel. Examples: !updateregion useast, !updateregion east, !updateregion uswest, !updateregion west";
@@ -271,18 +275,27 @@ namespace bot_2.Commands
                     }
                     else
                     {
-                        if(playerDetails.MmrEstimate == null)
+                        await _context.player_data.AddAsync(new PlayerData { _id = _profile._id, _steamid = steamid, _status = 1, _ihlmmr = 400, _dotammr = 0, _region = 0, _role1 = 0, _role2 = 0 });
+
+                        await _context.SaveChangesAsync();
+                        await _profile.SendDm("You are now registered. Type !queue to enter the queue and !leave to leave the queue. Your GHL mmr starts at 400 and has a base increment of 15. Your initial mmr was not recongized, use the !updaterank command to update your mmr. Example: !updaterank ancient 5");
+                        /*if (playerDetails.MmrEstimate.Estimate == null)
                         {
 
-                            await _context.player_data.AddAsync(new PlayerData { _id = _profile._id, _steamid = steamid, _status = 1, _ihlmmr = 400, _dotammr = 0, _region = 0, _role1 = 0, _role2 = 0 }).ConfigureAwait(false);
+                           
+                            .ConfigureAwait(false);
+
                         }
                         else
                         {
                             await _context.player_data.AddAsync(new PlayerData { _id = _profile._id, _steamid = steamid, _status = 1, _ihlmmr = 400, _dotammr = (int)playerDetails.MmrEstimate.Estimate, _region = 0, _role1 = 0, _role2 = 0 }).ConfigureAwait(false);
-                        }
+                            await _profile.SendDm("You are now registered. Type !queue to enter the queue and !leave to leave the queue. Your GHL mmr starts at 400 and has a base increment of 15. Your initial mmr was recognized as " + (int)playerDetails.MmrEstimate.Estimate + ". If this is off by 300mmr or above, use the !updaterank command to update your mmr. Example: !updaterank ancient 5").ConfigureAwait(false);
 
-                        await _context.SaveChangesAsync().ConfigureAwait(false);
-                        await _profile.SendDm("You are now registered. Type !queue to enter the queue and !leave to leave the queue. Your GHL mmr starts at 400 and has a base increment of 15. Your initial mmr was recognized as " + (int)playerDetails.MmrEstimate.Estimate + ". If this is off by 300mmr or above,  create a ticket and screenshot your mmr from the DotA client and send it via the ticket.").ConfigureAwait(false);
+
+                            await _context.SaveChangesAsync();
+                        }*/
+
+                       
                     }
 
 

@@ -6,7 +6,8 @@ namespace db
 {
     public class QueueData : DiscordEntity
     {
-        public string _start;
+        //[Column(TypeName="datetimeoffset")]
+        public DateTimeOffset _start { get; set; }
     }
 
     //this is for dbset, the conversion will likely return errors cuz it cant differentiate between different lists of queuedata.

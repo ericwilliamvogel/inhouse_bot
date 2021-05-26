@@ -93,8 +93,8 @@ namespace Migrations.Migrations
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
 
-                b.Property<string>("_start")
-        .HasColumnType("nvarchar(max)");
+                b.Property<DateTimeOffset>("_start")
+        .HasColumnType("datetimeoffset");
 
                 b.HasKey("_id");
 

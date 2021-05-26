@@ -4,12 +4,6 @@ using System.Text;
 
 namespace db
 {
-    public enum Region
-    {
-        NONE = 0,
-        USEAST = 1,
-        USWEST = 2
-    }
     public class PlayerData : DiscordEntity
     {
         public long _steamid { get; set; }

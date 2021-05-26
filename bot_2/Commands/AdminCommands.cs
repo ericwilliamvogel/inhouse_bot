@@ -181,7 +181,7 @@ public async Task EnterQueue(CommandContext context, int number)
                 async () =>
                 {
                     LobbySorter sorter = new LobbySorter(_context);
-                    await sorter._utilities.CloseLobby(context, number);
+                    await sorter._report.CloseLobby(context, number);
 
                 });
 

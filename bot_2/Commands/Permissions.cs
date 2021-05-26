@@ -50,7 +50,7 @@ namespace bot_2.Commands
 
         }
 
-        public async Task Get(CommandContext context, LobbySorterUtilities _utilities, int gameid)
+        public async Task Get(CommandContext context, LobbyUtilities _utilities, int gameid)
         {
             AverageRole = _utilities.GetRole(context, "Member");
             TrustedRole = _utilities.GetRole(context, "Trusted");
@@ -81,7 +81,7 @@ namespace bot_2.Commands
             //message = msg.First();
 
         }
-        public async Task Create(CommandContext context, LobbySorterUtilities _utilities)
+        public async Task Create(CommandContext context, LobbyUtilities _utilities)
         {
 
             AverageRole = _utilities.GetRole(context, "Member");

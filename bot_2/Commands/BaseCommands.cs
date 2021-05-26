@@ -8,15 +8,16 @@ namespace bot_2.Commands
 {
     public class BaseCommands : BaseCommandModule
     {
+        protected static List<Action> actions = new List<Action>();
         protected Context _context;
         protected Conditions _conditions;
-        protected GeneralDatabaseUtilities _utilities;
+        protected GeneralDatabaseInfo _info;
         protected UpdatedQueue _updatedQueue;
         public BaseCommands(Context context)
         {
             _context = context;
             _conditions = new Conditions(context);
-            _utilities = new GeneralDatabaseUtilities(context);
+            _info = new GeneralDatabaseInfo(context);
             _updatedQueue = new UpdatedQueue(context);
         }
     }

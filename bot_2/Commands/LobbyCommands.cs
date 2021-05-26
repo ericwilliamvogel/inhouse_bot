@@ -33,7 +33,7 @@ namespace bot_2.Commands
                 {
 
                     LobbySorter sorter = new LobbySorter(_context);
-                    await sorter._utilities.ReportWinner(context, "radiant", steamid);
+                    await sorter._report.ReportWinner(context, "radiant", steamid);
 
 
                 });
@@ -57,7 +57,7 @@ namespace bot_2.Commands
 
 
                 LobbySorter sorter = new LobbySorter(_context);
-                await sorter._utilities.ReportWinner(context, "dire", steamid);
+                await sorter._report.ReportWinner(context, "dire", steamid);
 
             });
 
@@ -81,7 +81,7 @@ namespace bot_2.Commands
 
 
                 LobbySorter sorter = new LobbySorter(_context);
-                await sorter._utilities.ReportWinner(context, "draw", steamid);
+                await sorter._report.ReportWinner(context, "draw", steamid);
 
             });
 
@@ -110,7 +110,7 @@ namespace bot_2.Commands
 
                     var record = await _context.game_record.FirstOrDefaultAsync(p => p._p1 == _profile._id && p._p5 == 0);
                     var list = await _context.lobby_pool.ToListAsync();
-                    var player = list.FirstOrDefault(p => p._discordid == playerid && p._gameid == record._gameid);
+                    var player = await _context.lobby_pool.FirstOrDefaultAsync(p => p._discordid == playerid && p._gameid == record._gameid);
 
                     if (player != null)
                     {
@@ -141,6 +141,8 @@ namespace bot_2.Commands
 
 
                             //update
+
+                            //HERE
 
                             var newRecord = await _context.game_record.FirstOrDefaultAsync(p => p._side != side && p._gameid == gameid);
                             if (record._p5 != 0 && newRecord._p5 != 0)

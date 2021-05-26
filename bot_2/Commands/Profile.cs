@@ -81,7 +81,7 @@ namespace bot_2.Commands
                 {
                     var channel = await _member.CreateDmChannelAsync();
 
-                    await channel.SendMessageAsync(input).ConfigureAwait(false);
+                    await channel.SendMessageAsync("```" + input + "```").ConfigureAwait(false);
                 }
 
             }

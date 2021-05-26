@@ -193,9 +193,10 @@ namespace bot_2.Commands
                 async () =>
                 {
 
-                    var myDateTime = DateTime.Now.ToString();
+                    var myDateTime = DateTimeOffset.Now;
                     //string sqlFormattedDate = myDateTime.ToString("HH:mm:ss");
                     await _context.player_queue.AddAsync(new QueueData { _id = _profile._id, _start = myDateTime }).ConfigureAwait(false);
+                    await _context.SaveChangesAsync();
                     var record = await _context.player_data.FindAsync(_profile._id);
                     record._gamestatus = 1;
 
