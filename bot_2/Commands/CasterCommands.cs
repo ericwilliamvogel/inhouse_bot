@@ -130,7 +130,7 @@ namespace bot_2.Commands
                 {
 
 
-                    var record = _context.caster_queue.First(p => p._id == _profile._id);
+                    var record = await _context.caster_queue.FirstOrDefaultAsync(p => p._id == _profile._id);
                     if (record == null)
                     {
                         await _profile.SendDm("Error, I have no idea how this could happen. Caster queue record not recognized on leave. Create a ticket and report this message please.");

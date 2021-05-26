@@ -19,6 +19,7 @@ namespace bot_2.Commands
         {
             this._context = context;
         }
+
         public async Task PlacePlayersInChannel(CommandContext context, List<Player> players, DiscordChannel channel)
         {
             foreach (Player player in players)

@@ -113,6 +113,7 @@ namespace bot_2.Commands
             ulong leaderid = game._id;
             int basemmr = 15;
 
+            //PLEASE JUST READ THIS FROM DATABASE LATER!!! cannot keep this sloppy stuff in for long
 
             int team1mmr = _utilities.GetTeamTrueMmr(team1);
             int team2mmr = _utilities.GetTeamTrueMmr(team2);

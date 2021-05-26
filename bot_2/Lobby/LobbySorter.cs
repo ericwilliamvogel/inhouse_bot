@@ -150,7 +150,30 @@ namespace bot_2.Commands
             var radiantteam = await _utilities.GetPlayers(radiant);
             var direteam = await _utilities.GetPlayers(dire);
 
-            
+
+
+            int basemmr = 15;
+
+            int team1mmr = _utilities.GetTeamTrueMmr(radiantteam);
+            int team2mmr = _utilities.GetTeamTrueMmr(direteam);
+
+            int team1gain = basemmr * team2mmr / team1mmr;
+
+            int team1loss = basemmr * team1mmr / team2mmr;
+
+            radiant._onwin = team1gain;
+            radiant._onlose = team1loss;
+
+            await _context.SaveChangesAsync();
+
+            dire._onwin = team1loss;
+            dire._onlose = team1gain;
+
+            await _context.SaveChangesAsync();
+             
+
+
+
             await _utilities.GrantRole(context, radiantteam, perms.LobbyRoleRadiant);
             await _utilities.GrantRole(context, direteam, perms.LobbyRoleDire);
 

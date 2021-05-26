@@ -130,7 +130,7 @@ namespace bot_2.Commands
             var game = await _context.game_data.FindAsync(gameProfile._gameid);
             game._winner = (int)side;
             await _context.SaveChangesAsync();
-            var record = _context.game_record.FirstOrDefault(p => p._gameid == game._id && p._side == (int)side);
+            var record = await _context.game_record.FirstOrDefaultAsync(p => p._gameid == game._id && p._side == (int)side);
 
             var increment = record._onwin; // change
 
@@ -149,7 +149,7 @@ namespace bot_2.Commands
             var game = await _context.game_data.FindAsync(gameProfile._gameid);
             //game._winner = (int)side;
             //await _context.SaveChangesAsync();
-            var record = _context.game_record.FirstOrDefault(p => p._gameid == game._id && p._side == (int)side);
+            var record = await _context.game_record.FirstOrDefaultAsync(p => p._gameid == game._id && p._side == (int)side);
 
             var increment = record._onlose; // change
 
