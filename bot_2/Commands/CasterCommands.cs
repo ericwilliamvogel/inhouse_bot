@@ -91,8 +91,8 @@ namespace bot_2.Commands
                 async () =>
                 {
 
-                    string dt = DateTime.Now.ToString();
-                    await _context.caster_queue.AddAsync(new CasterQueueData { _id = _profile._id, _start = dt }).ConfigureAwait(false);
+                    var myDateTime = DateTimeOffset.Now;
+                    await _context.caster_queue.AddAsync(new CasterQueueData { _id = _profile._id, _start = myDateTime }).ConfigureAwait(false);
                     var record = await _context.player_data.FindAsync(_profile._id);
                     record._gamestatus = 1;
                     await _context.SaveChangesAsync().ConfigureAwait(false);

@@ -6,7 +6,7 @@ namespace db
 {
     public class SpectatorQueueData : DiscordEntity
     {
-        public string _start;
+        public DateTimeOffset _start { get; set; }
     }
 
 }

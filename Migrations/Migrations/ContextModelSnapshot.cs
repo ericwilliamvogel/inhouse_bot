@@ -125,8 +125,8 @@ namespace Migrations.Migrations
                         .ValueGeneratedOnAdd()
         .HasColumnType("NUMERIC(20,0)")
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
-                b.Property<DateTime>("_start")
-        .HasColumnType("datetime");
+                b.Property<DateTimeOffset>("_start")
+        .HasColumnType("datetimeoffset");
 
                 b.HasKey("_id");
 
@@ -139,8 +139,8 @@ namespace Migrations.Migrations
                         .ValueGeneratedOnAdd()
         .HasColumnType("NUMERIC(20,0)")
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
-                b.Property<DateTime>("_start")
-        .HasColumnType("datetime");
+                b.Property<DateTimeOffset>("_start")
+        .HasColumnType("datetimeoffset");
 
                 b.HasKey("_id");
 
