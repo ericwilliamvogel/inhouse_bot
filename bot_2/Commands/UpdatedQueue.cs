@@ -65,6 +65,7 @@ namespace bot_2.Commands
 
             try
             {
+
                 if (context.Guild.Channels.ContainsKey(PreLoadedChannel))
                 {
                     Console.WriteLine("channel loaded");
@@ -83,6 +84,8 @@ namespace bot_2.Commands
                     Console.WriteLine("was null");
                     return;
                 }
+
+                List<QueueData> recordsToBeRemoved = new List<QueueData>();
 
                 var playersInQueue = await _context.player_queue.ToListAsync();
                 var castersInQueue = await _context.caster_queue.ToListAsync();
@@ -116,6 +119,11 @@ namespace bot_2.Commands
                         timespan = StripMilliseconds(timespan);
 
                         players += "<@" + player._id + ">" + " : " + timespan + " -- " + mmr + " inhouse mmr / " + othermmr + " dota mmr.\n";
+
+                        if(timespan.Hours >= 1)
+                        {
+                            recordsToBeRemoved.Add(player);
+                        }
                     }
                     else
                     {
@@ -124,6 +132,27 @@ namespace bot_2.Commands
 
 
                 }
+
+                foreach(var player in recordsToBeRemoved)
+                {
+                    _context.player_queue.Remove(player);
+                    await _context.SaveChangesAsync();
+                    
+                    Profile profile = new Profile(context, player._id);
+                    var member = await _context.player_data.FindAsync(player._id);
+                    if(member != null)
+                    {
+                        member._gamestatus = 0;
+                        await _context.SaveChangesAsync();
+                    }
+                    else
+                    {
+                        await profile.SendDm("For some reason we couldn't locate your profile using your discord id. Your status still hasn't been reset. You may need to #create-a-ticket so an admin can fix your status.");
+                    }
+                    await profile.SendDm("You have been removed from queue because you've been idle for over an hour. Type !q or !queue if you'd like to return to queue.");
+
+                }
+
 
                 foreach (var caster in castersInQueue)
                 {
@@ -183,7 +212,7 @@ namespace bot_2.Commands
                 leaderboard += "---------------------\n\n";
 
 
-                string finalString = DateTime.Now.ToString() + "\nWelcome to GrinHouseLeague. There are **" + playersInQueue.Count + " players** in queue and **" + gamesBeingPlayed.Count + " games** currently being played.\n\n" + leaderboard +
+                string finalString = DateTime.Now.ToString() + " PST\nWelcome to GrinHouseLeague. There are **" + playersInQueue.Count + " players** in queue and **" + gamesBeingPlayed.Count + " games** currently being played.\n\n" + leaderboard +
                     players +
                     "\n\n" +
                     casters +

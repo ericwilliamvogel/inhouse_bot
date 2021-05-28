@@ -206,7 +206,7 @@ namespace bot_2.Commands
                     var list = await _context.player_queue.ToListAsync();
                     int count = list.Count();
 
-                    await _updatedQueue.StartThread(context);
+                     await _updatedQueue.StartThread(context);
 
                     if (count >= 10)
                     {

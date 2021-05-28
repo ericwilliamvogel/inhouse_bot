@@ -340,7 +340,7 @@ namespace bot_2.Commands
                     async (CommandContext context, Profile _profile) =>
                     {
                         var record = await _context.player_data.FindAsync(_profile._id);
-                        if (record._role1 != 0 && record._role2 != 0 && record._region != (int)Region.NONE)
+                        if (record._role1 != 0 && record._role2 != 0 && record._region != (int)Region.NONE && record._dotammr != 0)
                         {
                             return true;
                         }

@@ -50,6 +50,39 @@ public async Task EnterQueue(CommandContext context, int number)
 
         }
 
+        [Command("createreact")]
+        public async Task CreateReact(CommandContext context)
+        {
+            Profile _profile = new Profile(context);
+            await _conditions.TryConditionedAction(context, _profile,
+
+                new List<Arg> {
+                    Arg.HasAdminRole
+                },
+
+                async () =>
+                {
+                    await context.Channel.SendMessageAsync("<@&775151515442741258>\n---React with what times you expect to play today---\n\n");
+
+                    var message = await context.Channel.SendMessageAsync("2PM EST - 5PM EST\n");
+                    await message.CreateReactionAsync(DiscordEmoji.FromName(context.Client, ":thumbsup:"));
+                    //await message.CreateReactionAsync(DiscordEmoji.FromName(context.Client, ":thumbsdown:"));
+
+                    var message1 = await context.Channel.SendMessageAsync("5PM EST - 8PM EST\n");
+                    await message1.CreateReactionAsync(DiscordEmoji.FromName(context.Client, ":thumbsup:"));
+                    //await message1.CreateReactionAsync(DiscordEmoji.FromName(context.Client, ":thumbsdown:"));
+
+                    var message2 = await context.Channel.SendMessageAsync("8PM EST - 11PM EST\n");
+                    await message2.CreateReactionAsync(DiscordEmoji.FromName(context.Client, ":thumbsup:"));
+                    //await message2.CreateReactionAsync(DiscordEmoji.FromName(context.Client, ":thumbsdown:"));
+
+                    var message3 = await context.Channel.SendMessageAsync("11PM EST - 2AM EST\n");
+                    await message3.CreateReactionAsync(DiscordEmoji.FromName(context.Client, ":thumbsup:"));
+                    //await message3.CreateReactionAsync(DiscordEmoji.FromName(context.Client, ":thumbsdown:"));
+
+                });
+        }
+
         [Command("manuallyresetallstatus")]
         public async Task RestartStatus(CommandContext context)
         {

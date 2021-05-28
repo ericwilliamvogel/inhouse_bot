@@ -89,8 +89,8 @@ CREATE TABLE primary_table(
 
         private async Task OnClientReady(DiscordClient c, ReadyEventArgs e)
         {
-            await UpdatedQueue.ResetVariables();
-            Console.WriteLine("Variables reset, new update thread should've been started");
+            //await UpdatedQueue.ResetVariables();
+            //Console.WriteLine("Variables reset, new update thread should've been started");
         }
 
         private async Task OnMessageCreated(DiscordClient c, MessageCreateEventArgs e)
