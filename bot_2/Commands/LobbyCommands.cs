@@ -89,6 +89,104 @@ namespace bot_2.Commands
 
 
         }
+
+        [Command("kick")]
+        public async Task KickPlayer(CommandContext context, string input)
+        {
+            Profile _profile = new Profile(context);
+
+
+            await _conditions.TryConditionedAction(context, _profile,
+
+            new List<Arg> {
+                            Arg.IsLobbyHost,
+                            Arg.HasMention
+            },
+
+            async () =>
+            {
+                var lobbyInfo = await _context.discord_channel_info.FindAsync(_profile._id);
+
+                var radiant = await _context.game_record.FirstOrDefaultAsync(p => p._gameid == lobbyInfo._gameid && p._side == (int)Side.Radiant);
+                var dire = await _context.game_record.FirstOrDefaultAsync(p => p._gameid == lobbyInfo._gameid && p._side == (int)Side.Dire);
+
+                ulong mentionedPlayerId = context.Message.MentionedUsers.First().Id;
+
+
+                var priorityPlayers = GetPlayerIds(radiant, mentionedPlayerId);
+                priorityPlayers.AddRange(GetPlayerIds(dire, mentionedPlayerId));
+
+                List<Player> backlogPlayers = new List<Player>();
+
+                var unorderedQueue = await _context.player_queue.ToListAsync();
+                var orderedQueue = unorderedQueue.OrderBy(p => p._position).ToList();
+
+                List<QueueData> toBeRemovedFromQueue = new List<QueueData>();
+
+                foreach(var record in orderedQueue)
+                {
+                    backlogPlayers.Add(new Player(record._id, record._start));
+                    toBeRemovedFromQueue.Add(record);
+                }
+
+                foreach(var record in toBeRemovedFromQueue)
+                {
+                    _context.player_queue.Remove(record);
+                    await _context.SaveChangesAsync();
+                }
+
+                foreach(var id in priorityPlayers)
+                {
+                    await _context.player_queue.AddAsync(new QueueData { _id = id });
+                    await _context.SaveChangesAsync();
+                }
+
+                foreach(var record in backlogPlayers)
+                {
+                    await _context.player_queue.AddAsync(new QueueData { _id = record._id, _start = record._start });
+                    await _context.SaveChangesAsync();
+                }
+
+                await DrawGame(context, 0);
+                //LobbySorter sorter = new LobbySorter(_context);
+                //await sorter._report.WrapUp(context, lobbyInfo._number);
+                //code
+
+
+            });
+
+
+
+
+        }
+
+        private List<ulong> GetPlayerIds(TeamRecord record, ulong id)
+        {
+            List<ulong> ids = new List<ulong>();
+
+            if (record._p1 != id)
+            {
+                ids.Add(record._p1);
+            }
+            if (record._p2 != id)
+            {
+                ids.Add(record._p2);
+            }
+            if (record._p3 != id)
+            {
+                ids.Add(record._p3);
+            }
+            if (record._p4 != id)
+            {
+                ids.Add(record._p4);
+            }
+            if (record._p5 != id)
+            {
+                ids.Add(record._p5);
+            }
+
+            return ids;
+        }
         [Command("pick")]
         public async Task Pick(CommandContext context, string irrelevant)
         {

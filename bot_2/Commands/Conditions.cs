@@ -30,7 +30,8 @@ namespace bot_2.Commands
         IsLobbyCaptain,
         CanPick,
         HasMention,
-        ProfileComplete
+        ProfileComplete,
+        IsLobbyHost
     }
     public class Conditions
     {
@@ -43,34 +44,6 @@ namespace bot_2.Commands
         /// </summary>
         /// 
         public Dictionary<Arg, Argument> _check;
-        public Argument IsReady { get; set; } //not occupied code 0
-        public Argument IsRegistered { get; set; } //already !registered
-
-        public Argument IsntRegistered { get; set; }
-        public Argument IsInCommandChannel { get; set; }
-        public Argument IsInAdminCommandChannel { get; set; }
-
-        public Argument IsntQueued { get; set; }
-
-        public Argument IsQueued { get; set; }
-
-        public Argument IsntSpectatorQueued { get; set; }
-
-        public Argument IsSpectatorQueued { get; set; }
-
-        public Argument IsntCasterQueued { get; set; }
-
-        public Argument IsCasterQueued { get; set; }
-
-        public Argument HasAtLeastAdminRole { get; set; }
-
-        public Argument HasAtLeastModRole { get; set; }
-
-        public Argument HasAtLeastMemberRole { get; set; }
-
-        public Argument HasAtLeastTrustedRole { get; set; }
-
-        public Argument HasCasterRole { get; set; }
         public Conditions(Context context)
         {
             _context = context;
@@ -97,7 +70,25 @@ namespace bot_2.Commands
 
             );
 
-            _check.Add(
+                _check.Add(
+                    Arg.IsLobbyHost,
+                    async (CommandContext context, Profile _profile) =>
+                    {
+                        var checkIfHost = await _context.discord_channel_info.FindAsync(_profile._id);
+                        if (checkIfHost != null)
+                        {
+                            return true;
+                        }
+                        else
+                        {
+                            await _profile.SendDm("You need to be a lobby host, and our records show that you aren't the host of any lobby.");
+                        }
+
+                        return false;
+                    }
+
+                );
+                        _check.Add(
                 Arg.IsRegistered,
                 async (CommandContext context, Profile _profile) =>
                 {

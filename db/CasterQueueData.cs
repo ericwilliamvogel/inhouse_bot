@@ -7,5 +7,7 @@ namespace db
     public class CasterQueueData : DiscordEntity
     { 
             public DateTimeOffset _start { get; set; }
+
+            public int _position { get; set; }
     }
 }

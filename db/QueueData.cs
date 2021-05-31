@@ -8,6 +8,8 @@ namespace db
     {
         //[Column(TypeName="datetimeoffset")]
         public DateTimeOffset _start { get; set; }
+
+        public int _position { get; set; }
     }
 
     //this is for dbset, the conversion will likely return errors cuz it cant differentiate between different lists of queuedata.

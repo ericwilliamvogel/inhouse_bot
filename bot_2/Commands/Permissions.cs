@@ -111,24 +111,26 @@ namespace bot_2.Commands
             await generaltext.AddOverwriteAsync(LobbyRoleSpectator, DSharpPlus.Permissions.ReadMessageHistory);
             await generaltext.AddOverwriteAsync(LobbyRoleCaster, DSharpPlus.Permissions.ReadMessageHistory);
 
-            await generaltext.AddOverwriteAsync(LobbyRoleRadiant, DSharpPlus.Permissions.AccessChannels);
-            await generaltext.AddOverwriteAsync(LobbyRoleDire, DSharpPlus.Permissions.AccessChannels);
-            await generaltext.AddOverwriteAsync(LobbyRoleSpectator, DSharpPlus.Permissions.AccessChannels);
-            await generaltext.AddOverwriteAsync(LobbyRoleCaster, DSharpPlus.Permissions.AccessChannels);
-
             await generaltext.AddOverwriteAsync(LobbyRoleRadiant, DSharpPlus.Permissions.SendMessages);
             await generaltext.AddOverwriteAsync(LobbyRoleDire, DSharpPlus.Permissions.SendMessages);
             await generaltext.AddOverwriteAsync(LobbyRoleSpectator, DSharpPlus.Permissions.SendMessages);
             await generaltext.AddOverwriteAsync(LobbyRoleCaster, DSharpPlus.Permissions.SendMessages);
 
+            await generaltext.AddOverwriteAsync(LobbyRoleRadiant, DSharpPlus.Permissions.AccessChannels);
+            await generaltext.AddOverwriteAsync(LobbyRoleDire, DSharpPlus.Permissions.AccessChannels);
+            await generaltext.AddOverwriteAsync(LobbyRoleSpectator, DSharpPlus.Permissions.AccessChannels);
+            await generaltext.AddOverwriteAsync(LobbyRoleCaster, DSharpPlus.Permissions.AccessChannels);
 
 
-
-
+            await generaltext.AddOverwriteAsync(TrustedRole, DSharpPlus.Permissions.None, DSharpPlus.Permissions.AccessChannels);
+            await generaltext.AddOverwriteAsync(AverageRole, DSharpPlus.Permissions.None, DSharpPlus.Permissions.AccessChannels);
             await radiantvoice.AddOverwriteAsync(TrustedRole, DSharpPlus.Permissions.None, DSharpPlus.Permissions.AccessChannels);
             await radiantvoice.AddOverwriteAsync(AverageRole, DSharpPlus.Permissions.None, DSharpPlus.Permissions.AccessChannels);
             await direvoice.AddOverwriteAsync(TrustedRole, DSharpPlus.Permissions.None, DSharpPlus.Permissions.AccessChannels);
             await direvoice.AddOverwriteAsync(AverageRole, DSharpPlus.Permissions.None, DSharpPlus.Permissions.AccessChannels);
+
+            await RevokeAllPermissions(generaltext, AverageRole);
+            await RevokeAllPermissions(generaltext, TrustedRole);
 
             await RevokeAllPermissions(radiantvoice, AverageRole);
             await RevokeAllPermissions(radiantvoice, TrustedRole);

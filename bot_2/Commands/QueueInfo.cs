@@ -35,16 +35,18 @@ namespace bot_2.Commands
                 counter++;
                 for (int i = 0; i < counter; i++)
                 {
-                    players += "<->";
+                    players += "-";
                 }
                 var startTime = player._start;
                 players += await DisplayData(player._id, startTime,
                     (TimeSpan timespan) => {
-                        if (timespan.Hours >= 1)
+                        if (timespan.Hours >= 2)
                         {
                             recordsToBeRemoved.Add(player);
                         }
                     });
+
+
             }
 
 
@@ -107,7 +109,7 @@ namespace bot_2.Commands
         {
             return new TimeSpan(time.Days, time.Hours, time.Minutes, time.Seconds);
         }
-        public async Task<string> DisplayData(ulong id, DateTimeOffset playerStart, Action<TimeSpan> RemoveIdleRecords)
+        public async Task<string> DisplayData(ulong id, DateTimeOffset playerStart, Action<TimeSpan> RemoveIdleRecords) //we need to use an action here in case we want to have queue timeouts in the future for the different queue variants, not just players
         {
             string playerList = "";
             DateTimeOffset end = DateTimeOffset.Now;
@@ -130,7 +132,7 @@ namespace bot_2.Commands
                 TimeSpan timespan = end - start;
                 timespan = StripMilliseconds(timespan);
 
-                playerList += "<@" + id + ">" + " : **" + timespan + "** -- " + mmr + " inhouse mmr / " + othermmr + " dota mmr.\n";
+                playerList += "<@" + id + ">" + " : " + timespan + " -- " + mmr + " inhouse mmr / " + othermmr + " dota mmr.\n";
 
                 RemoveIdleRecords(timespan);
 

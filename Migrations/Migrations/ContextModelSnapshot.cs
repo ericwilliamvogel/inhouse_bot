@@ -96,6 +96,9 @@ namespace Migrations.Migrations
                 b.Property<DateTimeOffset>("_start")
         .HasColumnType("datetimeoffset");
 
+                b.Property<int>("_position")
+        .HasColumnType("int");
+
                 b.HasKey("_id");
 
                 b.ToTable("player_queue");
@@ -128,6 +131,9 @@ namespace Migrations.Migrations
                 b.Property<DateTimeOffset>("_start")
         .HasColumnType("datetimeoffset");
 
+                b.Property<int>("_position")
+        .HasColumnType("int");
+
                 b.HasKey("_id");
 
                 b.ToTable("spectator_queue");
@@ -141,6 +147,9 @@ namespace Migrations.Migrations
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
                 b.Property<DateTimeOffset>("_start")
         .HasColumnType("datetimeoffset");
+
+                b.Property<int>("_position")
+                        .HasColumnType("int");
 
                 b.HasKey("_id");
 

@@ -86,11 +86,13 @@ namespace bot_2.Commands
 
                 List<QueueData> recordsToBeRemoved = new List<QueueData>();
 
-                var gamesBeingPlayed = await _context.discord_channel_info.ToListAsync();
 
                 var players = await _queueInfo.GetPlayerQueueInfo(context);
                 var casters = await _queueInfo.GetCasterQueueInfo(context);
                 var spectators = await _queueInfo.GetSpectatorQueueInfo(context);
+
+                //this await triggers threading issue??
+                var gamesBeingPlayed = await _context.discord_channel_info.ToListAsync();
 
                 string currentGames = await _info.CreateGameProfile(context, gamesBeingPlayed);
 

@@ -146,13 +146,15 @@ namespace bot_2.Commands
             string lobbyPass = "grin" + DateTime.Now.Millisecond;
 
             string preinstructions = "\n\nLobby host can now create the game under **LobbyName = " + lobbyName + "**, and **Password = " + lobbyPass + "**.\n\n";
-            string instructions = preinstructions + "After the game, the host can report the winner by command '!radiant game_id_here' , '!dire game_id_here', or !draw 'game_id_here. If you need any help or something isn't working please contact an admin/mod.";
+            string instructions = "After the game, the host can report the winner by command '!radiant game_id_here' , '!dire game_id_here', or !draw 'game_id_here. If you need any help or something isn't working please contact an admin/mod.";
 
             string final = "Server = " + region + "\n" +
                 "Game ID = " + gameid + ". \n\n" +
                 "Lobby host = " + hostMention + "\n\n" +
 
-                radiantMention + "\n" + direMention + "\n" +
+                preinstructions + "\n\n" +
+
+                radiantMention + "\n" + direMention + "\n\n" +
 
                 instructions;
 

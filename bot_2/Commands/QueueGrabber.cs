@@ -24,7 +24,8 @@ namespace bot_2.Commands
         {
             List<Player> temp = new List<Player>();
 
-            var list = await _context.player_queue.ToListAsync();
+            var unorderedList = await _context.player_queue.ToListAsync();
+            var list = unorderedList.OrderBy(p => p._position).ToList();
 
             List<QueueData> tempo = new List<QueueData>();
             for (int i = 0; i < maxPlayers; i++)

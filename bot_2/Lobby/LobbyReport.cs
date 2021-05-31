@@ -57,8 +57,8 @@ namespace bot_2.Commands
                     var game = await _context.game_data.FindAsync(gameProfile._gameid);
                     game._winner = (int)Side.Draw;
                     await _context.SaveChangesAsync();
-                    var record1 = _context.game_record.FirstOrDefault(p => p._gameid == game._id && p._side == (int)Side.Radiant);
-                    var record2 = _context.game_record.FirstOrDefault(p => p._gameid == game._id && p._side == (int)Side.Dire);
+                    var record1 = await _context.game_record.FirstOrDefaultAsync(p => p._gameid == game._id && p._side == (int)Side.Radiant);
+                    var record2 = await _context.game_record.FirstOrDefaultAsync(p => p._gameid == game._id && p._side == (int)Side.Dire);
 
                     await _utilities.ChangeTeamStatus(record1, 0);
                     await _utilities.ChangeTeamStatus(record2, 0);
@@ -69,14 +69,7 @@ namespace bot_2.Commands
                 }
                 var awaiting = await context.Guild.Channels[842870150994591764].SendMessageAsync("waiting for opendota api to pick up game under id " + steamid);
                 //send msg to game history channel
-
-                await RemoveHostRecord(context);
-
-                Task task = await Task.Factory.StartNew(async () =>
-                {
-                    await Task.Delay(2000);
-                    await CloseLobby(context, gameProfile._number);
-                }, TaskCreationOptions.LongRunning);
+                await WrapUp(context, gameProfile._number);
 
 
                 if (context.Guild.Channels.ContainsKey(842870150994591764))
@@ -109,6 +102,18 @@ namespace bot_2.Commands
 
 
             }
+
+        }
+
+        public async Task WrapUp(CommandContext context, int lobbyNumber)
+        {
+            await RemoveHostRecord(context);
+
+            Task task = await Task.Factory.StartNew(async () =>
+            {
+                await Task.Delay(2000);
+                await CloseLobby(context, lobbyNumber);
+            }, TaskCreationOptions.LongRunning);
 
         }
         public async Task AddSteamIdToGameRecord(ChannelInfo record, long steamid)
