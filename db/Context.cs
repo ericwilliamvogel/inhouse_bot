@@ -26,6 +26,8 @@ namespace db
 
         public DbSet<ChannelInfo> discord_channel_info { get; set; }
 
+        public DbSet<EmoteUnlockedData> emote_unlocked { get; set; }
+
         //
         //pls type !register <steamid> - help 
         //

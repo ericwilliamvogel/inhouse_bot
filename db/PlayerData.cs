@@ -9,6 +9,7 @@ namespace db
         public long _steamid { get; set; }
         //public int _ihlid { get; set; }
 
+        public int _totalgames { get; set; }
         public int _gameswon { get; set; }
 
         public int _gameslost { get; set; }
@@ -28,6 +29,10 @@ namespace db
         public int _role2 { get; set; }
 
         public int _region { get; set; }
+
+        public long _xp { get; set; }
+        
+
         //public string _discorduser { get; set; }
     }
 

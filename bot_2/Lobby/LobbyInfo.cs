@@ -23,6 +23,82 @@ namespace bot_2.Commands
             _utilities = utilities;
         }
 
+        public async Task<string> GetGameHistory(OpenDotaApi openDota, OpenDotaDotNet.Models.Matches.Match gameDetails)
+        {
+            string direscore = "Dire Score: " + gameDetails.DireScore + " / ";
+            string radiantscore = "Radiant Score: " + gameDetails.RadiantScore + "\n";
+
+            string starttime = "Game Started: " + gameDetails.StartTime + " / ";
+            string duration = "Game Length: " + gameDetails.Duration + "\n";
+
+
+            string region = "Region: " + gameDetails.Region + "\n";
+            string winner = "<not_found>";
+
+            if (gameDetails.RadiantWin)
+            {
+                winner = "Winner: Radiant\n";
+            }
+            else
+            {
+                winner = "Winner: Dire\n";
+
+            }
+
+
+            string dire = "Dire: \n";
+            string radiant = "Radiant: \n";
+
+            var heroes = await openDota.Heroes.GetHeroesAsync();
+
+            foreach (var player in gameDetails.Players)
+            {
+                string info = string.Empty;
+                var id = player.AccountId;
+                var record = await _context.player_data.FirstOrDefaultAsync(p => p._steamid == id);
+
+
+                long kills = player.Kills;
+                int deaths = player.Deaths;
+                long assists = player.Assists;
+                int gpm = player.GoldPerMin;
+                int xpm = player.XpPerMin;
+
+                int lasthits = player.LastHits;
+                int denies = player.Denies;
+
+                long heroid = player.HeroId;
+
+                var hero = heroes.FirstOrDefault(p => p.Id == heroid).LocalizedName;
+
+                long dmg = player.HeroDamage;
+
+                if (record != null)
+                {
+                    info += "<@" + record._id + ">, Hero: " + hero + "\n - K/D/A: " + kills + "/" + deaths + "/" + assists;
+                }
+                else
+                {
+                    info += "<unkownplayer>, Hero: " + hero + "\n - K/D/A: " + kills + "/" + deaths + "/" + assists;
+                }
+
+                info += " - GPM/XPM: " + gpm + "/" + xpm + " - \n - LH/D: " + lasthits + "/" + denies + " - Dmg: " + dmg + "-\n";
+                if (player.IsRadiant)
+                {
+                    radiant += info;
+                }
+                else
+                {
+                    dire += info;
+                }
+            }
+
+            string final = "\n\n" + winner + direscore + radiantscore + starttime + duration +
+    region + radiant + dire + "\n\n";
+
+            return final;
+        }
+
 
         public async Task<string> GetGameHistory(OpenDotaApi openDota, int gameid, OpenDotaDotNet.Models.Matches.Match gameDetails)
         {
@@ -66,7 +142,7 @@ namespace bot_2.Commands
                 var record = await _context.player_data.FirstOrDefaultAsync(p => p._steamid == id);
 
 
-                int kills = player.HeroKills;
+                long kills = player.Kills;
                 int deaths = player.Deaths;
                 long assists = player.Assists;
                 int gpm = player.GoldPerMin;

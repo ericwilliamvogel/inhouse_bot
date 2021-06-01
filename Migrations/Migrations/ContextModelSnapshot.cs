@@ -37,6 +37,21 @@ namespace Migrations.Migrations
                 b.ToTable("primary_table");
             });
 
+            modelBuilder.Entity("db.EmoteUnlockedData", b =>
+            {
+                b.Property <ulong>("_id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("NUMERIC(20,0)")
+                    .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                b.Property<int>("_emoteid")
+                    .HasColumnType("int");
+
+                b.HasKey("_id");
+
+                b.ToTable("emote_unlocked");
+            });
+
             modelBuilder.Entity("db.PlayerData", b =>
             {
                 b.Property<ulong>("_id")
@@ -76,6 +91,12 @@ namespace Migrations.Migrations
 .HasColumnType("int");
 
                 b.Property<int>("_role2")
+.HasColumnType("int");
+
+                b.Property<long>("_xp")
+.HasColumnType("bigint");
+
+                b.Property<int>("_totalgames")
 .HasColumnType("int");
 
 

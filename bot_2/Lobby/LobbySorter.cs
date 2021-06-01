@@ -20,7 +20,9 @@ namespace bot_2.Commands
         private Context _context;
         private LobbyUtilities _utilities;
         private QueueGrabber _queueGrabber;
-        private LobbyInfo _info;
+
+
+        public LobbyInfo _info;
 
         public LobbyReport _report;
 

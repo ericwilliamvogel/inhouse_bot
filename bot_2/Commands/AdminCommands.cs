@@ -83,6 +83,66 @@ public async Task EnterQueue(CommandContext context, int number)
                 });
         }
 
+        [Command("grantemotetoallmembers")]
+        public async Task GrantEmotePower(CommandContext context, int emoteType)
+        {
+            Profile _profile = new Profile(context);
+            await _conditions.TryConditionedAction(context, _profile,
+
+                new List<Arg> {
+                    Arg.HasAdminRole,
+                    Arg.HasMention
+                },
+
+                async () =>
+                {
+                    var records = await _context.player_data.ToListAsync();
+                    foreach(var player in records)
+                    {
+                        var record = await _context.emote_unlocked.FirstOrDefaultAsync(p => p._id == player._id && p._emoteid == emoteType);
+                        if (record == null)
+                        {
+                            await _context.emote_unlocked.AddAsync(new EmoteUnlockedData { _id = player._id, _emoteid = emoteType });
+                            await _context.SaveChangesAsync();
+                        }
+                    }
+
+                    await _profile.SendDm("Emote powers granted to all users in the database.");
+
+                });
+        }
+
+        [Command("grantemote")]
+        public async Task GrantEmotePower(CommandContext context, int emoteType, string doesntmatter)
+        {
+            Profile _profile = new Profile(context);
+            await _conditions.TryConditionedAction(context, _profile,
+
+                new List<Arg> {
+                    Arg.HasAdminRole,
+                    Arg.HasMention
+                },
+
+                async () =>
+                {
+                    var ment = context.Message.MentionedUsers.First().Id;
+
+                    var record = await _context.emote_unlocked.FirstOrDefaultAsync(p => p._id == ment && p._emoteid == emoteType);
+                    if (record == null)
+                    {
+
+                        await _profile.SendDm("Emote powers granted.");
+                        await _context.emote_unlocked.AddAsync(new EmoteUnlockedData { _id = ment, _emoteid = emoteType });
+                        await _context.SaveChangesAsync();
+                    }
+                    else
+                    {
+                        await _profile.SendDm("Player already has that emote.");
+                    }
+
+                });
+        }
+
         [Command("manuallyresetallstatus")]
         public async Task RestartStatus(CommandContext context)
         {
@@ -124,15 +184,15 @@ public async Task EnterQueue(CommandContext context, int number)
                 });
         }
 
-   /*     [Command("test")]
-        public async Task ResasdtThread(CommandContext context, long id)
+        [Command("grabgame")]
+        public async Task RestartThread(CommandContext context, long id)
         {
             Profile _profile = new Profile(context);
             await _conditions.TryConditionedAction(context, _profile,
 
-                new List<Argument> {
-                    _conditions.IsInAdminCommandChannel,
-                    _conditions.HasAtLeastAdminRole
+                new List<Arg> {
+                    Arg.IsInAdminCommandChannel,
+                    Arg.HasAdminRole
                 },
 
                 async () =>
@@ -144,7 +204,7 @@ public async Task EnterQueue(CommandContext context, int number)
                         if (gameDetails != null)
                         {
                             LobbySorter sorter = new LobbySorter(_context);
-                            string gHistory = await sorter._utilities.GetGameHistory(openDota, gameDetails);
+                            string gHistory = await sorter._info.GetGameHistory(openDota, gameDetails);
                             var channel = context.Guild.Channels[842870150994591764];
                             await channel.SendMessageAsync(gHistory);
                         }
@@ -159,7 +219,7 @@ public async Task EnterQueue(CommandContext context, int number)
                     }
                 });
         }
- */
+ 
         [Command("testid")]
         public async Task TestID(CommandContext context, long steamid)
         {

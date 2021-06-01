@@ -18,6 +18,8 @@ namespace bot_2.Commands
         private Context _context;
         private LobbyUtilities _utilities;
         private LobbyInfo _info;
+
+        private int xpincrement = 100;
         public LobbyReport(Context context, LobbyUtilities utilities, LobbyInfo info)
         {
             this._context = context;
@@ -105,6 +107,22 @@ namespace bot_2.Commands
 
         }
 
+
+        public async Task GiveTeamXP(TeamRecord record)
+        {
+            await GivePlayerXP(record._p1);
+            await GivePlayerXP(record._p2);
+            await GivePlayerXP(record._p3);
+            await GivePlayerXP(record._p4);
+            await GivePlayerXP(record._p5);
+        }
+        public async Task GivePlayerXP(ulong id)
+        {
+            var player = await _context.player_data.FindAsync(id);
+            player._xp += xpincrement;
+            await _context.SaveChangesAsync();
+        }
+
         public async Task WrapUp(CommandContext context, int lobbyNumber)
         {
             await RemoveHostRecord(context);
@@ -174,6 +192,8 @@ namespace bot_2.Commands
             {
                 playerRecord._ihlmmr += increment;
                 playerRecord._gameswon += 1;
+                playerRecord._totalgames += 1;
+                playerRecord._xp += xpincrement;
             }
 
         }
@@ -185,6 +205,8 @@ namespace bot_2.Commands
             {
                 playerRecord._ihlmmr -= increment;
                 playerRecord._gameslost += 1;
+                playerRecord._totalgames += 1;
+                playerRecord._xp += xpincrement / 2;
             }
         }
         public async Task CloseLobby(CommandContext context, int number) //only ex by trusted

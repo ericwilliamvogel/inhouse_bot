@@ -31,7 +31,8 @@ namespace bot_2.Commands
         CanPick,
         HasMention,
         ProfileComplete,
-        IsLobbyHost
+        IsLobbyHost,
+        CanEmote
     }
     public class Conditions
     {
@@ -279,6 +280,24 @@ namespace bot_2.Commands
                     if(record == null)
                     {
                         await _profile.SendDm("You were not found as a leader in any database records.");
+                        return false;
+                    }
+                    else
+                    {
+                        return true;
+                    }
+
+                }
+            );
+
+            _check.Add(Arg.CanEmote,
+                async (CommandContext context, Profile _profile) =>
+                {
+                    var record = await _context.emote_unlocked.FindAsync(_profile._id);
+
+                    if (record == null)
+                    {
+                        await _profile.SendDm("You do not have emote permissions.");
                         return false;
                     }
                     else

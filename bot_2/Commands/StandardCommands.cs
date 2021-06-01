@@ -16,12 +16,13 @@ namespace bot_2.Commands
     {
 
         private Dictionary<string, int> _medalDictionary;
-
+        Dictionary<int, string> emojiLib = new Dictionary<int, string>();
 
         public StandardCommands(Context context) : base(context)
         {
             _medalDictionary = new Dictionary<string, int>();
             SetRankDictionary();
+            SetEmojiLib();
 
         }
         private void SetRankDictionary()
@@ -370,7 +371,7 @@ namespace bot_2.Commands
                     {
                         var record = await _context.player_data.FindAsync(_profile._id);
                         record._steamid = steamid;
-                        if(playerDetails.MmrEstimate.Estimate!=null)
+                        if (playerDetails.MmrEstimate.Estimate != null)
                         {
                             record._dotammr = (int)playerDetails.MmrEstimate.Estimate;
                         }
@@ -386,7 +387,109 @@ namespace bot_2.Commands
                 });
         }
 
+        [Command("emote")]
+        public async Task Emoji(CommandContext context, int emoteType)
+        {
+            Profile _profile = new Profile(context);
+            await _conditions.TryConditionedAction(context, _profile,
 
+                new List<Arg> {
+                    Arg.IsRegistered,
+                    Arg.CanEmote
+                },
+
+                async () =>
+                {
+                    var record = await _context.emote_unlocked.FirstOrDefaultAsync(p => p._emoteid == emoteType);
+
+                    if(record == null)
+                    {
+                        await _profile.SendDm("You do not have permission to use that emote.");
+                    }
+                    else
+                    {
+                        var mention = context.Message.Author.Mention;
+
+                        string emoji = GetEmoji(emoteType);
+                        string msg = mention + " says : " + emoji + ".";
+
+                        await context.Channel.SendMessageAsync(msg);
+                    }
+
+                });
+        }
+
+        [Command("emote")]
+        public async Task Emoji(CommandContext context, int emoteType, string doesntmatter)
+        {
+            Profile _profile = new Profile(context);
+            await _conditions.TryConditionedAction(context, _profile,
+
+                new List<Arg> {
+                    Arg.IsRegistered,
+                    Arg.HasMention,
+                    Arg.CanEmote
+                },
+
+                async () =>
+                {
+                
+                    var record = await _context.emote_unlocked.FirstOrDefaultAsync(p => p._emoteid == emoteType);
+
+                    if (record == null)
+                    {
+                        await _profile.SendDm("You do not have permission to use that emote.");
+                    }
+                    else
+                    {
+                            var mention = context.Message.MentionedUsers.First().Mention;
+
+                            string emoji = GetEmoji();
+                            string msg = mention + " - " + emoji;
+
+                            await context.Channel.SendMessageAsync(msg);
+                    }
+
+
+
+                });
+        }
+
+
+        private void SetEmojiLib()
+        {
+            emojiLib.Add(1, "(• ε •)");
+            emojiLib.Add(2, "( ͡° ͜ʖ ͡°)");
+            emojiLib.Add(3, "[̲̅$̲̅(̲̅ ͡° ͜ʖ ͡°̲̅)̲̅$̲̅]");
+            emojiLib.Add(4, "(◕‿◕✿)");
+            emojiLib.Add(5, "ᕙ(⇀‸↼‶)ᕗ");
+            emojiLib.Add(6, "⚆ _ ⚆");
+            emojiLib.Add(7, "༼ つ ◕_◕ ༽つ");
+            emojiLib.Add(8, "ಠ_ಠ");
+            emojiLib.Add(9, "(ง'̀-'́)ง");
+        }
+        public string GetEmoji()
+        {
+            Random rand = new Random(DateTime.Now.Millisecond);
+            int num = rand.Next(1, 9);
+
+
+
+
+            return emojiLib[num];
+        }
+        public string GetEmoji(int input)
+        {
+            if(emojiLib.ContainsKey(input))
+            {
+                return emojiLib[input];
+            }
+            else
+            {
+                return "error";
+            }
+
+        }
 
 
 

@@ -6,7 +6,7 @@ namespace db
 {
     public class QueueData : DiscordEntity
     {
-        //[Column(TypeName="datetimeoffset")]
+
         public DateTimeOffset _start { get; set; }
 
         public int _position { get; set; }
