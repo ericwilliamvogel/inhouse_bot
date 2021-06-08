@@ -117,7 +117,7 @@ namespace bot_2.Commands
 
                     await queueMessage.ModifyAsync(finalString);
 
-                    await UpdateLeaderboard(context);
+                    //await UpdateLeaderboard(context);
 
 
                 }

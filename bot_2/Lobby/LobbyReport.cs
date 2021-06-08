@@ -143,7 +143,10 @@ namespace bot_2.Commands
         public async Task WrapUp(CommandContext context, int lobbyNumber)
         {
             await RemoveHostRecord(context);
-  
+
+            UpdatedQueue info = new UpdatedQueue(_context);
+            await info.UpdateLeaderboard(context);
+
             Task task = await Task.Factory.StartNew(async () =>
             {
                 await Task.Delay(2000);

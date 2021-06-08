@@ -74,7 +74,9 @@ namespace bot_2.Commands
 
                 Console.WriteLine("Creating game to db...");
 
-                await _context.game_data.AddAsync(new GameData { _host = leader._id });
+                DateTimeOffset start = DateTimeOffset.Now;
+
+                await _context.game_data.AddAsync(new GameData { _host = leader._id, _start = start });
                 await _context.SaveChangesAsync();
 
 
