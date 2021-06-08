@@ -260,6 +260,9 @@ namespace Migrations.Migrations
                 b.Property<int>("_winner")
 .HasColumnType("INT");
 
+                b.Property<DateTimeOffset>("_start")
+.HasColumnType("datetimeoffset");
+
 
                 b.HasKey("_id");
 

@@ -57,17 +57,7 @@ namespace bot_2.Commands
             {
                 started = true;
 
-                Task task = await Task.Factory.StartNew(async () =>
-                {
-
-                    await UpdateQueue(context);
-                }, TaskCreationOptions.LongRunning);
-
-                Task task2 = await Task.Factory.StartNew(async () =>
-                {
-                    await UpdateLeaderboard(context);
-
-                }, TaskCreationOptions.LongRunning);
+                await UpdateQueue(context);
 
 
 
@@ -86,8 +76,7 @@ namespace bot_2.Commands
         }
         public async Task UpdateQueue(CommandContext context)
         {
-            await Conditions._actionIterator.AddDelayedAction(2000, new ContextualAction(context, async () =>
-            {
+
                 try
                 {
 
@@ -128,6 +117,7 @@ namespace bot_2.Commands
 
                     await queueMessage.ModifyAsync(finalString);
 
+                    await UpdateLeaderboard(context);
 
 
                 }
@@ -141,18 +131,16 @@ namespace bot_2.Commands
                     await ReportErrorToAdmin(context, e);
                 }
 
-                //await Task.Delay(2000);
+                await Task.Delay(2400);
 
                 await UpdateQueue(context);
-            }));
             
 
         }
 
         public async Task UpdateLeaderboard(CommandContext context)
         {
-            await Conditions._actionIterator.AddDelayedAction(10000, new ContextualAction(context, async () =>
-            {
+
                 try
                 {
 
@@ -203,8 +191,7 @@ namespace bot_2.Commands
 
 
 
-                await UpdateLeaderboard(context);
-            }));
+                //await UpdateLeaderboard(context);
                 
         }
 

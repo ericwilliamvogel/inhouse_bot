@@ -105,7 +105,7 @@ namespace bot_2.Commands
 
         }
 
-        private TimeSpan StripMilliseconds(TimeSpan time)
+        public static TimeSpan StripMilliseconds(TimeSpan time)
         {
             return new TimeSpan(time.Days, time.Hours, time.Minutes, time.Seconds);
         }
@@ -130,7 +130,7 @@ namespace bot_2.Commands
             {
                 DateTimeOffset start = playerStart;
                 TimeSpan timespan = end - start;
-                timespan = StripMilliseconds(timespan);
+                timespan = QueueInfo.StripMilliseconds(timespan);
 
                 playerList += "<@" + id + ">" + " : " + timespan + " -- " + mmr + " inhouse mmr / " + othermmr + " dota mmr.\n";
 

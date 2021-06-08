@@ -11,6 +11,7 @@ namespace db
         public long _steamid { get; set; }
         public int _winner { get; set; }
 
+        public DateTimeOffset _start { get; set; }
 
     }
 

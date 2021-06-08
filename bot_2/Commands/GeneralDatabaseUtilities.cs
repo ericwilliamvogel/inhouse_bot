@@ -54,6 +54,7 @@ namespace bot_2.Commands
             foreach (ChannelInfo record in records)
             {
                 var gameid = record._gameid;
+
                 var hostMention = "<not_found>";
                 hostMention = "<@" + record._id + ">";
 
@@ -61,6 +62,19 @@ namespace bot_2.Commands
 
                 string starter = "---Lobby" + gameid + "---\n";
 
+
+                var gamerecord = await _context.game_data.FindAsync(gameid);
+                if (gamerecord != null)
+                {
+                    if(gamerecord._start != null)
+                    {
+                        DateTimeOffset now = DateTimeOffset.Now;
+                        TimeSpan span = now - gamerecord._start;
+                        span = QueueInfo.StripMilliseconds(span);
+                        starter += "--" + span + "--\n";
+                    }
+
+                }
                 var radiant = await _context.game_record.FirstOrDefaultAsync(e => e._gameid == gameid && e._side == 0);
                 var dire = await _context.game_record.FirstOrDefaultAsync(e => e._gameid == gameid && e._side == 1);
 
@@ -82,6 +96,7 @@ namespace bot_2.Commands
                     "Win: " + direGain + " mmr /// Lose: " + direLoss + " mmr \n" + dMen;
 
                 string finalString = "||" + starter + "Lobby host = " + hostMention + "\n\n" + radiantMention + direMention + "||\n\n\n";
+
 
                 completeString += finalString;
             }

@@ -540,9 +540,9 @@ namespace bot_2.Commands
 
             try
             {
-                await _actionIterator.AddAction(new ContextualAction(context, action));
-                //await action();
-                //await context.Message.DeleteAsync();
+                //await _actionIterator.AddAction(new ContextualAction(context, action));
+                await action();
+                await context.Message.DeleteAsync();
             }
             catch (Exception e)
             {
