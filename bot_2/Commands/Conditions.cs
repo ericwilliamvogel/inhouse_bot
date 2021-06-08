@@ -11,32 +11,24 @@ namespace bot_2.Commands
 {
     public class ContextualAction
     {
-        public ContextualAction(CommandContext context, Action action)
+        public ContextualAction(CommandContext context, Func<Task> action)
         {
             Profile profile = new Profile(context);
             _commandContext = context;
             _action = action;
             _profile = profile;
         }
-        public Action _action { get; set; }
+        public Func<Task> _action { get; set; }
         public Profile _profile { get; set; }
 
         public CommandContext _commandContext { get; set; }
 
-        public Action GetAction()
+        public Func<Task> GetAction()
         {
-            Action action = () =>
+            Func<Task> action = async () =>
             {
-                if (_commandContext == null)
-                    return;
 
-                if (_commandContext.Guild == null)
-                    return;
-
-                if (_commandContext.Message == null)
-                    return;
-
-                _action();
+                await _action();
             };
 
             return action;
@@ -49,14 +41,28 @@ namespace bot_2.Commands
         {
             _actions.Add(async () =>
             {
-                action.GetAction();
+                await action._action();
+                await action._commandContext.Message.DeleteAsync();
                 await CompleteAction();
             });
 
-                    
+
             await CompleteAction();
         }
+        public async Task AddDelayedAction(int ms, ContextualAction action)
+        {
+            await Task.Delay(ms);
 
+            _actions.Add(async () =>
+            {
+                await action._action();
+                await action._commandContext.Message.DeleteAsync();
+                await CompleteAction();
+            });
+
+
+            await CompleteAction();
+        }
         private bool active = false;
         public async Task CompleteAction()
         {
@@ -114,7 +120,7 @@ namespace bot_2.Commands
         /// 
         /// </summary>
         /// 
-        public ActionIterator _actionIterator;
+        public static ActionIterator _actionIterator;
         public Dictionary<Arg, Argument> _check;
         public Conditions(Context context)
         {
@@ -534,9 +540,9 @@ namespace bot_2.Commands
 
             try
             {
-                //await _actionIterator.AddAction(new ContextualAction(context, action);
-                await action();
-                await context.Message.DeleteAsync();
+                await _actionIterator.AddAction(new ContextualAction(context, action));
+                //await action();
+                //await context.Message.DeleteAsync();
             }
             catch (Exception e)
             {

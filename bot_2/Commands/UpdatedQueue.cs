@@ -1,5 +1,6 @@
 ﻿using db;
 using DSharpPlus.CommandsNext;
+using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
@@ -55,81 +56,238 @@ namespace bot_2.Commands
             if (!started)
             {
                 started = true;
-                await UpdateMessage(context);
+
+                Task task = await Task.Factory.StartNew(async () =>
+                {
+
+                    await UpdateQueue(context);
+                }, TaskCreationOptions.LongRunning);
+
+                Task task2 = await Task.Factory.StartNew(async () =>
+                {
+                    await UpdateLeaderboard(context);
+
+                }, TaskCreationOptions.LongRunning);
 
 
+
+                
             }
         }
-        public async Task UpdateMessage(CommandContext context)
+
+        public async Task<DiscordMessage> GetMessage(CommandContext context, ulong channel, ulong message)
         {
-            try
+            if(context.Guild.Channels.ContainsKey(channel))
             {
-
-                if (context.Guild.Channels.ContainsKey(PreLoadedChannel))
-                {
-                    Console.WriteLine("channel loaded");
-                }
-                else
-                {
-                    Console.WriteLine("badkey channel");
-                    return;
-                }
-
-                var channel = context.Guild.Channels[PreLoadedChannel];
-
-                var message = await context.Guild.Channels[PreLoadedChannel].GetMessageAsync(PreLoadedMessage);
-                if (message == null)
-                {
-                    Console.WriteLine("was null");
-                    return;
-                }
-
-                List<QueueData> recordsToBeRemoved = new List<QueueData>();
-
-
-                var players = await _queueInfo.GetPlayerQueueInfo(context);
-                var casters = await _queueInfo.GetCasterQueueInfo(context);
-                var spectators = await _queueInfo.GetSpectatorQueueInfo(context);
-
-                //this await triggers threading issue??
-                var gamesBeingPlayed = await _context.discord_channel_info.ToListAsync();
-
-                string currentGames = await _info.CreateGameProfile(context, gamesBeingPlayed);
-
-                var leaderboard = await _queueInfo.GetLeaderboard();
-
-                var participationAward = await _queueInfo.GetParticipationAward();
-
-
-                string finalString = DateTime.Now.ToString() + " PST\nWelcome to GrinHouseLeague. There are **" + gamesBeingPlayed.Count + " games** currently being played.\n\n" + leaderboard + participationAward +
-                    players +
-                    "\n\n" +
-                    casters +
-                    "\n\n" +
-                    spectators +
-                    "\n\n" +
-                    //availableplayers +
-                    //"\n\n" +
-                    currentGames;
-
-                await message.ModifyAsync(finalString);
+                var returnedMessage = await context.Guild.Channels[channel].GetMessageAsync(message);
+                return returnedMessage;
             }
-            catch (ServerErrorException e)
+            return null;
+        }
+        public async Task UpdateQueue(CommandContext context)
+        {
+            await Conditions._actionIterator.AddDelayedAction(2000, new ContextualAction(context, async () =>
             {
-                await ReportErrorToAdmin(context, e);
+                try
+                {
 
-            }
-            catch (Exception e)
-            {
-                await ReportErrorToAdmin(context, e);
-            }
+                    var queueMessage = await GetMessage(context, PreLoadedChannel, PreLoadedMessage);
+                    if (queueMessage == null)
+                    {
+                        return;
+                    }
 
-            await Task.Delay(2000);
 
-            await UpdateMessage(context);
+
+                    List<QueueData> recordsToBeRemoved = new List<QueueData>();
+
+                    var players = await _queueInfo.GetPlayerQueueInfo(context);
+                    var casters = await _queueInfo.GetCasterQueueInfo(context);
+                    var spectators = await _queueInfo.GetSpectatorQueueInfo(context);
+
+                    //this await triggers threading issue??
+                    var gamesBeingPlayed = await _context.discord_channel_info.ToListAsync();
+
+                    string currentGames = await _info.CreateGameProfile(context, gamesBeingPlayed);
+
+                    var leaderboard = await _queueInfo.GetLeaderboard();
+
+                    var participationAward = await _queueInfo.GetParticipationAward();
+
+
+                    string finalString = DateTime.Now.ToString() + " PST\nWelcome to GrinHouseLeague. There are **" + gamesBeingPlayed.Count + " games** currently being played.\n\n" + leaderboard + participationAward +
+                        players +
+                        "\n\n" +
+                        casters +
+                        "\n\n" +
+                        spectators +
+                        "\n\n" +
+                        //availableplayers +
+                        //"\n\n" +
+                        currentGames;
+
+                    await queueMessage.ModifyAsync(finalString);
+
+
+
+                }
+                catch (ServerErrorException e)
+                {
+                    await ReportErrorToAdmin(context, e);
+
+                }
+                catch (Exception e)
+                {
+                    await ReportErrorToAdmin(context, e);
+                }
+
+                //await Task.Delay(2000);
+
+                await UpdateQueue(context);
+            }));
+            
 
         }
 
+        public async Task UpdateLeaderboard(CommandContext context)
+        {
+            await Conditions._actionIterator.AddDelayedAction(10000, new ContextualAction(context, async () =>
+            {
+                try
+                {
+
+
+                    if (!context.Guild.Channels.ContainsKey(851934555350630420))
+                    {
+                        return;
+                    }
+
+
+
+                    DiscordChannel leaderboardChannel = context.Guild.Channels[851934555350630420];
+
+                    var availableLeaderboardMessages = await _context.leaderboard_messages.ToListAsync();
+
+                    var leaderboardMessages = await GetSplitMessages();
+
+                    int neededChannels = leaderboardMessages.Count() - availableLeaderboardMessages.Count();
+                    for (int i = 0; i < neededChannels; i++)
+                    {
+                        var message = await leaderboardChannel.SendMessageAsync("Starting new message...");
+                        await _context.leaderboard_messages.AddAsync(new LeaderboardData { _message = message.Id });
+                        await _context.SaveChangesAsync();
+                    }
+
+                    int counter = 0;
+                    foreach (var message in availableLeaderboardMessages)
+                    {
+
+                        var newMessage = await context.Guild.Channels[851934555350630420].GetMessageAsync(message._message);
+                        if (newMessage != null)
+                        {
+                            await newMessage.ModifyAsync(leaderboardMessages[counter]);
+                        }
+
+                        counter++;
+                    }
+                }
+                catch (ServerErrorException e)
+                {
+                    await ReportErrorToAdmin(context, e);
+
+                }
+                catch (Exception e)
+                {
+                    await ReportErrorToAdmin(context, e);
+                }
+
+
+
+                await UpdateLeaderboard(context);
+            }));
+                
+        }
+
+    
+        public async Task<List<string>> GetSplitMessages()
+        {
+            var players = await _context.player_data.ToListAsync();
+            players = players.OrderByDescending(p => p._ihlmmr).ToList();
+            string fulllist = "";
+            int counter = 0;
+            List<string> allMessages = new List<string>();// = SeperateText(fulllist);
+            int discordMessageCharLimit = 1000;
+            foreach (var player in players)
+            {
+                counter++;
+                string newstring = "-- #" + counter.ToString() + ": <@" + player._id + "> / " + player._ihlmmr + " grin mmr / " + player._dotammr + " dota mmr -- \n";
+                fulllist += newstring;
+
+                if (fulllist.Length > discordMessageCharLimit)
+                {
+                    allMessages.Add(fulllist);
+                    fulllist = "";
+                }
+            }
+            allMessages.Add(fulllist);
+            return allMessages;
+
+        }
+
+                
+        
+
+        private List<string> SeperateText(string fullstring)
+        {
+            int stringTotalLength = 0;
+            stringTotalLength = fullstring.Length;
+
+            List<string> partitions = new List<string>();
+            int discordMessageCharacterLimit = 1000;
+
+            if (stringTotalLength >= discordMessageCharacterLimit)
+            {
+
+                int numOfPartitions = stringTotalLength / discordMessageCharacterLimit;
+                if (stringTotalLength % discordMessageCharacterLimit != 0)
+                {
+                    numOfPartitions += 1;
+                }
+
+
+                for (int i = 0; i < numOfPartitions; i++)
+                {
+
+                    var substring = fullstring.Substring(
+                        discordMessageCharacterLimit * i,
+                        GetTrueMessageLength(i, discordMessageCharacterLimit, stringTotalLength)
+                        );
+                    //var tempstring = array.ToArray();
+                    //string newstring = new string(tempstring);
+                    partitions.Add(substring);
+                }
+            }
+            else
+            {
+                partitions.Add(fullstring);
+
+            }
+            return partitions;
+        }
+
+        public int GetTrueMessageLength(int iterator, int messageCap, int stringLength)
+        {
+            int remainder = 0;
+            if (messageCap * iterator + messageCap > stringLength)
+            {
+                remainder = stringLength % messageCap - 1;
+            }
+            else
+            {
+                remainder = messageCap;
+            }
+            return remainder;
+        }
         public async Task ReportErrorToAdmin(CommandContext context, Exception e)
         {
             Console.WriteLine(e);

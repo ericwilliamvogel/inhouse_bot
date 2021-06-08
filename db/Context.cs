@@ -28,6 +28,8 @@ namespace db
 
         public DbSet<EmoteUnlockedData> emote_unlocked { get; set; }
 
+        public DbSet<LeaderboardData> leaderboard_messages { get; set; }
+
         //
         //pls type !register <steamid> - help 
         //

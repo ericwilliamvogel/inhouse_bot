@@ -56,6 +56,21 @@ namespace Migrations.Migrations
                 b.ToTable("emote_unlocked");
             });
 
+            modelBuilder.Entity("db.LeaderboardData", b =>
+            {
+                b.Property<int>("_id")
+                .HasColumnType("int")
+                .ValueGeneratedOnAdd()
+                .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                b.Property<ulong>("_message")
+                    .HasColumnType("NUMERIC(20,0)");
+
+                //b.HasKey("_increment");
+
+                b.ToTable("leaderboard_messages");
+            });
+
             modelBuilder.Entity("db.PlayerData", b =>
             {
                 b.Property<ulong>("_id")

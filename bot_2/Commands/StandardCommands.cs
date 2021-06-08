@@ -49,7 +49,7 @@ namespace bot_2.Commands
 
             var verified = await _conditions.AreMet(context, _profile,
                 new List<Arg> {
-
+                    Arg.HasAdminRole
                 });
 
             if (!verified)
@@ -306,76 +306,7 @@ namespace bot_2.Commands
 
         }
 
-        /*[Command("leaderboard")]
-        public async Task swaggyyy(CommandContext context)
-        {
 
-            Profile _profile = new Profile(context);
-            await _conditions.TryConditionedAction(context, _profile,
-
-                new List<Arg> {
-                    Arg.IsRegistered,
-                    Arg.IsInCommandChannel
-                },
-
-                async () =>
-                {
-                    /*var players = await _context.player_data.ToListAsync();
-                    players = players.OrderByDescending(p => p._ihlmmr).ToList();
-                    string fulllist = "";
-                    int counter = 0;
-                    foreach(var player in players)
-                    {
-                        counter++;
-                        string newstring = "-- #" + counter.ToString() + ": <@" + player._id + "> / " + player._ihlmmr + " grin mmr / " + player._dotammr + " dota mmr -- \n";
-                        fulllist += newstring;
-                    }
-                    await _profile.SendDm(counter.ToString());
-                    await _profile.SendDmNaked("  asdasd " + fulllist);
-                    List<string> allMessages = SeperateText(fulllist);
-                    foreach(string message in allMessages)
-                    {
-                        await _profile.SendDmNaked(message);
-                    }
-                    await _profile.SendDm("not avail yet");
-                });
-        }
-
-        private List<string> SeperateText(List<string> fullstring)
-        {
-            int totalcount = 0;
-            foreach(string msg in fullstring)
-            {
-                totalcount += msg.Length;
-            }
-            //var array = fullstring.ToCharArray();
-            List<string> partitions = new List<string>();
-            int discordlimit = 2000;
-
-            if (totalcount >= discordlimit)
-            {
-
-                int numOfPartitions = totalcount / discordlimit;
-                if(totalcount % discordlimit != 0)
-                {
-                    numOfPartitions += 1;
-                }
-
-
-                for (int i = 0; i < numOfPartitions; i++)
-                    {
-                        var tempstring = array.ToArray();
-                        string newstring = new string(tempstring);
-                        partitions.Add(newstring);
-                    }
-            }
-            else
-            {
-                partitions.Add(fullstring);
-
-            }
-            return partitions;
-        }*/
         [Command("updaterank")]
         public async Task UpdateRank(CommandContext context, string medal, int rank)
         {
