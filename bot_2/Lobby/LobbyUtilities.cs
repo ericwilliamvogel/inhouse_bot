@@ -20,7 +20,23 @@ namespace bot_2.Commands
             this._context = context;
         }
 
-        public async Task PlacePlayersInChannel(CommandContext context, List<Player> players, DiscordChannel channel)
+        public async Task RemoveSpectatorRoles(CommandContext context, List<Player> team, int number)
+        {
+            var role = context.Guild.Roles.FirstOrDefault(p => p.Value.Name == "spectatorLobby" + number).Value;
+            foreach (Player player in team)
+            {
+                if (context.Guild.Members.ContainsKey(player._id))
+                {
+                    var member = context.Guild.Members[player._id];
+                    if (member.Roles.Contains(role))
+                    {
+                        await member.RevokeRoleAsync(role);
+                    }
+                }
+            }
+        }
+
+        public async Task PlacePlayersInChannel(CommandContext context, List<Player> players, DiscordChannel channel) //not functional
         {
             foreach (Player player in players)
             {
@@ -183,7 +199,7 @@ namespace bot_2.Commands
 
         public async Task ChangeTeamStatus(TeamRecord record, int status)
         {
-            await ChangeGameStatus(record._p1, status);
+             await ChangeGameStatus(record._p1, status);
             await ChangeGameStatus(record._p2, status);
             await ChangeGameStatus(record._p3, status);
             await ChangeGameStatus(record._p4, status);

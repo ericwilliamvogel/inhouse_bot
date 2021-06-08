@@ -102,9 +102,14 @@ namespace bot_2.Commands
             spectatorvoice = await context.Guild.CreateChannelAsync("Spectator", DSharpPlus.ChannelType.Voice, parent);
             castervoice = await context.Guild.CreateChannelAsync("Caster", DSharpPlus.ChannelType.Voice, parent);
 
+            LobbyInfo _info = new LobbyInfo(_context, _utilities);
+            await generaltext.SendMessageAsync("grinlobby" + LobbyNumber);
             message = await generaltext.SendMessageAsync("Starting...");
 
             Console.WriteLine("Perms...");
+
+            await RevokeAllPermissions(direvoice, LobbyRoleSpectator);
+            await RevokeAllPermissions(radiantvoice, LobbyRoleSpectator);
 
             await generaltext.AddOverwriteAsync(LobbyRoleRadiant, DSharpPlus.Permissions.ReadMessageHistory);
             await generaltext.AddOverwriteAsync(LobbyRoleDire, DSharpPlus.Permissions.ReadMessageHistory);
@@ -155,9 +160,6 @@ namespace bot_2.Commands
 
             await RevokeAllPermissions(direvoice, LobbyRoleRadiant);
             await RevokeAllPermissions(radiantvoice, LobbyRoleDire);
-
-            await RevokeAllPermissions(direvoice, LobbyRoleSpectator);
-            await RevokeAllPermissions(radiantvoice, LobbyRoleSpectator);
 
             await RevokeAllPermissions(direvoice, LobbyRoleCaster);
             await RevokeAllPermissions(radiantvoice, LobbyRoleCaster);

@@ -183,7 +183,7 @@ namespace bot_2.Commands
             return final;
         }
 
-        public string GetFullLobbyInfo(CommandContext context, List<Player> team1, List<Player> team2, int gameid)
+        public async Task<string> GetFullLobbyInfo(CommandContext context, List<Player> team1, List<Player> team2, int gameid)
         {
             var game = _context.discord_channel_info.FirstOrDefault(p => p._gameid == gameid);
             ulong leaderid = game._id;
@@ -208,9 +208,9 @@ namespace bot_2.Commands
             }
 
             string radiantMention = "Radiant = \n" +
-                "Win: " + team1gain + " mmr /// Lose: " + team1loss + " mmr \n" + GetTeamLineup(context, team1);
+                "Win: " + team1gain + " mmr /// Lose: " + team1loss + " mmr \n" + await GetTeamLineup(context, team1);
             string direMention = "Dire = \n" +
-                "Win: " + team1loss + " mmr /// Lose: " + team1gain + " mmr \n" + GetTeamLineup(context, team2);
+                "Win: " + team1loss + " mmr /// Lose: " + team1gain + " mmr \n" + await GetTeamLineup(context, team2);
 
             /*string casterMention = "Casters = \n" +
                 _utilities.GetTeamLineup(context, casters);
@@ -218,17 +218,13 @@ namespace bot_2.Commands
             string spectatorMention = "Spectators = \n" +
                 _utilities.GetTeamLineup(context, spectators);*/
 
-            string lobbyName = "grin" + gameid;
-            string lobbyPass = "grin" + DateTime.Now.Millisecond;
 
-            string preinstructions = "\n\nLobby host can now create the game under **LobbyName = " + lobbyName + "**, and **Password = " + lobbyPass + "**.\n\n";
             string instructions = "After the game, the host can report the winner by command '!radiant game_id_here' , '!dire game_id_here', or !draw 'game_id_here. If you need any help or something isn't working please contact an admin/mod.";
+            instructions += "If a player cannot play / abandons, the LOBBY HOST can kick that player using !kick @mention ... Example: !kick <@126922582208282624>";
 
             string final = "Server = " + region + "\n" +
                 "Game ID = " + gameid + ". \n\n" +
-                "Lobby host = " + hostMention + "\n\n" +
-
-                preinstructions + "\n\n" +
+                "Lobby host = " + hostMention +  "\n\n" +
 
                 radiantMention + "\n" + direMention + "\n\n" +
 
@@ -237,18 +233,33 @@ namespace bot_2.Commands
             return final;
         }
 
+        public string GetLobbyPass(string lobbyname)
+        {
+            string lobbyName = lobbyname;//"grin" + gameid;
+            string lobbyPass = "grin" + DateTime.Now.Millisecond;
+
+            string preinstructions = "\n\n**LobbyName = " + lobbyName + "**\n**Password = " + lobbyPass + "**.\n\n";
+
+            return preinstructions;
+        }
+
         public async Task<string> GetLobbyPoolInfo(CommandContext context, int gameid)
         {
             var list = await _context.lobby_pool.ToListAsync();
+            var discordInfo = await _context.discord_channel_info.FirstOrDefaultAsync(p => p._gameid == gameid);
             var players = list.FindAll(p => p._gameid == gameid);
             var radiant = await _context.game_record.FirstOrDefaultAsync(p => p._gameid == gameid && p._side == (int)Side.Radiant);
             var dire = await _context.game_record.FirstOrDefaultAsync(p => p._gameid == gameid && p._side == (int)Side.Dire);
 
 
             string lobby = "--- Game ID = " + gameid + "---\n";
+
+            if (discordInfo != null)
+                lobby += "Lobby Host = <@" + discordInfo._id + ">\n";
+
             lobby += "Radiant Captain = <@" + radiant._p1 + ">\n";
             lobby += "Dire Captain = <@" + dire._p1 + ">\n\n";
-
+            
 
             if (radiant._canpick == 1)
             {
@@ -274,8 +285,11 @@ namespace bot_2.Commands
                 lobby += des;
             }
 
-            lobby += "\n\n";
-            lobby += "Captains can pick players in the available pool using command !pick @mention ... Example: !pick <@126922582208282624>";
+            lobby += "\n";
+            lobby += "```Captains can pick players in the available pool using command !pick @mention ``` Example: !pick <@126922582208282624>\n";
+            lobby += "```Did someone have to leave your game? ONLY after picking phase has ended, DO NOT kick during picking phase. If a player cannot play / abandons, the LOBBY HOST can kick that player using !kick @mention ``` Example: !kick <@126922582208282624>\n";
+            lobby += "```Can some players not see the lobby? Simple !invite @mention so they can see the pick phase! Rest assured they will receive their radiant/dire roles when the picking phase has ended even if they can't see the #general chat. ```" +
+                " Example: !invite <@126922582208282624>\n";
 
             return lobby;
         }
@@ -305,14 +319,15 @@ namespace bot_2.Commands
             return player;
         }
 
-        public string GetTeamLineup(CommandContext context, List<Player> team)
+        public async Task<string> GetTeamLineup(CommandContext context, List<Player> team)
         {
             string text = "";
 
             for (int i = 0; i < team.Count; i++)
             {
                 string addon = "<not_found>";
-                addon = "<@" + team[i]._id + ">" + " -- " + team[i]._ihlmmr + " inhouse mmr / " + team[i]._mmr + " dota mmr.\n";
+                addon = await GetPlayerDesc(team[i]._id);
+                //addon = "<@" + team[i]._id + ">" + " -- " + team[i]._ihlmmr + " inhouse mmr / " + team[i]._mmr + " dota mmr.\n";
                 text += addon + "\n";
             }
 

@@ -35,6 +35,7 @@ CREATE TABLE primary_table(
         public InteractivityExtension Interactivity { get; private set; }
         public CommandsNextExtension Commands { get; private set; }
 
+        public DotaClient DotaClient { get; set; }
         public Bot(IServiceProvider services)
         {
             var json = string.Empty;
@@ -53,6 +54,9 @@ CREATE TABLE primary_table(
                 MinimumLogLevel = LogLevel.Debug,
                 //UseInternalLogHandler = true,
             };
+
+            //DotaClient = new DotaClient();
+            //DotaClient.Connect("zg12958703", "fuckiiou.");
 
             Client = new DiscordClient(config);
 

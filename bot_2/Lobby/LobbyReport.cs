@@ -40,67 +40,84 @@ namespace bot_2.Commands
             }
             else
             {
-                await AddSteamIdToGameRecord(gameProfile, steamid);
+                var record1 = await _context.game_record.FirstOrDefaultAsync(p => p._gameid == gameProfile._gameid && p._side == (int)Side.Radiant);
+                var record2 = await _context.game_record.FirstOrDefaultAsync(p => p._gameid == gameProfile._gameid && p._side == (int)Side.Dire);
+                
 
-
-                if (side.ToLower() == "radiant")
+                if(record1 == null || record2 == null)
                 {
-                    await CreditVictor(context, gameProfile, Side.Radiant);
-                    await DiscreditLoser(context, gameProfile, Side.Dire);
-                }
-                else if (side.ToLower() == "dire")
-                {
-                    await CreditVictor(context, gameProfile, Side.Dire);
-                    await DiscreditLoser(context, gameProfile, Side.Radiant);
-                }
-                else if (side.ToLower() == "draw")
-                {
-                    //new code 5/14/2021
-                    var game = await _context.game_data.FindAsync(gameProfile._gameid);
-                    game._winner = (int)Side.Draw;
-                    await _context.SaveChangesAsync();
-                    var record1 = await _context.game_record.FirstOrDefaultAsync(p => p._gameid == game._id && p._side == (int)Side.Radiant);
-                    var record2 = await _context.game_record.FirstOrDefaultAsync(p => p._gameid == game._id && p._side == (int)Side.Dire);
-
-                    await _utilities.ChangeTeamStatus(record1, 0);
-                    await _utilities.ChangeTeamStatus(record2, 0);
+                    await _profile.SendDm("No records exists under this game! Are you trying to execute a command while the lobby is starting?");
                 }
                 else
                 {
-                    await context.Channel.SendMessageAsync("Not a valid command, report 'radiant', 'dire', or 'draw'.");
-                }
-                var awaiting = await context.Guild.Channels[842870150994591764].SendMessageAsync("waiting for opendota api to pick up game under id " + steamid);
-                //send msg to game history channel
-                await WrapUp(context, gameProfile._number);
-
-
-                if (context.Guild.Channels.ContainsKey(842870150994591764))
-                {
-
-                    var openDota = new OpenDotaApi();
-                    var gameID = gameProfile._gameid;
-                    try
+                    await AddSteamIdToGameRecord(gameProfile, steamid);
+                    if (side.ToLower() == "radiant")
                     {
-                        var gameDetails = await openDota.Matches.GetMatchByIdAsync(steamid);
-                        if (gameDetails != null)
-                        {
-                            string gHistory = await _info.GetGameHistory(openDota, gameID, gameDetails);
-                            var channel = context.Guild.Channels[842870150994591764];
-                            await channel.SendMessageAsync(gHistory);
-                        }
-                        else
-                        {
-                            await _profile.SendDm("That game key was not recognized, the game was not stored in our history. Open a ticket and include the GrinHouse lobby # and the true game id. If you don't know where to find it feel free to take a screenshot of the match endscreen in the dota client.");
-                        }
+                        await CreditVictor(context, gameProfile, Side.Radiant);
+                        await DiscreditLoser(context, gameProfile, Side.Dire);
                     }
-                    catch (Exception e)
+                    else if (side.ToLower() == "dire")
                     {
-                        await _profile.SendDm("The game wasn't found with a OpenDota api search which means it was most likely not ticketed. Be sure to ticket games in the future to keep pip from pulling his hair out!!");
+                        await CreditVictor(context, gameProfile, Side.Dire);
+                        await DiscreditLoser(context, gameProfile, Side.Radiant);
                     }
+                    else if (side.ToLower() == "draw")
+                    {
+                        //new code 5/14/2021
+                        var game = await _context.game_data.FindAsync(gameProfile._gameid);
+                        var id = game._id;
+                        game._winner = (int)Side.Draw;
+                        await _context.SaveChangesAsync();
+                        //var record1 = await _context.game_record.FirstOrDefaultAsync(p => p._gameid == game._id && p._side == (int)Side.Radiant);
+                        //var record2 = await _context.game_record.FirstOrDefaultAsync(p => p._gameid == game._id && p._side == (int)Side.Dire);
+
+                        if (record1 != null)
+                            await _utilities.ChangeTeamStatus(record1, 0);
+
+                        if (record2 != null)
+                            await _utilities.ChangeTeamStatus(record2, 0);
+
+                        _context.game_data.Remove(game);
+                        await _context.SaveChangesAsync();
+                    }
+                    else
+                    {
+                        await context.Channel.SendMessageAsync("Not a valid command, report 'radiant', 'dire', or 'draw'.");
+                    }
+                    var awaiting = await context.Guild.Channels[842870150994591764].SendMessageAsync("waiting for opendota api to pick up game under id " + steamid);
+                    //send msg to game history channel
+                    await WrapUp(context, gameProfile._number);
+
+
+                    if (context.Guild.Channels.ContainsKey(842870150994591764))
+                    {
+
+                        var openDota = new OpenDotaApi();
+                        var gameID = gameProfile._gameid;
+                        try
+                        {
+                            var gameDetails = await openDota.Matches.GetMatchByIdAsync(steamid);
+                            if (gameDetails != null)
+                            {
+                                string gHistory = await _info.GetGameHistory(openDota, gameID, gameDetails);
+                                var channel = context.Guild.Channels[842870150994591764];
+                                await channel.SendMessageAsync(gHistory);
+                            }
+                            else
+                            {
+                                await _profile.SendDm("That game key was not recognized, the game was not stored in our history. Open a ticket and include the GrinHouse lobby # and the true game id. If you don't know where to find it feel free to take a screenshot of the match endscreen in the dota client.");
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            await _profile.SendDm("The game wasn't found with a OpenDota api search which means it was most likely not ticketed. Be sure to ticket games in the future to keep pip from pulling his hair out!!");
+                        }
 
 
 
+                    }
                 }
+
 
 
             }
@@ -126,7 +143,7 @@ namespace bot_2.Commands
         public async Task WrapUp(CommandContext context, int lobbyNumber)
         {
             await RemoveHostRecord(context);
-
+  
             Task task = await Task.Factory.StartNew(async () =>
             {
                 await Task.Delay(2000);
@@ -145,8 +162,12 @@ namespace bot_2.Commands
         public async Task RemoveHostRecord(CommandContext context)
         {
             var record = await _context.discord_channel_info.FindAsync(context.Message.Author.Id);
-            _context.discord_channel_info.Remove(record);
-            await _context.SaveChangesAsync();
+            if(record != null)
+            {
+                _context.discord_channel_info.Remove(record);
+                await _context.SaveChangesAsync();
+            }
+
         }
         public async Task CreditVictor(CommandContext context, ChannelInfo gameProfile, Side side)
         {

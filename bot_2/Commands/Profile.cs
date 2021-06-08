@@ -85,11 +85,30 @@ namespace bot_2.Commands
         {
             try
             {
-                if(_member != null)
+                if (_member != null)
                 {
                     var channel = await _member.CreateDmChannelAsync();
 
                     await channel.SendMessageAsync("```" + input + "```").ConfigureAwait(false);
+                }
+
+            }
+            catch
+            {
+
+
+            }
+        }
+
+        public async Task SendDmNaked(string input)
+        {
+            try
+            {
+                if (_member != null)
+                {
+                    var channel = await _member.CreateDmChannelAsync();
+
+                    await channel.SendMessageAsync(input).ConfigureAwait(false);
                 }
 
             }

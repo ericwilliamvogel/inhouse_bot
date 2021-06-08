@@ -62,9 +62,9 @@ public async Task EnterQueue(CommandContext context, int number)
 
                 async () =>
                 {
-                    await context.Channel.SendMessageAsync("<@&775151515442741258>\n---React with what times you expect to play today---\n\n");
-
-                    var message = await context.Channel.SendMessageAsync("2PM EST - 5PM EST\n");
+                    var message = await context.Channel.SendMessageAsync("<@&775151515442741258>\n---React if you're down to play today---\n\n");
+                    await message.CreateReactionAsync(DiscordEmoji.FromName(context.Client, ":thumbsup:"));
+                    /*var message = await context.Channel.SendMessageAsync("2PM EST - 5PM EST\n");
                     await message.CreateReactionAsync(DiscordEmoji.FromName(context.Client, ":thumbsup:"));
                     //await message.CreateReactionAsync(DiscordEmoji.FromName(context.Client, ":thumbsdown:"));
 
@@ -78,7 +78,7 @@ public async Task EnterQueue(CommandContext context, int number)
 
                     var message3 = await context.Channel.SendMessageAsync("11PM EST - 2AM EST\n");
                     await message3.CreateReactionAsync(DiscordEmoji.FromName(context.Client, ":thumbsup:"));
-                    //await message3.CreateReactionAsync(DiscordEmoji.FromName(context.Client, ":thumbsdown:"));
+                    //await message3.CreateReactionAsync(DiscordEmoji.FromName(context.Client, ":thumbsdown:"));*/
 
                 });
         }
@@ -99,10 +99,10 @@ public async Task EnterQueue(CommandContext context, int number)
                     var records = await _context.player_data.ToListAsync();
                     foreach(var player in records)
                     {
-                        var record = await _context.emote_unlocked.FirstOrDefaultAsync(p => p._id == player._id && p._emoteid == emoteType);
+                        var record = await _context.emote_unlocked.FirstOrDefaultAsync(p => p._playerid == player._id && p._emoteid == emoteType);
                         if (record == null)
                         {
-                            await _context.emote_unlocked.AddAsync(new EmoteUnlockedData { _id = player._id, _emoteid = emoteType });
+                            await _context.emote_unlocked.AddAsync(new EmoteUnlockedData { _playerid = player._id, _emoteid = emoteType });
                             await _context.SaveChangesAsync();
                         }
                     }
@@ -127,12 +127,12 @@ public async Task EnterQueue(CommandContext context, int number)
                 {
                     var ment = context.Message.MentionedUsers.First().Id;
 
-                    var record = await _context.emote_unlocked.FirstOrDefaultAsync(p => p._id == ment && p._emoteid == emoteType);
+                    var record = await _context.emote_unlocked.FirstOrDefaultAsync(p => p._playerid == ment && p._emoteid == emoteType);
                     if (record == null)
                     {
 
                         await _profile.SendDm("Emote powers granted.");
-                        await _context.emote_unlocked.AddAsync(new EmoteUnlockedData { _id = ment, _emoteid = emoteType });
+                        await _context.emote_unlocked.AddAsync(new EmoteUnlockedData { _playerid = ment, _emoteid = emoteType });
                         await _context.SaveChangesAsync();
                     }
                     else
@@ -144,7 +144,7 @@ public async Task EnterQueue(CommandContext context, int number)
         }
 
         [Command("manuallyresetallstatus")]
-        public async Task RestartStatus(CommandContext context)
+        public async Task ResetAllStatus(CommandContext context)
         {
             Profile _profile = new Profile(context);
             await _conditions.TryConditionedAction(context, _profile,
@@ -165,6 +165,60 @@ public async Task EnterQueue(CommandContext context, int number)
                 });
         }
 
+        [Command("removelobbyrecord")]
+        public async Task RemoveDiscordLobbyRecord(CommandContext context, int gameid)
+        {
+            Profile _profile = new Profile(context);
+            await _conditions.TryConditionedAction(context, _profile,
+
+                new List<Arg> {
+                    Arg.IsInAdminCommandChannel,
+                    Arg.HasAdminRole
+                },
+
+                async () =>
+                {
+                    var record = await _context.discord_channel_info.FirstOrDefaultAsync(p => p._gameid == gameid);
+                    if(record == null)
+                    {
+                        await _profile.SendDm("Record wasn't found under that game id.");
+                    }
+                    else
+                    {
+                        _context.discord_channel_info.Remove(record);
+                        await _context.SaveChangesAsync();
+                    }
+                });
+        }
+
+        [Command("lobbykill")]
+        public async Task HardReset(CommandContext context, int gameid)
+        {
+            Profile _profile = new Profile(context);
+            await _conditions.TryConditionedAction(context, _profile,
+
+                new List<Arg> {
+                    Arg.IsInAdminCommandChannel,
+                    Arg.HasAdminRole
+                },
+
+                async () =>
+                {
+                    var record = await _context.discord_channel_info.FindAsync(gameid);
+                    if (record == null)
+                    {
+                        await _profile.SendDm("Record wasn't found under that game id.");
+                    }
+                    else
+                    {
+                        await RemoveDiscordLobbyRecord(context, gameid);
+                        await Clear(context);
+                        await ResetAllStatus(context);
+
+                        await _profile.SendDm("Full reset complete.");
+                    }
+                });
+        }
 
         [Command("manuallyrestartthread")]
         public async Task RestartThread(CommandContext context)

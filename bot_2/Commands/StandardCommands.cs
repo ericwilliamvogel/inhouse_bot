@@ -28,7 +28,7 @@ namespace bot_2.Commands
         private void SetRankDictionary()
         {
             _medalDictionary.Add("herald", 0);
-            _medalDictionary.Add("guardian", 1);
+            _medalDictionary.Add("guardian ", 1);
             _medalDictionary.Add("crusader", 2);
             _medalDictionary.Add("archon", 3);
             _medalDictionary.Add("legend", 4);
@@ -109,10 +109,12 @@ namespace bot_2.Commands
 
                 var player = await _context.player_data.FindAsync(_profile._id);
 
-                await _profile.SendDm("Your GHL mmr is " + player._ihlmmr);
-                await _profile.SendDm("Your Dota mmr is " + player._dotammr);
-                await _profile.SendDm("You've won " + player._gameswon + " games.");
-                await _profile.SendDm("You've lost " + player._gameslost + " games.");
+                string finalstring = "Your GHL mmr is " + player._ihlmmr;
+                finalstring += "\nYour Dota mmr is " + player._dotammr;
+                finalstring += "\nYou've won " + player._gameswon + " games.";
+                finalstring += "\nYou've lost " + player._gameslost + " games.";
+
+                await _profile.SendDm(finalstring);
 
             });
 
@@ -304,8 +306,76 @@ namespace bot_2.Commands
 
         }
 
+        /*[Command("leaderboard")]
+        public async Task swaggyyy(CommandContext context)
+        {
+
+            Profile _profile = new Profile(context);
+            await _conditions.TryConditionedAction(context, _profile,
+
+                new List<Arg> {
+                    Arg.IsRegistered,
+                    Arg.IsInCommandChannel
+                },
+
+                async () =>
+                {
+                    /*var players = await _context.player_data.ToListAsync();
+                    players = players.OrderByDescending(p => p._ihlmmr).ToList();
+                    string fulllist = "";
+                    int counter = 0;
+                    foreach(var player in players)
+                    {
+                        counter++;
+                        string newstring = "-- #" + counter.ToString() + ": <@" + player._id + "> / " + player._ihlmmr + " grin mmr / " + player._dotammr + " dota mmr -- \n";
+                        fulllist += newstring;
+                    }
+                    await _profile.SendDm(counter.ToString());
+                    await _profile.SendDmNaked("  asdasd " + fulllist);
+                    List<string> allMessages = SeperateText(fulllist);
+                    foreach(string message in allMessages)
+                    {
+                        await _profile.SendDmNaked(message);
+                    }
+                    await _profile.SendDm("not avail yet");
+                });
+        }
+
+        private List<string> SeperateText(List<string> fullstring)
+        {
+            int totalcount = 0;
+            foreach(string msg in fullstring)
+            {
+                totalcount += msg.Length;
+            }
+            //var array = fullstring.ToCharArray();
+            List<string> partitions = new List<string>();
+            int discordlimit = 2000;
+
+            if (totalcount >= discordlimit)
+            {
+
+                int numOfPartitions = totalcount / discordlimit;
+                if(totalcount % discordlimit != 0)
+                {
+                    numOfPartitions += 1;
+                }
 
 
+                for (int i = 0; i < numOfPartitions; i++)
+                    {
+                        var tempstring = array.ToArray();
+                        string newstring = new string(tempstring);
+                        partitions.Add(newstring);
+                    }
+            }
+            else
+            {
+                partitions.Add(fullstring);
+
+            }
+            return partitions;
+        }*/
         [Command("updaterank")]
         public async Task UpdateRank(CommandContext context, string medal, int rank)
         {
@@ -394,13 +464,12 @@ namespace bot_2.Commands
             await _conditions.TryConditionedAction(context, _profile,
 
                 new List<Arg> {
-                    Arg.IsRegistered,
-                    Arg.CanEmote
+                    Arg.IsRegistered
                 },
 
                 async () =>
                 {
-                    var record = await _context.emote_unlocked.FirstOrDefaultAsync(p => p._emoteid == emoteType);
+                    var record = await _context.emote_unlocked.FirstOrDefaultAsync(p => p._emoteid == emoteType && p._playerid == _profile._id);
 
                     if(record == null)
                     {
@@ -410,8 +479,8 @@ namespace bot_2.Commands
                     {
                         var mention = context.Message.Author.Mention;
 
-                        string emoji = GetEmoji(emoteType);
-                        string msg = mention + " says : " + emoji + ".";
+                        string emoji = "```" + GetEmoji(emoteType) + "```";
+                        string msg = mention + " emoted: " + emoji;
 
                         await context.Channel.SendMessageAsync(msg);
                     }
@@ -427,14 +496,13 @@ namespace bot_2.Commands
 
                 new List<Arg> {
                     Arg.IsRegistered,
-                    Arg.HasMention,
-                    Arg.CanEmote
+                    Arg.HasMention
                 },
 
                 async () =>
                 {
                 
-                    var record = await _context.emote_unlocked.FirstOrDefaultAsync(p => p._emoteid == emoteType);
+                    var record = await _context.emote_unlocked.FirstOrDefaultAsync(p => p._emoteid == emoteType && p._playerid == _profile._id);
 
                     if (record == null)
                     {
@@ -444,7 +512,7 @@ namespace bot_2.Commands
                     {
                             var mention = context.Message.MentionedUsers.First().Mention;
 
-                            string emoji = GetEmoji();
+                            string emoji = "```" + GetEmoji(emoteType) + "```";
                             string msg = mention + " - " + emoji;
 
                             await context.Channel.SendMessageAsync(msg);
@@ -467,6 +535,7 @@ namespace bot_2.Commands
             emojiLib.Add(7, "༼ つ ◕_◕ ༽つ");
             emojiLib.Add(8, "ಠ_ಠ");
             emojiLib.Add(9, "(ง'̀-'́)ง");
+            emojiLib.Add(10, "¯|_(ツ)_/¯");
         }
         public string GetEmoji()
         {

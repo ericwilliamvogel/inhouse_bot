@@ -39,15 +39,19 @@ namespace Migrations.Migrations
 
             modelBuilder.Entity("db.EmoteUnlockedData", b =>
             {
-                b.Property <ulong>("_id")
-                    .ValueGeneratedOnAdd()
-                    .HasColumnType("NUMERIC(20,0)")
-                    .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                b.Property<int>("_id")
+                .HasColumnType("int")
+                .ValueGeneratedOnAdd()
+                .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                b.Property<ulong>("_playerid")
+                    .HasColumnType("NUMERIC(20,0)");
+
 
                 b.Property<int>("_emoteid")
                     .HasColumnType("int");
 
-                b.HasKey("_id");
+                //b.HasKey("_increment");
 
                 b.ToTable("emote_unlocked");
             });

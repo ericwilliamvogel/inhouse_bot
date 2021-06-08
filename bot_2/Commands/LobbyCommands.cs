@@ -148,7 +148,9 @@ namespace bot_2.Commands
 
             async () =>
             {
-                var lobbyInfo = await _context.discord_channel_info.FindAsync(_profile._id);
+                await _profile.SendDm("You meant to use !draw 0, right? You listened to what pip said in trusted #general chat at 8:00pm PST on 6/4/21 right? You waited until picking phase ended to issue this command... right???? Pls ;-;");
+                /*var lobbyInfo = await _context.discord_channel_info.FindAsync(_profile._id);
+
 
                 var radiant = await _context.game_record.FirstOrDefaultAsync(p => p._gameid == lobbyInfo._gameid && p._side == (int)Side.Radiant);
                 var dire = await _context.game_record.FirstOrDefaultAsync(p => p._gameid == lobbyInfo._gameid && p._side == (int)Side.Dire);
@@ -178,23 +180,26 @@ namespace bot_2.Commands
                     await _context.SaveChangesAsync();
                 }
 
-                foreach(var id in priorityPlayers)
+                                await DrawGame(context, 0);
+
+                var myDateTime = DateTimeOffset.Now;
+                foreach (var id in priorityPlayers)
                 {
-                    await _context.player_queue.AddAsync(new QueueData { _id = id });
+                    await _context.player_queue.AddAsync(new QueueData { _id = id, _start = myDateTime }).ConfigureAwait(false);
                     await _context.SaveChangesAsync();
                 }
 
                 foreach(var record in backlogPlayers)
                 {
-                    await _context.player_queue.AddAsync(new QueueData { _id = record._id, _start = record._start });
+                    await _context.player_queue.AddAsync(new QueueData { _id = record._id, _start = record._start }).ConfigureAwait(false);
                     await _context.SaveChangesAsync();
                 }
 
-                await DrawGame(context, 0);
+
                 //LobbySorter sorter = new LobbySorter(_context);
                 //await sorter._report.WrapUp(context, lobbyInfo._number);
                 //code
-
+                */
 
             });
 
@@ -229,6 +234,12 @@ namespace bot_2.Commands
             }
 
             return ids;
+        }
+
+        [Command("p")]
+        public async Task P(CommandContext context, string irrelevant)
+        {
+            await Pick(context, irrelevant);
         }
         [Command("pick")]
         public async Task Pick(CommandContext context, string irrelevant)
@@ -298,7 +309,7 @@ namespace bot_2.Commands
                                 await _context.SaveChangesAsync();
 
                                 LobbySorter sorter = new LobbySorter(_context);
-                                await sorter.UpdateLobbyPool(context, _profile, gameid);
+                               await sorter.UpdateLobbyPool(context, _profile, gameid);
 
 
 

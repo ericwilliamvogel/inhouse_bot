@@ -40,27 +40,26 @@ namespace bot_2.Commands
 
         public async Task Setup(CommandContext context, Profile _profile)
         {
+            var maxPlayers = 10;
+
+            Console.WriteLine("Forming player list...");
+            List<Player> players = await _queueGrabber.FormPlayerList(maxPlayers);
+
+            Console.WriteLine("Forming caster list...");
+            List<Player> casters = await _queueGrabber.FormCasterList();
+
+            Console.WriteLine("Forming spectator list...");
+            List<Player> spectators = await _queueGrabber.FormSpectatorList();
+
+            Console.WriteLine("Selecting leader...");
+            Player leader = _utilities.GetLeader(context, players);
+
             try
             {
                 Console.WriteLine("Creating roles, permissions, channels...");
 
                 Permissions _perms = new Permissions(_context);
                 await _perms.Create(context, _utilities);
-
-
-
-
-                var maxPlayers = 10;
-
-                Console.WriteLine("Forming player list...");
-                List<Player> players = await _queueGrabber.FormPlayerList(maxPlayers);
-
-                Console.WriteLine("Forming caster list...");
-                List<Player> casters = await _queueGrabber.FormCasterList();
-
-                Console.WriteLine("Forming spectator list...");
-                List<Player> spectators = await _queueGrabber.FormSpectatorList();
-
 
                 Console.WriteLine("Granting placeholder roles...");
                 await _utilities.GrantRole(context, players, _perms.LobbyRoleSpectator);
@@ -72,11 +71,6 @@ namespace bot_2.Commands
                 await DmPlayers(context, spectators, _perms.LobbyNumber);
                 await DmPlayers(context, players, _perms.LobbyNumber);
 
-
-
-                Console.WriteLine("Selecting leader...");
-
-                Player leader = _utilities.GetLeader(context, players);
 
                 Console.WriteLine("Creating game to db...");
 
@@ -95,7 +89,23 @@ namespace bot_2.Commands
                 await _context.discord_channel_info.AddAsync(new ChannelInfo { _id = leader._id, _number = _perms.LobbyNumber, _gameid = gameid._id, _messageid = _perms.message.Id });
                 await _context.SaveChangesAsync();
 
-                players = players.OrderByDescending(p => p._truemmr).ToList();
+                int ms = DateTime.Now.Millisecond;
+                Random rand = new Random(ms);
+                int decider = rand.Next(1, 3);
+
+                if(decider == 1)
+                {
+                    players = players.OrderByDescending(p => p._truemmr).ToList();
+                }
+                else if(decider == 2)
+                {
+                    players = players.OrderBy(p => p._truemmr).ToList();
+                }
+                else
+                {
+                    players = players.OrderByDescending(p => p._truemmr).ToList();
+                }
+
 
                 Player captain1 = players[0];
                 Player captain2 = players[1];
@@ -128,7 +138,14 @@ namespace bot_2.Commands
             }
             catch (Exception e)
             {
+                var record = await _context.discord_channel_info.FindAsync(leader._id);
+                if(record!=null)
+                {
+
+                }
+                await _profile.ReportError(context, e);
                 Console.WriteLine(e);
+                //await _utilities.RemoveHostRecord()
             }
 
 
@@ -154,6 +171,7 @@ namespace bot_2.Commands
 
 
 
+
             int basemmr = 15;
 
             int team1mmr = _utilities.GetTeamTrueMmr(radiantteam);
@@ -172,14 +190,17 @@ namespace bot_2.Commands
             dire._onlose = team1gain;
 
             await _context.SaveChangesAsync();
-             
 
-
+            await _utilities.RemoveSpectatorRoles(context, radiantteam, perms.LobbyNumber);
+            await _utilities.RemoveSpectatorRoles(context, direteam, perms.LobbyNumber);
 
             await _utilities.GrantRole(context, radiantteam, perms.LobbyRoleRadiant);
             await _utilities.GrantRole(context, direteam, perms.LobbyRoleDire);
 
-            string lobbyinfo = _info.GetFullLobbyInfo(context, radiantteam, direteam, gameid);
+            string lobbyinfo = await _info.GetFullLobbyInfo(context, radiantteam, direteam, gameid);
+
+
+
 
             if(perms.message != null)
             {

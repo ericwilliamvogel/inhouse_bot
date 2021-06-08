@@ -38,7 +38,7 @@ namespace bot_2.Commands
                         var msg = await channel.GetMessageAsync(messageid);
                         if(msg != null)
                         {
-                            await msg.ModifyAsync(msg.Content + "\n" + vod);
+                            await msg.ModifyAsync(msg.Content + "\n\n\n" + vod);
                             await _profile.SendDm("Vod was added to this game.");
                         }
                         else

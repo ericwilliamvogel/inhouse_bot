@@ -9,6 +9,76 @@ using System.Threading.Tasks;
 
 namespace bot_2.Commands
 {
+    public class ContextualAction
+    {
+        public ContextualAction(CommandContext context, Action action)
+        {
+            Profile profile = new Profile(context);
+            _commandContext = context;
+            _action = action;
+            _profile = profile;
+        }
+        public Action _action { get; set; }
+        public Profile _profile { get; set; }
+
+        public CommandContext _commandContext { get; set; }
+
+        public Action GetAction()
+        {
+            Action action = () =>
+            {
+                if (_commandContext == null)
+                    return;
+
+                if (_commandContext.Guild == null)
+                    return;
+
+                if (_commandContext.Message == null)
+                    return;
+
+                _action();
+            };
+
+            return action;
+        }
+    }
+    public class ActionIterator
+    {
+        public List<Func<Task>> _actions = new List<Func<Task>>();
+        public async Task AddAction(ContextualAction action)
+        {
+            _actions.Add(async () =>
+            {
+                action.GetAction();
+                await CompleteAction();
+            });
+
+                    
+            await CompleteAction();
+        }
+
+        private bool active = false;
+        public async Task CompleteAction()
+        {
+            if(!active && _actions.Count > 0)
+            {
+                active = true;
+                await _actions[0]();
+            }
+            else if(active && _actions.Count > 0)
+            {
+                _actions.Remove(_actions[0]);
+                if(_actions.Count <= 0)
+                {
+                    active = false;
+                }
+                else
+                {
+                    await _actions[0]();
+                }
+            }
+        }
+    }
     public enum Arg
     {
         IsReady,
@@ -44,9 +114,11 @@ namespace bot_2.Commands
         /// 
         /// </summary>
         /// 
+        public ActionIterator _actionIterator;
         public Dictionary<Arg, Argument> _check;
         public Conditions(Context context)
         {
+            _actionIterator = new ActionIterator();
             _context = context;
             _check = new Dictionary<Arg, Argument>();
             _check.Add(
@@ -430,6 +502,7 @@ namespace bot_2.Commands
             bool pass = true;
             foreach (Arg task in tasks)
             {
+
                 var conf = await _check[task](context, _profile);
                 if (conf == false)
                 {
@@ -448,7 +521,7 @@ namespace bot_2.Commands
 
         }
 
-        public async Task TryConditionedAction(CommandContext context, Profile _profile, List<Arg> tasks, Action action)
+        public async Task TryConditionedAction(CommandContext context, Profile _profile, List<Arg> tasks, Func<Task> action)
         {
             var conditions = await AreMet(context, _profile, tasks);
 
@@ -461,8 +534,8 @@ namespace bot_2.Commands
 
             try
             {
-
-                action();
+                //await _actionIterator.AddAction(new ContextualAction(context, action);
+                await action();
                 await context.Message.DeleteAsync();
             }
             catch (Exception e)
