@@ -196,6 +196,29 @@ namespace Migrations.Migrations
                 b.ToTable("caster_queue");
             });
 
+            modelBuilder.Entity("db.GameData", b =>
+            {
+                b.Property<ulong>("_id")
+                        .ValueGeneratedOnAdd()
+        .HasColumnType("NUMERIC(20,0)")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                b.Property<int>("_gameid")
+                        .HasColumnType("int");
+
+                b.Property<int>("_side")
+                    .HasColumnType("int");
+
+                b.Property<int>("_amount")
+                        .HasColumnType("int");
+
+                b.Property<ulong>("_discordid")
+        .HasColumnType("NUMERIC(20,0)");
+
+                b.HasKey("_id");
+
+                b.ToTable("game_bets");
+            });
 
             modelBuilder.Entity("db.TeamRecord", b =>
             {

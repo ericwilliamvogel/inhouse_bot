@@ -120,11 +120,10 @@ namespace bot_2.Commands
         /// 
         /// </summary>
         /// 
-        public static ActionIterator _actionIterator;
         public Dictionary<Arg, Argument> _check;
         public Conditions(Context context)
         {
-            _actionIterator = new ActionIterator();
+            //_actionIterator = new ActionIterator();
             _context = context;
             _check = new Dictionary<Arg, Argument>();
             _check.Add(

@@ -53,6 +53,9 @@ namespace bot_2.Commands
                 else
                 {
                     await AddSteamIdToGameRecord(gameProfile, steamid);
+                    //here
+
+
                     if (side.ToLower() == "radiant")
                     {
                         await CreditVictor(context, gameProfile, Side.Radiant);
@@ -117,7 +120,10 @@ namespace bot_2.Commands
 
 
                     }
+
+
                 }
+
 
 
 
@@ -192,6 +198,36 @@ namespace bot_2.Commands
 
             await _utilities.ChangeTeamStatus(record, 0);
             await _context.SaveChangesAsync();
+
+            try //this is nested so this doesnt crash bot
+            {
+                var largeBetList = await _context.game_bets.ToListAsync();
+                var specificList = largeBetList.FindAll(p => p._gameid == gameProfile._gameid);
+
+                foreach (var betRecord in specificList)
+                {
+                    if (betRecord._side == (int)side)
+                    {
+                        var playerRecord = await _context.player_data.FindAsync(betRecord._discordid);
+                        if (playerRecord != null)
+                        {
+                            playerRecord._xp += betRecord._amount * 2;
+                            await _context.SaveChangesAsync();
+                        }
+
+                    }
+
+                    _context.game_bets.Remove(betRecord);
+                    await _context.SaveChangesAsync();
+                }
+
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
+
+
         }
 
         public async Task DiscreditLoser(CommandContext context, ChannelInfo gameProfile, Side side)

@@ -25,6 +25,32 @@ namespace bot_2.Commands
             SetEmojiLib();
 
         }
+
+        private void SetEmojiLib()
+        {
+            emojiLib.Add(1, "(• ε •)");
+            emojiLib.Add(2, "( ͡° ͜ʖ ͡°)");
+            emojiLib.Add(3, "[̲̅$̲̅(̲̅ ͡° ͜ʖ ͡°̲̅)̲̅$̲̅]");
+            emojiLib.Add(4, "(◕‿◕✿)");
+            emojiLib.Add(5, "ᕙ(⇀‸↼‶)ᕗ");
+            emojiLib.Add(6, "⚆ _ ⚆");
+            emojiLib.Add(7, "༼ つ ◕_◕ ༽つ");
+            emojiLib.Add(8, "ಠ_ಠ");
+            emojiLib.Add(9, "(ง'̀-'́)ง");
+            emojiLib.Add(10, "¯|_(ツ)_/¯");
+        }
+        public string GetEmoji(int input)
+        {
+            if (emojiLib.ContainsKey(input))
+            {
+                return emojiLib[input];
+            }
+            else
+            {
+                return "error";
+            }
+
+        }
         private void SetRankDictionary()
         {
             _medalDictionary.Add("herald", 0);
@@ -107,14 +133,7 @@ namespace bot_2.Commands
             async () =>
             {
 
-                var player = await _context.player_data.FindAsync(_profile._id);
-
-                string finalstring = "Your GHL mmr is " + player._ihlmmr;
-                finalstring += "\nYour Dota mmr is " + player._dotammr;
-                finalstring += "\nYou've won " + player._gameswon + " games.";
-                finalstring += "\nYou've lost " + player._gameslost + " games.";
-
-                await _profile.SendDm(finalstring);
+                await _profile.SendDm("!mmr is now deprecated. Use !profile instead!");
 
             });
 
@@ -516,42 +535,132 @@ namespace bot_2.Commands
                 });
         }
 
-
-        private void SetEmojiLib()
+        [Command("profile")]
+        public async Task Profile(CommandContext context)
         {
-            emojiLib.Add(1, "(• ε •)");
-            emojiLib.Add(2, "( ͡° ͜ʖ ͡°)");
-            emojiLib.Add(3, "[̲̅$̲̅(̲̅ ͡° ͜ʖ ͡°̲̅)̲̅$̲̅]");
-            emojiLib.Add(4, "(◕‿◕✿)");
-            emojiLib.Add(5, "ᕙ(⇀‸↼‶)ᕗ");
-            emojiLib.Add(6, "⚆ _ ⚆");
-            emojiLib.Add(7, "༼ つ ◕_◕ ༽つ");
-            emojiLib.Add(8, "ಠ_ಠ");
-            emojiLib.Add(9, "(ง'̀-'́)ง");
-            emojiLib.Add(10, "¯|_(ツ)_/¯");
+            Profile _profile = new Profile(context);
+            await _conditions.TryConditionedAction(context, _profile,
+
+                new List<Arg> {
+                    Arg.IsRegistered,
+                    Arg.IsInCommandChannel
+                },
+
+                async () =>
+                {
+                    var playerrecord = await _context.player_data.FindAsync(_profile._id);
+
+
+                    string profile = "---Player Profile---\n";
+                    profile += "GHL mmr: " + playerrecord._ihlmmr;
+                    profile += "\nDota mmr: " + playerrecord._dotammr;
+                    profile += "\nW/L: " + playerrecord._gameswon + "/" + playerrecord._gameslost;
+                    profile += "\nTotal games: " + playerrecord._totalgames;
+
+
+                    profile += "\nCoins: " + playerrecord._xp;
+
+                    var largeEmojiList = await _context.emote_unlocked.ToListAsync();
+                    var emojiList = largeEmojiList.FindAll(p => p._playerid == _profile._id);
+                    profile += "\n\n---Emotes owned---\n";
+                    foreach (KeyValuePair<int, string> pair in emojiLib)
+                    {
+                        string ifOwned = "Not owned";
+                        if(emojiList.FirstOrDefault(p => p._emoteid == pair.Key) != null)
+                        {
+                            ifOwned = "Owned";
+                        }
+                        profile += pair.Value + " (" + pair.Key + ") : " + ifOwned + "\n";
+                    }
+                    await _profile.SendDm(profile);
+                });
         }
-        public string GetEmoji()
+
+
+        [Command("bet")]
+        public async Task Bet(CommandContext context, int amount, string side, int gameid)
         {
-            Random rand = new Random(DateTime.Now.Millisecond);
-            int num = rand.Next(1, 9);
+            Profile _profile = new Profile(context);
+            await _conditions.TryConditionedAction(context, _profile,
+
+                new List<Arg> {
+                    Arg.IsRegistered,
+                    Arg.IsInCommandChannel
+                },
+
+                async () =>
+                {
+                    int sideToInt = (int)Side.Draw;
+                    if (side.ToLower() == "radiant")
+                    {
+                        sideToInt = (int)Side.Radiant;
+                    }
+                    else if (side.ToLower() == "dire")
+                    {
+                        sideToInt = (int)Side.Dire;
+                    }
+                    else
+                    {
+                        await _profile.SendDm("'" + side + "' is not a valid side. Use 'radiant' or 'dire'.");
+                        return;
+                    }
+
+                    //doublecheck
+                    if(sideToInt == (int)Side.Draw)
+                    {
+                        await _profile.SendDm("Error occurred for some reason. Side returned as a draw instead of " + side + ".");
+                        return;
+                    }
+
+                    var playerrecord = await _context.player_data.FindAsync(_profile._id);
+                    if(amount > playerrecord._xp)
+                    {
+                        await _profile.SendDm("You only have " + playerrecord._xp + " coins on your account. You cannot make this bet for " + amount + " coins.");
+                        return;
+                    }
+
+                    var discordrecord = await _context.discord_channel_info.FirstOrDefaultAsync(p => p._gameid == gameid);
+                    if(discordrecord == null)
+                    {
+                        await _profile.SendDm("No internal discord record was found under that game id. A game id should have 4 digits. The game must be active in order to bet on it.");
+                        return;
+                    }
+
+                    var game = await _context.game_data.FindAsync(gameid);
+                    if(game == null)
+                    {
+                        await _profile.SendDm("No game record was found under that game id. A game id should have 4 digits. The game must be active in order to bet on it.");
+                        return;
+                    }
+
+                    DateTimeOffset now = DateTimeOffset.Now;
+                    TimeSpan span = now - game._start;
+                    if(span.Minutes >= 15)
+                    {
+                        await _profile.SendDm("You cannot bet on a game after 15 minutes has passed.");
+                        return;
+                    }
+
+                    var findgame = await _context.game_bets.FirstOrDefaultAsync(p => p._discordid == _profile._id && p._gameid == gameid);
+                    if(findgame != null)
+                    {
+                        await _profile.SendDm("You already have a bet active for this game.");
+                        return;
+                    }
 
 
+                    await _context.game_bets.AddAsync(new BetData { _discordid = _profile._id, _amount = amount, _side = sideToInt, _gameid = gameid });
+                    await _context.SaveChangesAsync();
+
+                    playerrecord._xp -= amount;
+                    await _context.SaveChangesAsync();
+
+                    await _profile.SendDm("Bet submitted. Good luck!\nGameId: " + gameid + "\nSide: " + side + "\nAmount: " + amount + " coins\nPotential winnings: " + amount*2 + " coins\nCoins remaining: " + playerrecord._xp + " coins");
 
 
-            return emojiLib[num];
+                });
         }
-        public string GetEmoji(int input)
-        {
-            if(emojiLib.ContainsKey(input))
-            {
-                return emojiLib[input];
-            }
-            else
-            {
-                return "error";
-            }
 
-        }
 
 
 

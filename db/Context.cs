@@ -30,6 +30,8 @@ namespace db
 
         public DbSet<LeaderboardData> leaderboard_messages { get; set; }
 
+        public DbSet<BetData> game_bets { get; set; }
+
         //
         //pls type !register <steamid> - help 
         //
