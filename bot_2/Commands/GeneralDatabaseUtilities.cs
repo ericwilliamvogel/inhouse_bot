@@ -89,13 +89,29 @@ namespace bot_2.Commands
                 string cMen = await GetTeamMention(context, radiant);
                 string sMen = await GetTeamMention(context, dire);
 
+                var largeBetList = await _context.game_bets.ToListAsync();
+                var betList = largeBetList.FindAll(p => p._gameid == gameid);
+
+                var radiantBets = betList.FindAll(p => p._side == (int)Side.Radiant);
+                int totalRadiantBets = 0;
+                foreach (var bet in radiantBets)
+                {
+                    totalRadiantBets += bet._amount;
+                }
+                var direBets = betList.FindAll(p => p._side == (int)Side.Dire);
+                int totalDireBets = 0;
+                foreach(var bet in direBets)
+                {
+                    totalDireBets += bet._amount;
+                }
+
                 string radiantMention = "Radiant = \n" +
-                    "Win: " + radiantGain + " mmr /// Lose: " + radiantLoss + " mmr \n" + rMen;
+                    "Win: " + radiantGain + " mmr /// Lose: " + radiantLoss + " mmr /// Coins bet: " + totalRadiantBets +  " \n" + rMen;
 
                 string direMention = "Dire = \n" +
-                    "Win: " + direGain + " mmr /// Lose: " + direLoss + " mmr \n" + dMen;
+                    "Win: " + direGain + " mmr /// Lose: " + direLoss + " mmr /// Coins bet: " + totalDireBets + " \n" + dMen;
 
-                string finalString = "||" + starter + "Lobby host = " + hostMention + "\n\n" + radiantMention + direMention + "||\n\n\n";
+                string finalString = "" + starter + "Lobby host = " + hostMention + "\n\n" + radiantMention + direMention + "\n\n\n";
 
 
                 completeString += finalString;

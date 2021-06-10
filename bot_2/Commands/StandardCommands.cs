@@ -578,6 +578,22 @@ namespace bot_2.Commands
 
 
         [Command("bet")]
+        public async Task Bet(CommandContext context)
+        {
+            Profile _profile = new Profile(context);
+            await _conditions.TryConditionedAction(context, _profile,
+
+                new List<Arg> {
+                    Arg.IsRegistered,
+                    Arg.IsInCommandChannel
+                },
+
+                async () =>
+                {
+                    await _profile.SendDm("'!bet bet_amount radiant_or_dire inhouse_game_id' : To bet on a live game.\nUsage: To place a bet of 100 on side Radiant, GameID 4033 = '!bet 100 radiant 4033'");
+                });
+        }
+        [Command("bet")]
         public async Task Bet(CommandContext context, int amount, string side, int gameid)
         {
             Profile _profile = new Profile(context);
