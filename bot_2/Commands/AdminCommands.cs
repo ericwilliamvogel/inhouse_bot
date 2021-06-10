@@ -90,8 +90,7 @@ public async Task EnterQueue(CommandContext context, int number)
             await _conditions.TryConditionedAction(context, _profile,
 
                 new List<Arg> {
-                    Arg.HasAdminRole,
-                    Arg.HasMention
+                    Arg.HasAdminRole
                 },
 
                 async () =>
@@ -211,30 +210,13 @@ public async Task EnterQueue(CommandContext context, int number)
                     }
                     else
                     {
+                        /*
                         await RemoveDiscordLobbyRecord(context, gameid);
                         await Clear(context);
                         await ResetAllStatus(context);
-
-                        await _profile.SendDm("Full reset complete.");
+                        */
+                        await _profile.SendDm("Only semifunctional. You can use other commands! :)");
                     }
-                });
-        }
-
-        [Command("manuallyrestartthread")]
-        public async Task RestartThread(CommandContext context)
-        {
-            Profile _profile = new Profile(context);
-            await _conditions.TryConditionedAction(context, _profile,
-
-                new List<Arg> {
-                    Arg.IsInAdminCommandChannel,
-                    Arg.HasAdminRole
-                },
-
-                async () =>
-                {
-                    await UpdatedQueue.ResetVariables();
-                    await _updatedQueue.StartThread(context);
                 });
         }
 
@@ -272,46 +254,6 @@ public async Task EnterQueue(CommandContext context, int number)
                         Console.WriteLine(e);
                     }
                 });
-        }
- 
-        [Command("testid")]
-        public async Task TestID(CommandContext context, long steamid)
-        {
-            Profile _profile = new Profile(context);
-            await _conditions.TryConditionedAction(context, _profile,
-
-                new List<Arg> {
-                    Arg.IsInAdminCommandChannel
-                },
-
-                async () =>
-                {
-                    var openDota = new OpenDotaApi();
-                    var playerDetails = await openDota.Players.GetPlayerByIdAsync(steamid);
-
-                    if (playerDetails != null)
-                        await _profile.SendDm("MmrEstimate : " + playerDetails.MmrEstimate.Estimate);
-
-                });
-        }
-
-        [Command("getid")]
-        public async Task GetID(CommandContext context)
-        {
-            Profile _profile = new Profile(context);
-            await _conditions.TryConditionedAction(context, _profile,
-
-                new List<Arg> {
-                    Arg.HasAdminRole
-                },
-
-                async () =>
-                {
-                    await _profile.SendDm(context.Channel.Id.ToString());
-                    await _profile.SendDm(context.Channel.GuildId.ToString());
-
-                });
-
         }
 
         [Command("close")]
@@ -395,6 +337,7 @@ public async Task EnterQueue(CommandContext context, int number)
             await channel.DeleteMessagesAsync(list);
         }
 
+
         [Command("resetstatus")]
         public async Task UpdateRole(CommandContext context, string user)
         {
@@ -426,8 +369,8 @@ public async Task EnterQueue(CommandContext context, int number)
 
         }
 
-        [Command("updaterole")]
-        public async Task UpdateRole(CommandContext context, string user, int role)
+        [Command("unlockqueue")]
+        public async Task UnlockQueue(CommandContext context)
         {
 
             Profile _profile = new Profile(context);
@@ -439,24 +382,47 @@ public async Task EnterQueue(CommandContext context, int number)
 
                 async () =>
                 {
-
-                    var ment = context.Message.MentionedUsers.First().Id;
-                    var record = await _context.player_data.FindAsync(ment);
-                    if (record == null)
-                    {
-                        await _profile.SendDm("Player mentioned in command wasn't found in database.");
-                    }
-                    else
-                    {
-                        await _profile.SendDm("Player's role was changed to " + role + ".");
-                        record._status = role;
-                        await _context.SaveChangesAsync();
-                    }
+                    await Task.Delay(1);
+                    Conditions._locked = false;
 
                 });
+
+
         }
 
+        [Command("testlargeload")]
+        public async Task tll(CommandContext context)
+        {
 
+            Profile _profile = new Profile(context);
+            await _conditions.TryConditionedAction(context, _profile,
+
+                new List<Arg> {
+                    Arg.IsInAdminCommandChannel
+                },
+
+                async () =>
+                {
+                    Conditions._locked = true;
+                    var players = await _context.player_queue.ToListAsync();
+                    players = await _context.player_queue.ToListAsync();
+                    players = await _context.player_queue.ToListAsync();
+                    players = await _context.player_queue.ToListAsync();
+                    players = await _context.player_queue.ToListAsync();
+                    players = await _context.player_queue.ToListAsync();
+                    players = await _context.player_queue.ToListAsync();
+                    players = await _context.player_queue.ToListAsync();
+                    players = await _context.player_queue.ToListAsync();
+                    players = await _context.player_queue.ToListAsync();
+                    players = await _context.player_queue.ToListAsync();
+                    players = await _context.player_queue.ToListAsync();
+                    await Task.Delay(10000);
+                    Conditions._locked = false;
+
+                });
+
+
+        }
 
 
     }

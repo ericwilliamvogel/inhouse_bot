@@ -527,6 +527,8 @@ namespace bot_2.Commands
 
         }
 
+        public static bool _locked = false;
+
         public async Task TryConditionedAction(CommandContext context, Profile _profile, List<Arg> tasks, Func<Task> action)
         {
             var conditions = await AreMet(context, _profile, tasks);
@@ -537,6 +539,12 @@ namespace bot_2.Commands
                 return;
             }
 
+            if(_locked)
+            {
+                await _profile.SendDm("The bot is currently in the middle of a large action. Try running this command again in a few seconds.");
+                await context.Message.DeleteAsync();
+                return;
+            }
 
             try
             {

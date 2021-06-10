@@ -79,6 +79,10 @@ namespace bot_2.Commands
 
                 try
                 {
+                    if(Conditions._locked)
+                    {
+                        return;
+                    }
 
                     var queueMessage = await GetMessage(context, PreLoadedChannel, PreLoadedMessage);
                     if (queueMessage == null)
@@ -130,10 +134,14 @@ namespace bot_2.Commands
                 {
                     await ReportErrorToAdmin(context, e);
                 }
+                finally
+                {
+                    await Task.Delay(2400);
 
-                await Task.Delay(2400);
+                    await UpdateQueue(context);
+                }
+                
 
-                await UpdateQueue(context);
             
 
         }

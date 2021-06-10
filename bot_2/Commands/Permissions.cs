@@ -103,7 +103,7 @@ namespace bot_2.Commands
             castervoice = await context.Guild.CreateChannelAsync("Caster", DSharpPlus.ChannelType.Voice, parent);
 
             LobbyInfo _info = new LobbyInfo(_context, _utilities);
-            await generaltext.SendMessageAsync("grinlobby" + LobbyNumber);
+            await generaltext.SendMessageAsync(_info.GetLobbyPass("grinlobby" + LobbyNumber));
             message = await generaltext.SendMessageAsync("Starting...");
 
             Console.WriteLine("Perms...");

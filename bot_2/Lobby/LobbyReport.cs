@@ -29,6 +29,8 @@ namespace bot_2.Commands
 
         public async Task ReportWinner(CommandContext context, string side, long steamid)
         {
+            Conditions._locked = true;
+
             var gameProfile = await _context.discord_channel_info.FindAsync(context.Message.Author.Id);
             Profile _profile = new Profile(context);
 
@@ -73,7 +75,6 @@ namespace bot_2.Commands
 
                         if (record1 != null)
                             await _utilities.ChangeTeamStatus(record1, 0);
-
                         if (record2 != null)
                             await _utilities.ChangeTeamStatus(record2, 0);
 
@@ -121,6 +122,8 @@ namespace bot_2.Commands
 
 
             }
+
+            Conditions._locked = false;
 
         }
 

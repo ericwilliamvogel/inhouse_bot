@@ -40,6 +40,9 @@ namespace bot_2.Commands
 
         public async Task Setup(CommandContext context, Profile _profile)
         {
+            Conditions._locked = true;
+
+            await Task.Delay(3000); //to wait for updatethread to finish!
             var maxPlayers = 10;
 
             Console.WriteLine("Forming player list...");
@@ -105,7 +108,7 @@ namespace bot_2.Commands
                 }
                 else
                 {
-                    players = players.OrderByDescending(p => p._truemmr).ToList();
+                    players = players.OrderBy(p => p._truemmr).ToList();
                 }
 
 
@@ -128,29 +131,20 @@ namespace bot_2.Commands
                 }
 
                 await UpdateLobbyPool(context, _profile, gameid._id);
-
-
-
-                //game_admin table
-                //user id, game id, radiantrole name, direrole name, spectatorrole name
-
-
-                //var castervoice = await context.Guild.CreateChannelAsync("Caster", DSharpPlus.ChannelType.Text, parent);
-
             }
             catch (Exception e)
             {
                 var record = await _context.discord_channel_info.FindAsync(leader._id);
                 if(record!=null)
                 {
-
+                    _context.discord_channel_info.Remove(record);
+                    await _context.SaveChangesAsync();
                 }
                 await _profile.ReportError(context, e);
                 Console.WriteLine(e);
-                //await _utilities.RemoveHostRecord()
             }
 
-
+            Conditions._locked = false;
 
         }
 

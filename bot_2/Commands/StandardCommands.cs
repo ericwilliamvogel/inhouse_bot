@@ -39,7 +39,7 @@ namespace bot_2.Commands
 
 
 
-        
+
 
 
         [Command("generatemessage")]
@@ -59,7 +59,7 @@ namespace bot_2.Commands
             }
             await context.Channel.SendMessageAsync("manuallygeneratedmessage");
             await context.Message.DeleteAsync();
-        
+
         }
 
         /*[Command("deletemessage")]
@@ -137,7 +137,7 @@ namespace bot_2.Commands
 
                 var player = await _context.player_data.FindAsync(_profile._id);
                 string msg = input.ToLower();
-                if(msg == "east" || msg == "useast" || msg == "use")
+                if (msg == "east" || msg == "useast" || msg == "use")
                 {
                     player._region = (int)Region.USEAST;
                     await _context.SaveChangesAsync();
@@ -196,6 +196,68 @@ namespace bot_2.Commands
             await UpdateRoleOne(context, input, input2);
         }
 
+
+
+        [Command("pingme")]
+        public async Task PingMe(CommandContext context)
+        {
+            Profile _profile = new Profile(context);
+
+            await _conditions.TryConditionedAction(context, _profile,
+
+            new List<Arg> {
+                    Arg.IsRegistered,
+                    Arg.IsInCommandChannel
+            },
+
+            async () =>
+            {
+
+                var role = context.Guild.Roles.FirstOrDefault(p => p.Value.Name == "Pingable").Value;
+                if (role != null)
+                {
+
+                        await context.Member.GrantRoleAsync(role);
+                        await _profile.SendDm("You will now be notified if games are in need of players.");
+                    
+                }
+                else
+                {
+                    await _profile.SendDm("Role not found! Try again. If the error persists, create a ticket.");
+                }
+
+            });
+        }
+
+        [Command("dontpingme")]
+        public async Task DontPingMe(CommandContext context)
+        {
+            Profile _profile = new Profile(context);
+
+            await _conditions.TryConditionedAction(context, _profile,
+
+            new List<Arg> {
+                    Arg.IsRegistered,
+                    Arg.IsInCommandChannel
+            },
+
+            async () =>
+            {
+
+                var role = context.Guild.Roles.FirstOrDefault(p => p.Value.Name == "Pingable").Value;
+                if (role != null)
+                {
+
+                        await context.Member.RevokeRoleAsync(role);
+                        await _profile.SendDm("You will no longer be pinged if games are in need of players.");
+                }
+                else
+                {
+                    await _profile.SendDm("Role not found! Try again. If the error persists, create a ticket.");
+                }
+
+            });
+        }
         [Command("preferences")]
         public async Task Preferences(CommandContext context)
         {
@@ -225,7 +287,7 @@ namespace bot_2.Commands
                 }
                 if (player._dotammr == 0)
                 {
-                    error += "\n\nYou can update your mmr by using !updateran in the general #commands channel. Example: !updaterank ancient 5";
+                    error += "\n\nYou can update your mmr by using !updaterank in the general #commands channel. Example: !updaterank ancient 5";
                 }
                 if (player._region == (int)Region.NONE)
                 {
