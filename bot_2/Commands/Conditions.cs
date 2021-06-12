@@ -551,6 +551,10 @@ namespace bot_2.Commands
                 await action();
                 await context.Message.DeleteAsync();
             }
+            catch(DSharpPlus.Exceptions.NotFoundException e)
+            {
+                Console.WriteLine(e);
+            }
             catch (Exception e)
             {
                 await _profile.SendDm("The command you entered may have encountered an error(probably from a large amount of commands coming from different users). Try entering it again. If it still doesn't work, create a ticket and detail the problem. Thank you.");

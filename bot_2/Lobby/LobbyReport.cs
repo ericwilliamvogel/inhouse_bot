@@ -81,6 +81,32 @@ namespace bot_2.Commands
                         if (record2 != null)
                             await _utilities.ChangeTeamStatus(record2, 0);
 
+                        try //this is nested so this doesnt crash bot
+                        {
+                            var largeBetList = await _context.game_bets.ToListAsync();
+                            var specificList = largeBetList.FindAll(p => p._gameid == gameProfile._gameid);
+
+                            foreach (var betRecord in specificList)
+                            {
+                                    var playerRecord = await _context.player_data.FindAsync(betRecord._discordid);
+                                    if (playerRecord != null)
+                                    {
+                                        playerRecord._xp += betRecord._amount;
+                                        await _context.SaveChangesAsync();
+                                    }
+
+                                
+
+                                _context.game_bets.Remove(betRecord);
+                                await _context.SaveChangesAsync();
+                            }
+
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine(e);
+                        }
+
                         _context.game_data.Remove(game);
                         await _context.SaveChangesAsync();
                     }

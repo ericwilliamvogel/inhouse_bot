@@ -362,7 +362,13 @@ namespace bot_2.Commands
                         await _context.player_data.AddAsync(new PlayerData { _id = _profile._id, _steamid = steamid, _status = 1, _ihlmmr = 400, _dotammr = 0, _region = 0, _role1 = 0, _role2 = 0 });
 
                         await _context.SaveChangesAsync();
-                        await _profile.SendDm("You are now registered. Type !queue to enter the queue and !leave to leave the queue. Your GHL mmr starts at 400 and has a base increment of 15. Your initial mmr was not recongized, use the !updaterank command to update your mmr. Example: !updaterank ancient 5");
+                        await _profile.SendDm("You are now registered. There are a few more steps to complete your registration so that you can queue! " +
+                            "See below for a list of commands to get you started! When you finish your setup, type !queue or !q to jump into the queue for a game.\n" +
+                            "Important: All commands are executed in the #commands channel, not in this DM channel.\n\n" +
+                            "You can update your friendid by using !updateid your_steam_id in the general #commands channel. Example: !updateid 199304122\n" +
+                            "You can update your mmr by using !updaterank in the general #commands channel. Example: !updaterank ancient 5\n" +
+                            "You can update your region by using !updateregion your_region in the general #commands channel. Examples: !updateregion useast, !updateregion east, !updateregion uswest, !updateregion west\n" +
+                            "You can update your positions by using !updatepositions most_comfortable second_most_comfortable in the general #commands channel. 2 positions must be entered(no more, no less). Examples: !updatepositions 5 4, !updatepositions 1 3, etc. ");
                         /*if (playerDetails.MmrEstimate.Estimate == null)
                         {
 
@@ -379,7 +385,7 @@ namespace bot_2.Commands
                             await _context.SaveChangesAsync();
                         }*/
 
-                       
+
                     }
 
 
@@ -651,9 +657,9 @@ namespace bot_2.Commands
 
                     DateTimeOffset now = DateTimeOffset.Now;
                     TimeSpan span = now - game._start;
-                    if(span.Minutes >= 15)
+                    if(span.Minutes >= 20)
                     {
-                        await _profile.SendDm("You cannot bet on a game after 15 minutes has passed.");
+                        await _profile.SendDm("You cannot bet on a game after 20 minutes has passed.");
                         return;
                     }
 

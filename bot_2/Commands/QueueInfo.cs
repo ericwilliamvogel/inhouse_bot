@@ -40,7 +40,7 @@ namespace bot_2.Commands
                 var startTime = player._start;
                 players += await DisplayData(player._id, startTime,
                     (TimeSpan timespan) => {
-                        if (timespan.Hours >= 2)
+                        if (timespan.Minutes >= 45)
                         {
                             recordsToBeRemoved.Add(player);
                         }
@@ -201,7 +201,7 @@ namespace bot_2.Commands
                 {
                     await profile.SendDm("For some reason we couldn't locate your profile using your discord id. Your status still hasn't been reset. You may need to #create-a-ticket so an admin can fix your status.");
                 }
-                await profile.SendDm("You have been removed from queue because you've been idle for over an hour. Type !q or !queue if you'd like to return to queue.");
+                await profile.SendDm("You have been removed from queue because you've been idle for 45 minutes. Type !q or !queue if you'd like to return to queue.");
 
             }
         }
