@@ -13,6 +13,7 @@ namespace bot_2.Commands
         protected Conditions _conditions;
         protected GeneralDatabaseInfo _info;
         protected UpdatedQueue _updatedQueue;
+        protected QOL QOL;
         public BaseCommands(Context context)
         {
             _context = context;

@@ -104,7 +104,7 @@ namespace bot_2.Commands
             {
                 var user = context.Message.MentionedUsers.First().Id;
 
-                if(context.Guild.Members.ContainsKey(user))
+                if (context.Guild.Members.ContainsKey(user))
                 {
                     LobbyUtilities _util = new LobbyUtilities(_context);
                     var host = await _context.discord_channel_info.FindAsync(_profile._id);
@@ -113,7 +113,60 @@ namespace bot_2.Commands
                     var member = context.Guild.Members[user];
                     var role = _util.GetRole(context, "spectatorLobby" + number);
 
-                    if(role != null)
+                    if (role != null)
+                    {
+                        await _profile.SendDm("Role granted.");
+                        await member.GrantRoleAsync(role);
+                    }
+                    else
+                    {
+                        await _profile.SendDm("Role not found? Send pip a message. This is new code, so its an easy fix");
+                    }
+
+                }
+                else
+                {
+                    await _profile.SendDm("This user was not found in the server. Are they offline? Is their discord closed? Are they currently on another server?");
+                }
+
+
+
+            });
+        }
+
+        [Command("invite")]
+        public async Task Invite(CommandContext context, string team, string doesntmatter)
+        {
+            Profile _profile = new Profile(context);
+
+
+            await _conditions.TryConditionedAction(context, _profile,
+
+            new List<Arg> {
+                            Arg.IsLobbyHost,
+                            Arg.HasMention
+            },
+
+            async () =>
+            {
+                var user = context.Message.MentionedUsers.First().Id;
+
+                if (context.Guild.Members.ContainsKey(user))
+                {
+                    if(team.ToLower() != "team1" && team.ToLower() != "team2")
+                    {
+                        await _profile.SendDm(team + " isn't a valid team. Please use team1 or team2 to assign the role to this player.");
+                        return;
+                    }
+
+                    LobbyUtilities _util = new LobbyUtilities(_context);
+                    var host = await _context.discord_channel_info.FindAsync(_profile._id);
+                    var number = host._number;
+
+                    var member = context.Guild.Members[user];
+                    var role = _util.GetRole(context, team + "Lobby" + number);
+
+                    if (role != null)
                     {
                         await _profile.SendDm("Role granted.");
                         await member.GrantRoleAsync(role);

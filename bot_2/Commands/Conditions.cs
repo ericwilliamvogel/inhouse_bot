@@ -121,6 +121,8 @@ namespace bot_2.Commands
         /// 
         /// </summary>
         /// 
+
+        private QOL QOL = new QOL();
         public Dictionary<Arg, Argument> _check;
         public Conditions(Context context)
         {
@@ -561,57 +563,7 @@ namespace bot_2.Commands
 
             try
             {
-                if(!TaskScheduler.active)
-                {
-                    TaskScheduler.Instance.ScheduleTask(17, 0, 24, async () =>
-                    {
-                        if (!TaskScheduler._inhouseOpen)
-                        {
-                            if (context.Guild.Channels.ContainsKey(839331576554455050))
-                            {
-                                var channel = context.Guild.Channels[839331576554455050];
-                                await channel.SendMessageAsync("Inhouse queue opens in 2 hours.");
-                            }
-                        }
-
-                    });
-
-                    TaskScheduler.Instance.ScheduleTask(18, 0, 24, async () =>
-                    {
-                        if (!TaskScheduler._inhouseOpen)
-                        {
-                            if (context.Guild.Channels.ContainsKey(839331576554455050))
-                            {
-                                var channel = context.Guild.Channels[839331576554455050];
-                                await channel.SendMessageAsync("Inhouse queue opens in 1 hour.");
-                            }
-                        }
-
-                    });
-                    TaskScheduler.Instance.ScheduleTask(19, 0, 24, async () =>
-                    {
-                        if(!TaskScheduler._inhouseOpen)
-                        {
-                            if (context.Guild.Channels.ContainsKey(839331576554455050))
-                            {
-                                var channel = context.Guild.Channels[839331576554455050];
-                                await channel.SendMessageAsync("<@&852359190453288981>, Queueing is now available tonight from 10pmEST to 1amEST. \n\nReminder to use !pingme to be given the <@&852359190453288981> role. If you change your mind use !dontpingme.");
-                            }
-                        }
-                        TaskScheduler._inhouseOpen = true;
-
-                    });
-
-                    TaskScheduler.Instance.ScheduleTask(23, 0, 24, async () =>
-                    {
-                        TaskScheduler._inhouseOpen = false;
-                        if (context.Guild.Channels.ContainsKey(839331576554455050))
-                        {
-                            var channel = context.Guild.Channels[839331576554455050];
-                            await channel.SendMessageAsync("Queueing is now closed for the night. GrinHouse will open again at 10pmEST tomorrow.");
-                        }
-                    });
-                }
+                await AssureSchedulingIsRunning(context);
                 await action();
                 await context.Message.DeleteAsync();
             }
@@ -628,7 +580,37 @@ namespace bot_2.Commands
 
         }
 
+        private async Task AssureSchedulingIsRunning(CommandContext context)
+        {
+            if (!TaskScheduler.active)
+            {
+                TaskScheduler.Instance.ScheduleTask(17, 0, 24, async () =>
+                {
+                    if (!TaskScheduler._inhouseOpen)
+                        await QOL.SendMessage(context, Bot.Channels.GeneralChannel, "Inhouse queue opens in 2 hours.");
+                });
 
+                TaskScheduler.Instance.ScheduleTask(18, 0, 24, async () =>
+                {
+                    if (!TaskScheduler._inhouseOpen)
+                        await QOL.SendMessage(context, Bot.Channels.GeneralChannel, "Inhouse queue opens in 1 hour.");
+                });
+                TaskScheduler.Instance.ScheduleTask(19, 0, 24, async () =>
+                {
+                    if (!TaskScheduler._inhouseOpen)
+                        await QOL.SendMessage(context, Bot.Channels.GeneralChannel, "<@&852359190453288981>, Queueing is now available tonight from 10pmEST to 1amEST. \n\nReminder to use !pingme to be given the <@&852359190453288981> role. If you change your mind use !dontpingme.");
+
+                    TaskScheduler._inhouseOpen = true;
+
+                });
+
+                TaskScheduler.Instance.ScheduleTask(23, 0, 24, async () =>
+                {
+                    TaskScheduler._inhouseOpen = false;
+                    await QOL.SendMessage(context, Bot.Channels.GeneralChannel, "Queueing is now closed for the night. GrinHouse will open again at 10pmEST tomorrow.");
+                });
+            }
+        }
 
     }
 }

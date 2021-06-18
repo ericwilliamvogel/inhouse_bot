@@ -259,7 +259,7 @@ public async Task EnterQueue(CommandContext context, int number)
                         {
                             LobbySorter sorter = new LobbySorter(_context);
                             string gHistory = await sorter._info.GetGameHistory(openDota, gameDetails);
-                            var channel = context.Guild.Channels[842870150994591764];
+                            var channel = context.Guild.Channels[Bot.Channels.GameHistoryChannel];
                             await channel.SendMessageAsync(gHistory);
                         }
                         else
@@ -297,14 +297,14 @@ public async Task EnterQueue(CommandContext context, int number)
         }
 
         [Command("queueclear")]
-        public async Task Clear(CommandContext context)
+        public async Task QueueClear(CommandContext context)
         {
             Profile _profile = new Profile(context);
             await _conditions.TryConditionedAction(context, _profile,
 
                 new List<Arg>
                 {
-                     Arg.IsInAdminCommandChannel
+                     Arg.HasAdminRole
                 },
 
                 async () =>
@@ -323,28 +323,39 @@ public async Task EnterQueue(CommandContext context, int number)
         }
 
         [Command("channelclear")]
-        public async Task Clear(CommandContext context, ulong input)
+        public async Task ChannelClear(CommandContext context)
         {
             Profile _profile = new Profile(context);
 
             await _conditions.TryConditionedAction(context, _profile,
 
                 new List<Arg> {
-                    Arg.IsInAdminCommandChannel
+                    Arg.HasAdminRole
                 },
 
                 async () =>
                 {
-                    if (context.Guild.Channels.ContainsKey(input))
-                    {
-                        var channel = context.Guild.Channels[input];
-                        await DeleteLastMessage(channel);
-                    }
-                    else
-                    {
-                        await context.Channel.SendMessageAsync("Channel not recognized under the id you typed.").ConfigureAwait(false);
-                    }
+                    await DeleteLastMessage(context.Channel);
+                    await _profile.SendDm("Channel cleared.");
+                });
 
+        }
+
+        [Command("channelclear")]
+        public async Task ChannelClear(CommandContext context, int number)
+        {
+            Profile _profile = new Profile(context);
+
+            await _conditions.TryConditionedAction(context, _profile,
+
+                new List<Arg> {
+                    Arg.HasAdminRole
+                },
+
+                async () =>
+                {
+                    await DeleteLastMessage(context.Channel, number);
+                    await _profile.SendDm("Channel cleared.");
                 });
 
         }
@@ -352,6 +363,13 @@ public async Task EnterQueue(CommandContext context, int number)
         public async Task DeleteLastMessage(DiscordChannel channel)
         {
             var list = await channel.GetMessagesAsync(100);
+            await channel.DeleteMessagesAsync(list);
+        }
+
+
+        public async Task DeleteLastMessage(DiscordChannel channel, int number)
+        {
+            var list = await channel.GetMessagesAsync(number);
             await channel.DeleteMessagesAsync(list);
         }
 

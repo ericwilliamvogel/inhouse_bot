@@ -1,4 +1,12 @@
 {
-  "channel": "839331703776083989",
-  "message":"839338609463001088"
+  "queue_channel": "839331703776083989",
+  "queue_message":"839338609463001088",
+  "leaderboard_channel":"851934555350630420",
+  "commands_channel":"839336462431289374",
+  "bet_channel":"852929890780840007",
+  "error_channel":"844949177347604531",
+  "game_history_channel":"842870150994591764",
+  "general_channel":"839331576554455050",
+  "commands_playback_channel":"855534665582641162",
+  "admin_commands_channel":"839336496484974622"
 }

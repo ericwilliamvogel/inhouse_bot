@@ -347,7 +347,6 @@ namespace bot_2.Commands
 
                 async () =>
                 {
-
                     var openDota = new OpenDotaApi();
                     var playerDetails = await openDota.Players.GetPlayerByIdAsync(steamid);
 
@@ -597,11 +596,10 @@ namespace bot_2.Commands
                 async () =>
                 {
                     TaskScheduler._inhouseOpen = true;
-                    if (context.Guild.Channels.ContainsKey(839331576554455050))
-                    {
-                        var channel = context.Guild.Channels[839331576554455050];
-                        await channel.SendMessageAsync("<@&852359190453288981>, Queueing has been opened early by <@" + _profile._id + ">. Queueing will still close at 1amEST. \n\nReminder to use !pingme to be given the <@&852359190453288981> role. If you change your mind use !dontpingme.");
-                    }
+
+                    await QOL.SendMessage(context, Bot.Channels.GeneralChannel,
+                        "<@&852359190453288981 >, Queueing has been opened early by < @" + _profile._id + " >.Queueing will still close at 1amEST. \n\nReminder to use!pingme to be given the <@&852359190453288981 > role.If you change your mind use!dontpingme.");
+
                     await _profile.SendDm("Inhouse has been opened early. Doors will close at 1amEST as scheduled.");
                 });
         }
@@ -703,12 +701,9 @@ namespace bot_2.Commands
                     await _profile.SendDm("Bet submitted. Good luck!\nGameId: " + gameid + "\nSide: " + side + "\nAmount: " + amount + " coins\nPotential winnings: " + amount*2 + " coins\nCoins remaining: " + playerrecord._xp + " coins");
 
 
-                    
-                    if(context.Guild.Channels.ContainsKey(852929890780840007))
-                    {
-                        var channel = context.Guild.Channels[852929890780840007];
-                        await channel.SendMessageAsync("-----------------\n<@" + _profile._id + ">\nGameId: " + gameid + "\nSide: " + side + "\nAmount: " + amount + " coins\nPotential winnings: " + amount*2 + " coins\nCoins remaining: " + playerrecord._xp + " coins\n-----------------");
-                    }
+                    await QOL.SendMessage(context, Bot.Channels.BetChannel,
+                        "-----------------\n<@" + _profile._id + ">\nGameId: " + gameid + "\nSide: " + side + "\nAmount: " + amount + " coins\nPotential winnings: " + amount * 2 + " coins\nCoins remaining: " + playerrecord._xp + " coins\n-----------------");
+
                 });
         }
 

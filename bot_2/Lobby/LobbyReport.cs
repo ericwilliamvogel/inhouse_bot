@@ -18,10 +18,11 @@ namespace bot_2.Commands
         private Context _context;
         private LobbyUtilities _utilities;
         private LobbyInfo _info;
-
+        private QOL QOL;
         private int xpincrement = 100;
         public LobbyReport(Context context, LobbyUtilities utilities, LobbyInfo info)
         {
+            QOL = new QOL();
             this._context = context;
             this._utilities = utilities;
             this._info = info;
@@ -114,13 +115,15 @@ namespace bot_2.Commands
                     {
                         await context.Channel.SendMessageAsync("Not a valid command, report 'team1', 'team2', or 'draw'.");
                     }
-                    var awaiting = await context.Guild.Channels[842870150994591764].SendMessageAsync("waiting for opendota api to pick up game under id " + steamid);
-                    //send msg to game history channel
+
+
+                    await QOL.SendMessage(context, Bot.Channels.GameHistoryChannel,
+                        "waiting for opendota api to pick up game under id " + steamid);
+
                     await WrapUp(context, gameProfile._number);
 
 
-                    if (context.Guild.Channels.ContainsKey(842870150994591764))
-                    {
+
 
                         var openDota = new OpenDotaApi();
                         var gameID = gameProfile._gameid;
@@ -130,8 +133,7 @@ namespace bot_2.Commands
                             if (gameDetails != null)
                             {
                                 string gHistory = await _info.GetGameHistory(openDota, gameID, gameDetails);
-                                var channel = context.Guild.Channels[842870150994591764];
-                                await channel.SendMessageAsync(gHistory);
+                                await QOL.SendMessage(context, Bot.Channels.GameHistoryChannel, gHistory);
                             }
                             else
                             {
@@ -145,7 +147,7 @@ namespace bot_2.Commands
 
 
 
-                    }
+                    
 
 
                 }
@@ -231,9 +233,9 @@ namespace bot_2.Commands
                 var specificList = largeBetList.FindAll(p => p._gameid == gameProfile._gameid);
 
                 DiscordChannel channel = null;
-                if (context.Guild.Channels.ContainsKey(852929890780840007))
+                if (context.Guild.Channels.ContainsKey(Bot.Channels.BetChannel))
                 {
-                    channel = context.Guild.Channels[852929890780840007];
+                    channel = context.Guild.Channels[Bot.Channels.BetChannel];
                 }
 
                 foreach (var betRecord in specificList)

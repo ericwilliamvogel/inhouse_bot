@@ -36,8 +36,14 @@ CREATE TABLE primary_table(
         public CommandsNextExtension Commands { get; private set; }
 
         public DotaClient DotaClient { get; set; }
+
+        public static ChannelConfigJson Channels { get; set; }
+
+        private QOL QOL { get; set; }
         public Bot(IServiceProvider services)
         {
+            QOL = new QOL();
+
             var json = string.Empty;
 
             using (var fs = File.OpenRead("config.json"))
@@ -45,6 +51,17 @@ CREATE TABLE primary_table(
                 json = sr.ReadToEnd();
 
             var configJson = JsonConvert.DeserializeObject<ConfigJson>(json);
+
+
+            var channeljson = string.Empty;
+
+            using (var fs = File.OpenRead("channelConfig.json"))
+            using (var sr = new StreamReader(fs, new UTF8Encoding(false)))
+                channeljson = sr.ReadToEnd();
+
+            Channels = JsonConvert.DeserializeObject<ChannelConfigJson>(channeljson);
+
+            SetExistingChannelCheck();
 
             var config = new DiscordConfiguration
             {
@@ -97,64 +114,55 @@ CREATE TABLE primary_table(
             //Console.WriteLine("Variables reset, new update thread should've been started");
         }
 
+        private List<ulong> _existingChannelCheck;
+
+        private void SetExistingChannelCheck()
+        {
+            _existingChannelCheck = new List<ulong>();
+            _existingChannelCheck.Add(Channels.CommandsChannel);
+            _existingChannelCheck.Add(Channels.QueueChannel);
+            _existingChannelCheck.Add(Channels.CommandsPlaybackChannel);
+            _existingChannelCheck.Add(Channels.AdminCommandsChannel);
+
+        }
         private async Task OnMessageCreated(DiscordClient c, MessageCreateEventArgs e)
         {
             try
             {
+                _ = e ?? throw new ArgumentNullException();
 
-                var array = e.Message.Content;
-                char prefix;
+                _ = e.Guild ?? throw new ArgumentNullException();
 
-                if(array !=null && array != "")
-                prefix = array[0];
 
-                if(e!=null)
+                if (QOL.ChannelsExist(e, _existingChannelCheck))
                 {
-                    if(e.Guild !=null)
+                    if (e.Channel == e.Guild.Channels[Channels.CommandsChannel] ||
+                        e.Channel == e.Guild.Channels[Channels.QueueChannel] ||
+                        e.Channel == e.Guild.Channels[Channels.AdminCommandsChannel])
                     {
-                        if (e.Guild.Channels.ContainsKey(839336462431289374) && e.Guild.Channels.ContainsKey(839331703776083989))
+                        Task task = await Task.Factory.StartNew(async () =>
                         {
-                            if (e.Channel == e.Guild.Channels[839336462431289374] || e.Channel == e.Guild.Channels[839331703776083989])
+                            await Task.Delay(4000);
+
+                            var channel = e.Guild.Channels[Channels.CommandsPlaybackChannel];
+                            await channel.SendMessageAsync("<@" + e.Message.Author.Id + "> : " + e.Message.Content);
+                            if (e != null)
                             {
-                                Task task = await Task.Factory.StartNew(async () =>
+                                if (e.Message != null)
                                 {
-                                    await Task.Delay(4000);
-
-                                    if (e != null)
-                                    {
-                                        if (e.Message != null)
-                                        {
-                                            await e.Message.DeleteAsync();
-                                        }
-                                    }
-
-                                }, TaskCreationOptions.LongRunning);
-
-
-
+                                    await e.Message.DeleteAsync();
+                                }
                             }
-                        }
+
+                        }, TaskCreationOptions.LongRunning);
+
+
 
                     }
                 }
 
-                /*var newmsg = array.Substring(1);
 
 
-                //hard coded this cuz we dont know what prefix is?
-                if (prefix == '!' && !Commands.RegisteredCommands.ContainsKey(newmsg))
-                {
-                    Task task = await Task.Factory.StartNew(async () =>
-                    {
-                        var msg = await e.Channel.SendMessageAsync(e.Author.Mention + ", '" + e.Message.Content + "' is an invalid command. Check the #commands channel to see valid commands.");
-
-                        await e.Message.DeleteAsync();
-
-
-                    }, TaskCreationOptions.LongRunning);
-
-                }
-                */
             }
             catch(Exception exc)
             {
@@ -162,5 +170,7 @@ CREATE TABLE primary_table(
             }
 
         }
+
+
     }
 }

@@ -47,8 +47,8 @@ namespace bot_2.Commands
                 json = sr.ReadToEnd();
 
             var channelConfigJson = JsonConvert.DeserializeObject<ChannelConfigJson>(json);
-            PreLoadedChannel = channelConfigJson.Channel;
-            PreLoadedMessage = channelConfigJson.Message;
+            PreLoadedChannel = channelConfigJson.QueueChannel;
+            PreLoadedMessage = channelConfigJson.QueueMessage;
         }
 
         public async Task StartThread(CommandContext context)
@@ -164,14 +164,14 @@ namespace bot_2.Commands
                 {
 
 
-                    if (!context.Guild.Channels.ContainsKey(851934555350630420))
+                    if (!context.Guild.Channels.ContainsKey(Bot.Channels.LeaderboardChannel))
                     {
                         return;
                     }
 
 
 
-                    DiscordChannel leaderboardChannel = context.Guild.Channels[851934555350630420];
+                    DiscordChannel leaderboardChannel = context.Guild.Channels[Bot.Channels.LeaderboardChannel];
 
                     var availableLeaderboardMessages = await _context.leaderboard_messages.ToListAsync();
 
@@ -189,7 +189,7 @@ namespace bot_2.Commands
                     foreach (var message in availableLeaderboardMessages)
                     {
 
-                        var newMessage = await context.Guild.Channels[851934555350630420].GetMessageAsync(message._message);
+                        var newMessage = await context.Guild.Channels[Bot.Channels.LeaderboardChannel].GetMessageAsync(message._message);
                         if (newMessage != null)
                         {
                             await newMessage.ModifyAsync(leaderboardMessages[counter]);

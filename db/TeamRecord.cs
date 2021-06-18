@@ -4,12 +4,7 @@ using System.Text;
 
 namespace db
 {
-    public enum Side
-    {
-        Radiant = 0,
-        Dire = 1,
-        Draw = 2
-    }
+
     public class TeamRecord : Entity
     {
         public int _side { get; set; }

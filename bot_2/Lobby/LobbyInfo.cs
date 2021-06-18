@@ -272,9 +272,9 @@ namespace bot_2.Commands
 
             lobby += "\n";
 
-            lobby += "--- Team team1 ---\n\n" + await GetTeamDesc(team1) + "\n\n";
+            lobby += "--- Team 1 ---\n\n" + await GetTeamDesc(team1) + "\n\n";
 
-            lobby += "--- Team team2 --- \n\n" + await GetTeamDesc(team2) + "\n";
+            lobby += "--- Team 2 --- \n\n" + await GetTeamDesc(team2) + "\n";
 
 
             lobby += "\n\nPool = \n";
@@ -286,11 +286,11 @@ namespace bot_2.Commands
             }
 
             lobby += "\n";
-            lobby += "```Captains can pick players in the available pool using command !pick @mention ``` Example: !pick <@126922582208282624>\n";
-            lobby += "```Did someone have to leave your game? ONLY after picking phase has ended, DO NOT kick during picking phase. If a player cannot play / abandons, the LOBBY HOST can kick that player using !kick @mention ``` Example: !kick <@126922582208282624>\n";
-            lobby += "```Can some players not see the lobby? Simple !invite @mention so they can see the pick phase! Rest assured they will receive their team1/team2 roles when the picking phase has ended even if they can't see the #general chat. ```" +
-                " Example: !invite <@126922582208282624>\n";
-
+            lobby += "```Captains can pick players in the available pool using command !pick @mention ``` Example: **!pick** <@126922582208282624>\n";
+            lobby += "```Did someone have to leave your game during draft phase or midgame? Use command !draw 0 to kill the discord channels and internally reset all players.``` Example: **!draw 0**\n";
+            lobby += "```Can some players not see the lobby? Simply !invite @mention so they can see the pick phase! These same players may also have trouble getting their lobby roles(team1, team2, etc...), refer below for info on how to invite them! ```" +
+                " Example: **!invite** <@126922582208282624>\n";
+            lobby += "```Are some players not able to see their respective discord voice channels? Simply !invite team1 @mention so they can get access to their voice channel! Example: **invite team1** <@126922582208282624>";
             return lobby;
         }
 

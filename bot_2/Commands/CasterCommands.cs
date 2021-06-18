@@ -34,9 +34,9 @@ namespace bot_2.Commands
 
                 async () =>
                 {
-                    if (context.Guild.Channels.ContainsKey(842870150994591764))
+                    if (context.Guild.Channels.ContainsKey(Bot.Channels.GameHistoryChannel))
                     {
-                        var channel = context.Guild.Channels[842870150994591764];
+                        var channel = context.Guild.Channels[Bot.Channels.GameHistoryChannel];
                         var msg = await channel.GetMessageAsync(messageid);
                         if(msg != null)
                         {
