@@ -302,7 +302,7 @@ namespace bot_2.Commands
 
                 if (player._steamid == 0)
                 {
-                    error += "\n\nYou can update your friendid by using !updateid your_steam_id in the general #commands channel. Example: !updateid 199304122";
+                    error += "\n\nYou can update your friendid by using !updateid your_dota_friend_id in the general #commands channel. Example: !updateid 199304122";
                 }
                 if (player._dotammr == 0)
                 {
@@ -365,7 +365,7 @@ namespace bot_2.Commands
                         await _profile.SendDm("You are now registered. There are a few more steps to complete your registration so that you can queue! " +
                             "See below for a list of commands to get you started! When you finish your setup, type !queue or !q to jump into the queue for a game.\n" +
                             "Important: All commands are executed in the #commands channel, not in this DM channel.\n\n" +
-                            "You can update your friendid by using !updateid your_steam_id in the general #commands channel. Example: !updateid 199304122\n" +
+                            "You can update your friendid by using !updateid your_dota_friend_id in the general #commands channel. Example: !updateid 199304122\n" +
                             "You can update your mmr by using !updaterank in the general #commands channel. Example: !updaterank ancient 5\n" +
                             "You can update your region by using !updateregion your_region in the general #commands channel. Examples: !updateregion useast, !updateregion east, !updateregion uswest, !updateregion west\n" +
                             "You can update your positions by using !updatepositions most_comfortable second_most_comfortable in the general #commands channel. 2 positions must be entered(no more, no less). Examples: !updatepositions 5 4, !updatepositions 1 3, etc. ");
@@ -582,6 +582,29 @@ namespace bot_2.Commands
                 });
         }
 
+        [Command("open")]
+        public async Task Open(CommandContext context)
+        {
+            Profile _profile = new Profile(context);
+            await _conditions.TryConditionedAction(context, _profile,
+
+                new List<Arg> {
+                    Arg.IsRegistered,
+                    Arg.IsInCommandChannel,
+                    Arg.HasTrustedRole
+                },
+
+                async () =>
+                {
+                    TaskScheduler._inhouseOpen = true;
+                    if (context.Guild.Channels.ContainsKey(839331576554455050))
+                    {
+                        var channel = context.Guild.Channels[839331576554455050];
+                        await channel.SendMessageAsync("<@&852359190453288981>, Queueing has been opened early by <@" + _profile._id + ">. Queueing will still close at 1amEST. \n\nReminder to use !pingme to be given the <@&852359190453288981> role. If you change your mind use !dontpingme.");
+                    }
+                    await _profile.SendDm("Inhouse has been opened early. Doors will close at 1amEST as scheduled.");
+                });
+        }
 
         [Command("bet")]
         public async Task Bet(CommandContext context)
@@ -596,7 +619,7 @@ namespace bot_2.Commands
 
                 async () =>
                 {
-                    await _profile.SendDm("'!bet bet_amount radiant_or_dire inhouse_game_id' : To bet on a live game.\nUsage: To place a bet of 100 on side Radiant, GameID 4033 = '!bet 100 radiant 4033'");
+                    await _profile.SendDm("'!bet bet_amount team1_or_team2 inhouse_game_id' : To bet on a live game.\nUsage: To place a bet of 100 on side team1, GameID 4033 = '!bet 100 team1 4033'");
                 });
         }
         [Command("bet")]
@@ -613,17 +636,17 @@ namespace bot_2.Commands
                 async () =>
                 {
                     int sideToInt = (int)Side.Draw;
-                    if (side.ToLower() == "radiant")
+                    if (side.ToLower() == "team1")
                     {
-                        sideToInt = (int)Side.Radiant;
+                        sideToInt = (int)Side.Team1;
                     }
-                    else if (side.ToLower() == "dire")
+                    else if (side.ToLower() == "team2")
                     {
-                        sideToInt = (int)Side.Dire;
+                        sideToInt = (int)Side.Team2;
                     }
                     else
                     {
-                        await _profile.SendDm("'" + side + "' is not a valid side. Use 'radiant' or 'dire'.");
+                        await _profile.SendDm("'" + side + "' is not a valid side. Use 'team1' or 'team2'.");
                         return;
                     }
 
@@ -680,6 +703,12 @@ namespace bot_2.Commands
                     await _profile.SendDm("Bet submitted. Good luck!\nGameId: " + gameid + "\nSide: " + side + "\nAmount: " + amount + " coins\nPotential winnings: " + amount*2 + " coins\nCoins remaining: " + playerrecord._xp + " coins");
 
 
+                    
+                    if(context.Guild.Channels.ContainsKey(852929890780840007))
+                    {
+                        var channel = context.Guild.Channels[852929890780840007];
+                        await channel.SendMessageAsync("-----------------\n<@" + _profile._id + ">\nGameId: " + gameid + "\nSide: " + side + "\nAmount: " + amount + " coins\nPotential winnings: " + amount*2 + " coins\nCoins remaining: " + playerrecord._xp + " coins\n-----------------");
+                    }
                 });
         }
 

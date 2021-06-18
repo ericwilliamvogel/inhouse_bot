@@ -112,13 +112,13 @@ CREATE TABLE primary_table(
                 {
                     if(e.Guild !=null)
                     {
-                        if (e.Guild.Channels.ContainsKey(839336462431289374) || e.Guild.Channels.ContainsKey(839331703776083989))
+                        if (e.Guild.Channels.ContainsKey(839336462431289374) && e.Guild.Channels.ContainsKey(839331703776083989))
                         {
                             if (e.Channel == e.Guild.Channels[839336462431289374] || e.Channel == e.Guild.Channels[839331703776083989])
                             {
                                 Task task = await Task.Factory.StartNew(async () =>
                                 {
-                                    await Task.Delay(6000);
+                                    await Task.Delay(4000);
 
                                     if (e != null)
                                     {

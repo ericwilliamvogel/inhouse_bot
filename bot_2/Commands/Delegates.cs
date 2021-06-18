@@ -14,4 +14,11 @@ namespace bot_2.Commands
         USEAST = 1,
         USWEST = 2
     }
+
+    public enum Side
+    {
+        Team1 = 0,
+        Team2 = 1,
+        Draw = 2
+    }
 }

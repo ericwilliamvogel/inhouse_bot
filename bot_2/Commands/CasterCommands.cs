@@ -22,6 +22,8 @@ namespace bot_2.Commands
         public async Task EnterQueue(CommandContext context, ulong messageid, string vod)
         {
             Profile _profile = new Profile(context);
+
+
             //we need to seperate the two bundles of arguments because we'll return a null error if the user doesn't have a record under player_data/player_record
             await _conditions.TryConditionedAction(context, _profile,
 
@@ -70,7 +72,8 @@ namespace bot_2.Commands
             var verified = await _conditions.AreMet(context, _profile,
                 new List<Arg> {
                     Arg.IsRegistered,
-                    Arg.IsInCommandChannel
+                    Arg.IsInCommandChannel,
+                    Arg.InhouseIsOpen
                 });
 
             if (!verified)
@@ -123,7 +126,8 @@ namespace bot_2.Commands
                             Arg.IsRegistered,
                             Arg.IsInCommandChannel,
                             Arg.IsCasterQueued,
-                            Arg.HasCasterRole
+                            Arg.HasCasterRole,
+                            Arg.InhouseIsOpen
                 },
 
                 async () =>

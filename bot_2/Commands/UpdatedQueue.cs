@@ -77,69 +77,80 @@ namespace bot_2.Commands
         public async Task UpdateQueue(CommandContext context)
         {
 
-                try
+            try
+            {
+                if(Conditions._locked)
                 {
-                    if(Conditions._locked)
-                    {
-                        return;
-                    }
-
-                    var queueMessage = await GetMessage(context, PreLoadedChannel, PreLoadedMessage);
-                    if (queueMessage == null)
-                    {
-                        return;
-                    }
-
-
-
-                    List<QueueData> recordsToBeRemoved = new List<QueueData>();
-
-                    var players = await _queueInfo.GetPlayerQueueInfo(context);
-                    var casters = await _queueInfo.GetCasterQueueInfo(context);
-                    var spectators = await _queueInfo.GetSpectatorQueueInfo(context);
-
-                    //this await triggers threading issue??
-                    var gamesBeingPlayed = await _context.discord_channel_info.ToListAsync();
-
-                    string currentGames = await _info.CreateGameProfile(context, gamesBeingPlayed);
-
-                    var leaderboard = await _queueInfo.GetLeaderboard();
-
-                    var participationAward = await _queueInfo.GetParticipationAward();
-
-
-                    string finalString = DateTime.Now.ToString() + " PST\nWelcome to GrinHouseLeague. There are **" + gamesBeingPlayed.Count + " games** currently being played.\n\n" + leaderboard + participationAward +
-                        players +
-                        "\n\n" +
-                        casters +
-                        "\n\n" +
-                        spectators +
-                        "\n\n" +
-                        //availableplayers +
-                        //"\n\n" +
-                        currentGames;
-
-                    await queueMessage.ModifyAsync(finalString);
-
-                    //await UpdateLeaderboard(context);
-
-
+                    return;
                 }
-                catch (ServerErrorException e)
+
+                var queueMessage = await GetMessage(context, PreLoadedChannel, PreLoadedMessage);
+                if (queueMessage == null)
                 {
-                    await ReportErrorToAdmin(context, e);
+                    return;
+                }
 
-                }
-                catch (Exception e)
-                {
-                    await ReportErrorToAdmin(context, e);
-                }
-                finally
-                {
-                    await Task.Delay(2400);
 
-                    await UpdateQueue(context);
+
+                List<QueueData> recordsToBeRemoved = new List<QueueData>();
+
+                var players = await _queueInfo.GetPlayerQueueInfo(context);
+                var casters = await _queueInfo.GetCasterQueueInfo(context);
+                var spectators = await _queueInfo.GetSpectatorQueueInfo(context);
+
+                //this await triggers threading issue??
+                var gamesBeingPlayed = await _context.discord_channel_info.ToListAsync();
+
+                string currentGames = await _info.CreateGameProfile(context, gamesBeingPlayed);
+
+                var leaderboard = await _queueInfo.GetLeaderboard();
+
+                var participationAward = await _queueInfo.GetParticipationAward();
+
+                string open = string.Empty;
+
+                if(TaskScheduler._inhouseOpen)
+                {
+
+                    open = "Open";
                 }
+                else
+                {
+                    open = "Closed";
+                }
+
+                string finalString = DateTime.Now.ToString() + " PST\nWelcome to GrinHouseLeague. Inhouse opens at 10pmEST and closes at 1amEST. Inhouse is currently **" + open + "**. There are **" + gamesBeingPlayed.Count + " games** currently being played.\n\n" + leaderboard + participationAward +
+                    players +
+                    "\n\n" +
+                    casters +
+                    "\n\n" +
+                    spectators +
+                    "\n\n" +
+                    //availableplayers +
+                    //"\n\n" +
+                    currentGames;
+
+                await queueMessage.ModifyAsync(finalString);
+
+                //await UpdateLeaderboard(context);
+
+
+            }
+            catch (ServerErrorException e)
+            {
+                await ReportErrorToAdmin(context, e);
+
+            }
+            catch (Exception e)
+            {
+                await ReportErrorToAdmin(context, e);
+            }
+            finally
+            {
+                await Task.Delay(2400);
+
+                await UpdateQueue(context);
+            }
                 
 
             

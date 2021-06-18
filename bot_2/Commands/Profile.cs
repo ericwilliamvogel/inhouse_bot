@@ -134,5 +134,22 @@ namespace bot_2.Commands
 
 
         }
+
+        public async Task ReportError(CommandContext context, string input)
+        {
+            if (context.Guild.Channels.ContainsKey(844949177347604531))
+            {
+                //error log channel
+                var channel = context.Guild.Channels[844949177347604531];
+                //tag me
+                await channel.SendMessageAsync("<@126922582208282624> : " + input);
+            }
+            else
+            {
+                await SendDm("Some weird error occurred. Send a screenshot of this to #bugs or an admin/mod. Thank you. \n Details = \n" + input.ToString());
+            }
+
+
+        }
     }
 }

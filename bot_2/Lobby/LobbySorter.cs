@@ -118,10 +118,10 @@ namespace bot_2.Commands
                 players.Remove(captain1);
                 players.Remove(captain2);
                 
-                var recordRadiant = await _context.game_record.AddAsync(new TeamRecord { _side = (int)Side.Radiant, _gameid = gameid._id, _p1 = captain2._id, _canpick = 1 });
+                var recordTeam1 = await _context.game_record.AddAsync(new TeamRecord { _side = (int)Side.Team1, _gameid = gameid._id, _p1 = captain2._id, _canpick = 1 });
                 await _context.SaveChangesAsync();
 
-                var recordDire = await _context.game_record.AddAsync(new TeamRecord { _side = (int)Side.Dire, _gameid = gameid._id, _p1 = captain1._id, _canpick = 0 });
+                var recordTeam2 = await _context.game_record.AddAsync(new TeamRecord { _side = (int)Side.Team2, _gameid = gameid._id, _p1 = captain1._id, _canpick = 0 });
                 await _context.SaveChangesAsync();
                 
                 foreach(Player player in players)
@@ -159,41 +159,41 @@ namespace bot_2.Commands
             Permissions perms = new Permissions(_context);
             await perms.Get(context, _utilities, gameid);
 
-            var radiant = await _context.game_record.FirstOrDefaultAsync(p => p._gameid == gameid && p._side == (int)Side.Radiant);
-            var dire = await _context.game_record.FirstOrDefaultAsync(p => p._gameid == gameid && p._side == (int)Side.Dire);
+            var team1 = await _context.game_record.FirstOrDefaultAsync(p => p._gameid == gameid && p._side == (int)Side.Team1);
+            var team2 = await _context.game_record.FirstOrDefaultAsync(p => p._gameid == gameid && p._side == (int)Side.Team2);
 
-            var radiantteam = await _utilities.GetPlayers(radiant);
-            var direteam = await _utilities.GetPlayers(dire);
+            var team1players = await _utilities.GetPlayers(team1);
+            var team2players = await _utilities.GetPlayers(team2);
 
 
 
 
             int basemmr = 15;
 
-            int team1mmr = _utilities.GetTeamTrueMmr(radiantteam);
-            int team2mmr = _utilities.GetTeamTrueMmr(direteam);
+            int team1mmr = _utilities.GetTeamTrueMmr(team1players);
+            int team2mmr = _utilities.GetTeamTrueMmr(team2players);
 
             int team1gain = basemmr * team2mmr / team1mmr;
 
             int team1loss = basemmr * team1mmr / team2mmr;
 
-            radiant._onwin = team1gain;
-            radiant._onlose = team1loss;
+            team1._onwin = team1gain;
+            team1._onlose = team1loss;
 
             await _context.SaveChangesAsync();
 
-            dire._onwin = team1loss;
-            dire._onlose = team1gain;
+            team2._onwin = team1loss;
+            team2._onlose = team1gain;
 
             await _context.SaveChangesAsync();
 
-            await _utilities.RemoveSpectatorRoles(context, radiantteam, perms.LobbyNumber);
-            await _utilities.RemoveSpectatorRoles(context, direteam, perms.LobbyNumber);
+            await _utilities.RemoveSpectatorRoles(context, team1players, perms.LobbyNumber);
+            await _utilities.RemoveSpectatorRoles(context, team2players, perms.LobbyNumber);
 
-            await _utilities.GrantRole(context, radiantteam, perms.LobbyRoleRadiant);
-            await _utilities.GrantRole(context, direteam, perms.LobbyRoleDire);
+            await _utilities.GrantRole(context, team1players, perms.LobbyRoleTeam1);
+            await _utilities.GrantRole(context, team2players, perms.LobbyRoleTeam2);
 
-            string lobbyinfo = await _info.GetFullLobbyInfo(context, radiantteam, direteam, gameid);
+            string lobbyinfo = await _info.GetFullLobbyInfo(context, team1players, team2players, gameid);
 
 
 
@@ -248,112 +248,3 @@ namespace bot_2.Commands
 
 
 }
-
-
-/*private async Task Yeet(CommandContext context)
-       {
-
-           Console.WriteLine("Granting role...");
-           await _utilities.GrantRole(context, team1, LobbyRoleRadiant);
-           await _utilities.GrantRole(context, team2, LobbyRoleDire);
-           //if gameid is active in lobbyhost record --
-
-           //CREATE LOBBY
-           Console.WriteLine("Creating team1..");
-           List<Player> team1 = new List<Player>();
-
-
-           team1.Add(players[0]);
-           team1.Add(players[3]);
-           team1.Add(players[4]);
-           team1.Add(players[7]);
-           team1.Add(players[8]);
-
-
-
-           int teamCount = 5;
-           for (int i = 0; i < teamCount; i++)
-           {
-               players.Remove(team1[i]);
-           }
-
-           Console.WriteLine("Creating team2..");
-           List<Player> team2 = players;
-
-
-           Console.WriteLine("Getting teams' true mmr..");
-           int basemmr = 15;
-
-           int team1mmr = _utilities.GetTeamTrueMmr(team1);
-           int team2mmr = _utilities.GetTeamTrueMmr(team2);
-
-           int team1gain = basemmr * team2mmr / team1mmr;
-
-           int team1loss = basemmr * team1mmr / team2mmr;
-
-
-           Console.WriteLine("Inserting dire/radiant records...");
-
-
-           /*if (maxPlayers != 10)
-           {
-               var recordRadiant = await _context.game_record.AddAsync(new TeamRecord { _side = 0, _gameid = gameid._id, _onwin = team1gain, _onlose = team1loss, _p1 = team1[0]._id });
-               await _context.SaveChangesAsync();
-
-               var recordDire = await _context.game_record.AddAsync(new TeamRecord { _side = 1, _gameid = gameid._id, _onwin = team1loss, _onlose = team1gain, _p1 = team2[0]._id });
-               await _context.SaveChangesAsync();
-           }
-           else
-           {
-               var recordRadiant = await _context.game_record.AddAsync(new TeamRecord { _side = 0, _gameid = gameid._id, _onwin = team1gain, _onlose = team1loss, _p1 = team1[0]._id, _p2 = team1[1]._id, _p3 = team1[2]._id, _p4 = team1[3]._id, _p5 = team1[4]._id });
-               await _context.SaveChangesAsync();
-               var recordDire = await _context.game_record.AddAsync(new TeamRecord { _side = 1, _gameid = gameid._id, _onwin = team1loss, _onlose = team1gain, _p1 = team2[0]._id, _p2 = team2[1]._id, _p3 = team2[2]._id, _p4 = team2[3]._id, _p5 = team2[4]._id });
-               await _context.SaveChangesAsync();
-           }
-
-
-           Console.WriteLine("Changing status of both teams to 1..."); //not needed, this is dont by queueing! i think.
-           var team1record = _context.game_record.FirstOrDefault(p => p._gameid == gameid._id && p._side == 0);
-           await _utilities.ChangeTeamStatus(team1record, 1);
-           var team2record = _context.game_record.FirstOrDefault(p => p._gameid == gameid._id && p._side == 1);
-           await _utilities.ChangeTeamStatus(team2record, 1);
-
-           /*await _utilities.PlacePlayersInChannel(context, team1, radiantvoice);
-           await _utilities.PlacePlayersInChannel(context, team2, direvoice);
-
-           await _utilities.PlacePlayersInChannel(context, casters, castervoice);
-           await _utilities.PlacePlayersInChannel(context, spectators, spectatorvoice);
-
-           string hostMention = "<host_not_found>";
-           if (context.Guild.Members.ContainsKey(leader._id))
-           {
-               var host = context.Guild.Members[leader._id];
-               hostMention = host.Mention;
-           }
-
-           string radiantMention = "Radiant = \n" +
-               "Win: " + team1gain + " mmr /// Lose: " + team1loss + " mmr \n" + _utilities.GetTeamLineup(context, team1);
-           string direMention = "Dire = \n" +
-               "Win: " + team1loss + " mmr /// Lose: " + team1gain + " mmr \n" + _utilities.GetTeamLineup(context, team2);
-
-           string casterMention = "Casters = \n" +
-               _utilities.GetTeamLineup(context, casters);
-
-           string spectatorMention = "Spectators = \n" +
-               _utilities.GetTeamLineup(context, spectators);
-
-           string lobbyName = "grin" + gameid._id;
-           string lobbyPass = "grin" + DateTime.Now.Millisecond;
-
-           string preinstructions = "\n\nLobby host can now create the game under **LobbyName = " + lobbyName + "**, and **Password = " + lobbyPass + "**.\n\n";
-           string instructions = preinstructions + "After the game, the host can report the winner by command '!radiant game_id_here' , '!dire game_id_here', or !draw 'game_id_here. If you need any help or something isn't working please contact an admin/mod.";
-           await generaltext.SendMessageAsync("Lobby Created. \n" +
-               "Game ID = " + gameid + ". \n\n" +
-               "Lobby host = " + hostMention + "\n\n" +
-
-               radiantMention + "\n" + direMention + "\n" +
-
-               casterMention + "\n" + spectatorMention + "\n" +
-
-               instructions);
-       }*/

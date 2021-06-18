@@ -75,43 +75,43 @@ namespace bot_2.Commands
                     }
 
                 }
-                var radiant = await _context.game_record.FirstOrDefaultAsync(e => e._gameid == gameid && e._side == 0);
-                var dire = await _context.game_record.FirstOrDefaultAsync(e => e._gameid == gameid && e._side == 1);
+                var team1 = await _context.game_record.FirstOrDefaultAsync(e => e._gameid == gameid && e._side == (int)Side.Team1);
+                var team2 = await _context.game_record.FirstOrDefaultAsync(e => e._gameid == gameid && e._side == (int)Side.Team2);
 
-                var radiantGain = radiant._onwin;
-                var radiantLoss = radiant._onlose;
-                var direGain = radiant._onlose;
-                var direLoss = radiant._onwin;
+                var team1Gain = team1._onwin;
+                var team1Loss = team1._onlose;
+                var team2Gain = team1._onlose;
+                var team2Loss = team1._onwin;
 
 
-                string dMen = await GetTeamMention(context, dire);
-                string rMen = await GetTeamMention(context, radiant);
-                string cMen = await GetTeamMention(context, radiant);
-                string sMen = await GetTeamMention(context, dire);
+                string dMen = await GetTeamMention(context, team2);
+                string rMen = await GetTeamMention(context, team1);
+                string cMen = await GetTeamMention(context, team1);
+                string sMen = await GetTeamMention(context, team2);
 
                 var largeBetList = await _context.game_bets.ToListAsync();
                 var betList = largeBetList.FindAll(p => p._gameid == gameid);
 
-                var radiantBets = betList.FindAll(p => p._side == (int)Side.Radiant);
-                int totalRadiantBets = 0;
-                foreach (var bet in radiantBets)
+                var team1Bets = betList.FindAll(p => p._side == (int)Side.Team1);
+                int totalTeam1Bets = 0;
+                foreach (var bet in team1Bets)
                 {
-                    totalRadiantBets += bet._amount;
+                    totalTeam1Bets += bet._amount;
                 }
-                var direBets = betList.FindAll(p => p._side == (int)Side.Dire);
-                int totalDireBets = 0;
-                foreach(var bet in direBets)
+                var team2Bets = betList.FindAll(p => p._side == (int)Side.Team2);
+                int totalTeam2Bets = 0;
+                foreach(var bet in team2Bets)
                 {
-                    totalDireBets += bet._amount;
+                    totalTeam2Bets += bet._amount;
                 }
 
-                string radiantMention = "Radiant = \n" +
-                    "Win: " + radiantGain + " mmr /// Lose: " + radiantLoss + " mmr /// Coins bet: " + totalRadiantBets +  " \n" + rMen;
+                string team1Mention = "Team1 = \n" +
+                    "Win: " + team1Gain + " mmr /// Lose: " + team1Loss + " mmr /// Coins bet: " + totalTeam1Bets +  " \n" + rMen;
 
-                string direMention = "Dire = \n" +
-                    "Win: " + direGain + " mmr /// Lose: " + direLoss + " mmr /// Coins bet: " + totalDireBets + " \n" + dMen;
+                string team2Mention = "Team2 = \n" +
+                    "Win: " + team2Gain + " mmr /// Lose: " + team2Loss + " mmr /// Coins bet: " + totalTeam2Bets + " \n" + dMen;
 
-                string finalString = "" + starter + "Lobby host = " + hostMention + "\n\n" + radiantMention + direMention + "\n\n\n";
+                string finalString = "" + starter + "Lobby host = " + hostMention + "\n\n" + team1Mention + team2Mention + "\n\n\n";
 
 
                 completeString += finalString;

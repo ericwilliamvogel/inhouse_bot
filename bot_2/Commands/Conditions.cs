@@ -108,7 +108,8 @@ namespace bot_2.Commands
         HasMention,
         ProfileComplete,
         IsLobbyHost,
-        CanEmote
+        CanEmote,
+        InhouseIsOpen
     }
     public class Conditions
     {
@@ -436,6 +437,19 @@ namespace bot_2.Commands
                         return false;
 
                     });
+
+            _check.Add(Arg.InhouseIsOpen,
+                async (CommandContext context, Profile _profile) =>
+                {
+                    if (TaskScheduler._inhouseOpen)
+                    {
+                        return true;
+                    }
+
+                    await _profile.SendDm("The inhouse isn't open right now. Inhouse opens at 10pmEST and closes at 1amEST.");
+                    return false;
+
+                });
             /*
             HasAtLeastAdminRole = CorrectRole("Administration");
 
@@ -547,7 +561,57 @@ namespace bot_2.Commands
 
             try
             {
-                //await _actionIterator.AddAction(new ContextualAction(context, action));
+                if(!TaskScheduler.active)
+                {
+                    TaskScheduler.Instance.ScheduleTask(17, 0, 24, async () =>
+                    {
+                        if (!TaskScheduler._inhouseOpen)
+                        {
+                            if (context.Guild.Channels.ContainsKey(839331576554455050))
+                            {
+                                var channel = context.Guild.Channels[839331576554455050];
+                                await channel.SendMessageAsync("Inhouse queue opens in 2 hours.");
+                            }
+                        }
+
+                    });
+
+                    TaskScheduler.Instance.ScheduleTask(18, 0, 24, async () =>
+                    {
+                        if (!TaskScheduler._inhouseOpen)
+                        {
+                            if (context.Guild.Channels.ContainsKey(839331576554455050))
+                            {
+                                var channel = context.Guild.Channels[839331576554455050];
+                                await channel.SendMessageAsync("Inhouse queue opens in 1 hour.");
+                            }
+                        }
+
+                    });
+                    TaskScheduler.Instance.ScheduleTask(19, 0, 24, async () =>
+                    {
+                        if(!TaskScheduler._inhouseOpen)
+                        {
+                            if (context.Guild.Channels.ContainsKey(839331576554455050))
+                            {
+                                var channel = context.Guild.Channels[839331576554455050];
+                                await channel.SendMessageAsync("<@&852359190453288981>, Queueing is now available tonight from 10pmEST to 1amEST. \n\nReminder to use !pingme to be given the <@&852359190453288981> role. If you change your mind use !dontpingme.");
+                            }
+                        }
+                        TaskScheduler._inhouseOpen = true;
+
+                    });
+
+                    TaskScheduler.Instance.ScheduleTask(23, 0, 24, async () =>
+                    {
+                        TaskScheduler._inhouseOpen = false;
+                        if (context.Guild.Channels.ContainsKey(839331576554455050))
+                        {
+                            var channel = context.Guild.Channels[839331576554455050];
+                            await channel.SendMessageAsync("Queueing is now closed for the night. GrinHouse will open again at 10pmEST tomorrow.");
+                        }
+                    });
+                }
                 await action();
                 await context.Message.DeleteAsync();
             }

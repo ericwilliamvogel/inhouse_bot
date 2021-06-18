@@ -17,8 +17,8 @@ namespace bot_2.Commands
 
         }
 
-        [Command("radiant")]
-        public async Task RadiantWin(CommandContext context, long steamid)
+        [Command("team1")]
+        public async Task Team1Win(CommandContext context, long steamid)
         {
             Profile _profile = new Profile(context);
 
@@ -32,14 +32,14 @@ namespace bot_2.Commands
                 {
 
                     LobbySorter sorter = new LobbySorter(_context);
-                    await sorter._report.ReportWinner(context, "radiant", steamid);
+                    await sorter._report.ReportWinner(context, "team1", steamid);
 
 
                 });
         }
 
-        [Command("dire")]
-        public async Task DireWin(CommandContext context, long steamid)
+        [Command("team2")]
+        public async Task Team2Win(CommandContext context, long steamid)
         {
             Profile _profile = new Profile(context);
 
@@ -55,7 +55,7 @@ namespace bot_2.Commands
 
 
                 LobbySorter sorter = new LobbySorter(_context);
-                await sorter._report.ReportWinner(context, "dire", steamid);
+                await sorter._report.ReportWinner(context, "team2", steamid);
 
             });
 

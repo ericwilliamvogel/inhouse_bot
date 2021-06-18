@@ -79,7 +79,7 @@ namespace bot_2.Commands
         public async Task<int> RecursiveGetLobbyNumber(CommandContext context, int start)
         {
             var roles = context.Guild.Roles;
-            var target = roles.FirstOrDefault(x => x.Value.Name == "radiantLobby" + start).Value;
+            var target = roles.FirstOrDefault(x => x.Value.Name == "team1Lobby" + start).Value;
             if (target == null)
             {
 
@@ -108,7 +108,7 @@ namespace bot_2.Commands
 
 
 
-                List<string> definedRoles = new List<string> { "radiant", "dire", "spectator", "caster" };
+                List<string> definedRoles = new List<string> { "team1", "team2", "spectator", "caster" };
 
                 foreach (string role in definedRoles)
                 {

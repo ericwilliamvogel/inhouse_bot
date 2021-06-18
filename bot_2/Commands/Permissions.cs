@@ -22,9 +22,9 @@ namespace bot_2.Commands
 
         public int LobbyNumber { get; set; }
 
-        public DiscordRole LobbyRoleRadiant { get; set; }
+        public DiscordRole LobbyRoleTeam1 { get; set; }
 
-        public DiscordRole LobbyRoleDire { get; set; }
+        public DiscordRole LobbyRoleTeam2 { get; set; }
 
         public DiscordRole LobbyRoleSpectator { get; set; }
 
@@ -34,9 +34,9 @@ namespace bot_2.Commands
 
         public DiscordChannel generaltext { get; set; }
 
-        public DiscordChannel radiantvoice { get; set; }
+        public DiscordChannel team1voice { get; set; }
 
-        public DiscordChannel direvoice { get; set; }
+        public DiscordChannel team2voice { get; set; }
 
         public DiscordChannel castervoice { get; set; }
 
@@ -65,14 +65,14 @@ namespace bot_2.Commands
 
             this.parent = lobby;
 
-            radiantvoice = lobby.Children.First(p => p.Name == "Radiant");
-            direvoice = lobby.Children.First(p => p.Name == "Dire");
+            team1voice = lobby.Children.First(p => p.Name == "Team1");
+            team2voice = lobby.Children.First(p => p.Name == "Team2");
             generaltext = lobby.Children.First(p => p.Name == "general");
             spectatorvoice = lobby.Children.First(p => p.Name == "Spectator");
             castervoice = lobby.Children.First(p => p.Name == "Caster");
 
-            LobbyRoleRadiant = roles.First(p => p.Name == "radiantLobby" + LobbyNumber);
-            LobbyRoleDire = roles.First(p => p.Name == "direLobby" + LobbyNumber);
+            LobbyRoleTeam1 = roles.First(p => p.Name == "team1Lobby" + LobbyNumber);
+            LobbyRoleTeam2 = roles.First(p => p.Name == "team2Lobby" + LobbyNumber);
             LobbyRoleCaster = roles.First(p => p.Name == "casterLobby" + LobbyNumber);
             LobbyRoleSpectator = roles.First(p => p.Name == "spectatorLobby" + LobbyNumber);
 
@@ -89,15 +89,15 @@ namespace bot_2.Commands
             LobbyNumber = await _utilities.RecursiveGetLobbyNumber(context);
 
 
-            LobbyRoleRadiant = await _utilities.RecursiveCreateRole(context, "radiant");
-            LobbyRoleDire = await _utilities.RecursiveCreateRole(context, "dire");
+            LobbyRoleTeam1 = await _utilities.RecursiveCreateRole(context, "team1");
+            LobbyRoleTeam2 = await _utilities.RecursiveCreateRole(context, "team2");
             LobbyRoleSpectator = await _utilities.RecursiveCreateRole(context, "spectator");
             LobbyRoleCaster = await _utilities.RecursiveCreateRole(context, "caster");
             parent = await context.Guild.CreateChannelCategoryAsync("Lobby" + LobbyNumber);
 
             generaltext = await context.Guild.CreateChannelAsync("general", DSharpPlus.ChannelType.Text, parent);
-            radiantvoice = await context.Guild.CreateChannelAsync("Radiant", DSharpPlus.ChannelType.Voice, parent);
-            direvoice = await context.Guild.CreateChannelAsync("Dire", DSharpPlus.ChannelType.Voice, parent);
+            team1voice = await context.Guild.CreateChannelAsync("Team1", DSharpPlus.ChannelType.Voice, parent);
+            team2voice = await context.Guild.CreateChannelAsync("Team2", DSharpPlus.ChannelType.Voice, parent);
 
             spectatorvoice = await context.Guild.CreateChannelAsync("Spectator", DSharpPlus.ChannelType.Voice, parent);
             castervoice = await context.Guild.CreateChannelAsync("Caster", DSharpPlus.ChannelType.Voice, parent);
@@ -108,44 +108,44 @@ namespace bot_2.Commands
 
             Console.WriteLine("Perms...");
 
-            await RevokeAllPermissions(direvoice, LobbyRoleSpectator);
-            await RevokeAllPermissions(radiantvoice, LobbyRoleSpectator);
+            await RevokeAllPermissions(team2voice, LobbyRoleSpectator);
+            await RevokeAllPermissions(team1voice, LobbyRoleSpectator);
 
-            await generaltext.AddOverwriteAsync(LobbyRoleRadiant, DSharpPlus.Permissions.ReadMessageHistory);
-            await generaltext.AddOverwriteAsync(LobbyRoleDire, DSharpPlus.Permissions.ReadMessageHistory);
+            await generaltext.AddOverwriteAsync(LobbyRoleTeam1, DSharpPlus.Permissions.ReadMessageHistory);
+            await generaltext.AddOverwriteAsync(LobbyRoleTeam2, DSharpPlus.Permissions.ReadMessageHistory);
             await generaltext.AddOverwriteAsync(LobbyRoleSpectator, DSharpPlus.Permissions.ReadMessageHistory);
             await generaltext.AddOverwriteAsync(LobbyRoleCaster, DSharpPlus.Permissions.ReadMessageHistory);
 
-            await generaltext.AddOverwriteAsync(LobbyRoleRadiant, DSharpPlus.Permissions.SendMessages);
-            await generaltext.AddOverwriteAsync(LobbyRoleDire, DSharpPlus.Permissions.SendMessages);
+            await generaltext.AddOverwriteAsync(LobbyRoleTeam1, DSharpPlus.Permissions.SendMessages);
+            await generaltext.AddOverwriteAsync(LobbyRoleTeam2, DSharpPlus.Permissions.SendMessages);
             await generaltext.AddOverwriteAsync(LobbyRoleSpectator, DSharpPlus.Permissions.SendMessages);
             await generaltext.AddOverwriteAsync(LobbyRoleCaster, DSharpPlus.Permissions.SendMessages);
 
-            await generaltext.AddOverwriteAsync(LobbyRoleRadiant, DSharpPlus.Permissions.AccessChannels);
-            await generaltext.AddOverwriteAsync(LobbyRoleDire, DSharpPlus.Permissions.AccessChannels);
+            await generaltext.AddOverwriteAsync(LobbyRoleTeam1, DSharpPlus.Permissions.AccessChannels);
+            await generaltext.AddOverwriteAsync(LobbyRoleTeam2, DSharpPlus.Permissions.AccessChannels);
             await generaltext.AddOverwriteAsync(LobbyRoleSpectator, DSharpPlus.Permissions.AccessChannels);
             await generaltext.AddOverwriteAsync(LobbyRoleCaster, DSharpPlus.Permissions.AccessChannels);
 
 
             await generaltext.AddOverwriteAsync(TrustedRole, DSharpPlus.Permissions.None, DSharpPlus.Permissions.AccessChannels);
             await generaltext.AddOverwriteAsync(AverageRole, DSharpPlus.Permissions.None, DSharpPlus.Permissions.AccessChannels);
-            await radiantvoice.AddOverwriteAsync(TrustedRole, DSharpPlus.Permissions.None, DSharpPlus.Permissions.AccessChannels);
-            await radiantvoice.AddOverwriteAsync(AverageRole, DSharpPlus.Permissions.None, DSharpPlus.Permissions.AccessChannels);
-            await direvoice.AddOverwriteAsync(TrustedRole, DSharpPlus.Permissions.None, DSharpPlus.Permissions.AccessChannels);
-            await direvoice.AddOverwriteAsync(AverageRole, DSharpPlus.Permissions.None, DSharpPlus.Permissions.AccessChannels);
+            await team1voice.AddOverwriteAsync(TrustedRole, DSharpPlus.Permissions.None, DSharpPlus.Permissions.AccessChannels);
+            await team1voice.AddOverwriteAsync(AverageRole, DSharpPlus.Permissions.None, DSharpPlus.Permissions.AccessChannels);
+            await team2voice.AddOverwriteAsync(TrustedRole, DSharpPlus.Permissions.None, DSharpPlus.Permissions.AccessChannels);
+            await team2voice.AddOverwriteAsync(AverageRole, DSharpPlus.Permissions.None, DSharpPlus.Permissions.AccessChannels);
 
             await RevokeAllPermissions(generaltext, AverageRole);
             await RevokeAllPermissions(generaltext, TrustedRole);
 
-            await RevokeAllPermissions(radiantvoice, AverageRole);
-            await RevokeAllPermissions(radiantvoice, TrustedRole);
+            await RevokeAllPermissions(team1voice, AverageRole);
+            await RevokeAllPermissions(team1voice, TrustedRole);
 
-            await radiantvoice.AddOverwriteAsync(LobbyRoleRadiant, DSharpPlus.Permissions.AccessChannels);
+            await team1voice.AddOverwriteAsync(LobbyRoleTeam1, DSharpPlus.Permissions.AccessChannels);
 
-            await RevokeAllPermissions(direvoice, AverageRole);
-            await RevokeAllPermissions(direvoice, TrustedRole);
+            await RevokeAllPermissions(team2voice, AverageRole);
+            await RevokeAllPermissions(team2voice, TrustedRole);
 
-            await direvoice.AddOverwriteAsync(LobbyRoleDire, DSharpPlus.Permissions.AccessChannels);
+            await team2voice.AddOverwriteAsync(LobbyRoleTeam2, DSharpPlus.Permissions.AccessChannels);
 
             await RevokeAllPermissions(spectatorvoice, AverageRole);
             await RevokeAllPermissions(spectatorvoice, TrustedRole);
@@ -158,17 +158,17 @@ namespace bot_2.Commands
             await castervoice.AddOverwriteAsync(LobbyRoleCaster, DSharpPlus.Permissions.AccessChannels);
 
 
-            await RevokeAllPermissions(direvoice, LobbyRoleRadiant);
-            await RevokeAllPermissions(radiantvoice, LobbyRoleDire);
+            await RevokeAllPermissions(team2voice, LobbyRoleTeam1);
+            await RevokeAllPermissions(team1voice, LobbyRoleTeam2);
 
-            await RevokeAllPermissions(direvoice, LobbyRoleCaster);
-            await RevokeAllPermissions(radiantvoice, LobbyRoleCaster);
+            await RevokeAllPermissions(team2voice, LobbyRoleCaster);
+            await RevokeAllPermissions(team1voice, LobbyRoleCaster);
 
-            await RevokeAllPermissions(castervoice, LobbyRoleRadiant);
-            await RevokeAllPermissions(spectatorvoice, LobbyRoleRadiant);
+            await RevokeAllPermissions(castervoice, LobbyRoleTeam1);
+            await RevokeAllPermissions(spectatorvoice, LobbyRoleTeam1);
 
-            await RevokeAllPermissions(castervoice, LobbyRoleDire);
-            await RevokeAllPermissions(spectatorvoice, LobbyRoleDire);
+            await RevokeAllPermissions(castervoice, LobbyRoleTeam2);
+            await RevokeAllPermissions(spectatorvoice, LobbyRoleTeam2);
         }
 
         public async Task RevokeAllPermissions(DiscordChannel channel, DiscordRole role)

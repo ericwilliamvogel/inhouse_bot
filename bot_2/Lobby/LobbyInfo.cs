@@ -207,9 +207,9 @@ namespace bot_2.Commands
                 hostMention = host.Mention;
             }
 
-            string radiantMention = "Radiant = \n" +
+            string team1Mention = "Team1 = \n" +
                 "Win: " + team1gain + " mmr /// Lose: " + team1loss + " mmr \n" + await GetTeamLineup(context, team1);
-            string direMention = "Dire = \n" +
+            string team2Mention = "Team2 = \n" +
                 "Win: " + team1loss + " mmr /// Lose: " + team1gain + " mmr \n" + await GetTeamLineup(context, team2);
 
             /*string casterMention = "Casters = \n" +
@@ -219,14 +219,14 @@ namespace bot_2.Commands
                 _utilities.GetTeamLineup(context, spectators);*/
 
 
-            string instructions = "After the game, the host can report the winner by command '!radiant game_id_here' , '!dire game_id_here', or !draw 'game_id_here. If you need any help or something isn't working please contact an admin/mod.";
+            string instructions = "After the game, the host can report the winner by command '!team1 game_id_here' , '!team2 game_id_here', or !draw 'game_id_here. If you need any help or something isn't working please contact an admin/mod.";
             instructions += "If a player cannot play / abandons, the LOBBY HOST can kick that player using !kick @mention ... Example: !kick <@126922582208282624>";
 
             string final = "Server = " + region + "\n" +
                 "Game ID = " + gameid + ". \n\n" +
                 "Lobby host = " + hostMention +  "\n\n" +
 
-                radiantMention + "\n" + direMention + "\n\n" +
+                team1Mention + "\n" + team2Mention + "\n\n" +
 
                 instructions;
 
@@ -248,8 +248,8 @@ namespace bot_2.Commands
             var list = await _context.lobby_pool.ToListAsync();
             var discordInfo = await _context.discord_channel_info.FirstOrDefaultAsync(p => p._gameid == gameid);
             var players = list.FindAll(p => p._gameid == gameid);
-            var radiant = await _context.game_record.FirstOrDefaultAsync(p => p._gameid == gameid && p._side == (int)Side.Radiant);
-            var dire = await _context.game_record.FirstOrDefaultAsync(p => p._gameid == gameid && p._side == (int)Side.Dire);
+            var team1 = await _context.game_record.FirstOrDefaultAsync(p => p._gameid == gameid && p._side == (int)Side.Team1);
+            var team2 = await _context.game_record.FirstOrDefaultAsync(p => p._gameid == gameid && p._side == (int)Side.Team2);
 
 
             string lobby = "--- Game ID = " + gameid + "---\n";
@@ -257,24 +257,24 @@ namespace bot_2.Commands
             if (discordInfo != null)
                 lobby += "Lobby Host = <@" + discordInfo._id + ">\n";
 
-            lobby += "Radiant Captain = <@" + radiant._p1 + ">\n";
-            lobby += "Dire Captain = <@" + dire._p1 + ">\n\n";
+            lobby += "Team1 Captain = <@" + team1._p1 + ">\n";
+            lobby += "Team2 Captain = <@" + team2._p1 + ">\n\n";
             
 
-            if (radiant._canpick == 1)
+            if (team1._canpick == 1)
             {
-                lobby += "Picking = Radiant\n";
+                lobby += "Picking = team1\n";
             }
-            if (dire._canpick == 1)
+            if (team2._canpick == 1)
             {
-                lobby += "Picking = Dire\n";
+                lobby += "Picking = team2\n";
             }
 
             lobby += "\n";
 
-            lobby += "--- Team Radiant ---\n\n" + await GetTeamDesc(radiant) + "\n\n";
+            lobby += "--- Team team1 ---\n\n" + await GetTeamDesc(team1) + "\n\n";
 
-            lobby += "--- Team Dire --- \n\n" + await GetTeamDesc(dire) + "\n";
+            lobby += "--- Team team2 --- \n\n" + await GetTeamDesc(team2) + "\n";
 
 
             lobby += "\n\nPool = \n";
@@ -288,7 +288,7 @@ namespace bot_2.Commands
             lobby += "\n";
             lobby += "```Captains can pick players in the available pool using command !pick @mention ``` Example: !pick <@126922582208282624>\n";
             lobby += "```Did someone have to leave your game? ONLY after picking phase has ended, DO NOT kick during picking phase. If a player cannot play / abandons, the LOBBY HOST can kick that player using !kick @mention ``` Example: !kick <@126922582208282624>\n";
-            lobby += "```Can some players not see the lobby? Simple !invite @mention so they can see the pick phase! Rest assured they will receive their radiant/dire roles when the picking phase has ended even if they can't see the #general chat. ```" +
+            lobby += "```Can some players not see the lobby? Simple !invite @mention so they can see the pick phase! Rest assured they will receive their team1/team2 roles when the picking phase has ended even if they can't see the #general chat. ```" +
                 " Example: !invite <@126922582208282624>\n";
 
             return lobby;

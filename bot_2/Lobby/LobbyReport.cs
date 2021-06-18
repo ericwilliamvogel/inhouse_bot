@@ -42,8 +42,8 @@ namespace bot_2.Commands
             }
             else
             {
-                var record1 = await _context.game_record.FirstOrDefaultAsync(p => p._gameid == gameProfile._gameid && p._side == (int)Side.Radiant);
-                var record2 = await _context.game_record.FirstOrDefaultAsync(p => p._gameid == gameProfile._gameid && p._side == (int)Side.Dire);
+                var record1 = await _context.game_record.FirstOrDefaultAsync(p => p._gameid == gameProfile._gameid && p._side == (int)Side.Team1);
+                var record2 = await _context.game_record.FirstOrDefaultAsync(p => p._gameid == gameProfile._gameid && p._side == (int)Side.Team2);
                 
 
                 if(record1 == null || record2 == null)
@@ -56,15 +56,15 @@ namespace bot_2.Commands
                     //here
 
 
-                    if (side.ToLower() == "radiant")
+                    if (side.ToLower() == "team1")
                     {
-                        await CreditVictor(context, gameProfile, Side.Radiant);
-                        await DiscreditLoser(context, gameProfile, Side.Dire);
+                        await CreditVictor(context, gameProfile, Side.Team1);
+                        await DiscreditLoser(context, gameProfile, Side.Team2);
                     }
-                    else if (side.ToLower() == "dire")
+                    else if (side.ToLower() == "team2")
                     {
-                        await CreditVictor(context, gameProfile, Side.Dire);
-                        await DiscreditLoser(context, gameProfile, Side.Radiant);
+                        await CreditVictor(context, gameProfile, Side.Team2);
+                        await DiscreditLoser(context, gameProfile, Side.Team1);
                     }
                     else if (side.ToLower() == "draw")
                     {
@@ -112,7 +112,7 @@ namespace bot_2.Commands
                     }
                     else
                     {
-                        await context.Channel.SendMessageAsync("Not a valid command, report 'radiant', 'dire', or 'draw'.");
+                        await context.Channel.SendMessageAsync("Not a valid command, report 'team1', 'team2', or 'draw'.");
                     }
                     var awaiting = await context.Guild.Channels[842870150994591764].SendMessageAsync("waiting for opendota api to pick up game under id " + steamid);
                     //send msg to game history channel
@@ -230,6 +230,12 @@ namespace bot_2.Commands
                 var largeBetList = await _context.game_bets.ToListAsync();
                 var specificList = largeBetList.FindAll(p => p._gameid == gameProfile._gameid);
 
+                DiscordChannel channel = null;
+                if (context.Guild.Channels.ContainsKey(852929890780840007))
+                {
+                    channel = context.Guild.Channels[852929890780840007];
+                }
+
                 foreach (var betRecord in specificList)
                 {
                     if (betRecord._side == (int)side)
@@ -237,10 +243,20 @@ namespace bot_2.Commands
                         var playerRecord = await _context.player_data.FindAsync(betRecord._discordid);
                         if (playerRecord != null)
                         {
-                            playerRecord._xp += betRecord._amount * 2;
+                            int payout = betRecord._amount * 2;
+                            playerRecord._xp += payout;
                             await _context.SaveChangesAsync();
+
+                            if(channel != null)
+                                await channel.SendMessageAsync("<@" + betRecord._discordid + "> won their bet, paid" + payout + " coins.");
+                            
                         }
 
+                    }
+                    else
+                    {
+                        if (channel != null)
+                            await channel.SendMessageAsync("<@" + betRecord._discordid + "> lost their bet in the amount of " + betRecord._amount + " coins. Nice try!");
                     }
 
                     _context.game_bets.Remove(betRecord);

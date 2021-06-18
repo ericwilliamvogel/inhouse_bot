@@ -164,6 +164,24 @@ public async Task EnterQueue(CommandContext context, int number)
                 });
         }
 
+        [Command("sneakyopen")]
+        public async Task SneakyOpen(CommandContext context)
+        {
+            Profile _profile = new Profile(context);
+            await _conditions.TryConditionedAction(context, _profile,
+
+                new List<Arg> {
+                    Arg.IsInAdminCommandChannel,
+                    Arg.HasAdminRole
+                },
+
+                async () =>
+                {
+                    TaskScheduler._inhouseOpen = true;
+                });
+        }
+
+
         [Command("removelobbyrecord")]
         public async Task RemoveDiscordLobbyRecord(CommandContext context, int gameid)
         {
@@ -364,6 +382,132 @@ public async Task EnterQueue(CommandContext context, int number)
                         await _context.SaveChangesAsync();
                     }
 
+                });
+
+
+        }
+
+        [Command("getprofile")]
+        public async Task GetProfile (CommandContext context, string doesntmatter)
+        {
+
+            Profile _profile = new Profile(context);
+            await _conditions.TryConditionedAction(context, _profile,
+
+                new List<Arg> {
+                    Arg.HasAdminRole,
+                    Arg.HasMention
+                },
+
+                async () =>
+                {
+                    var ment = context.Message.MentionedUsers.First().Id;
+
+                    var record = await _context.player_data.FindAsync(ment);
+
+                    if (record == null)
+                    {
+                        await _profile.SendDm("Player mentioned in command wasn't found in database.");
+                    }
+                    else
+                    {
+                        string playerinfo = "Player info : " + context.Message.MentionedUsers.First().Mention;
+                        playerinfo += "\nFriendId : " + record._steamid;
+                        playerinfo += "\nTotalGames : " + record._totalgames;
+                        playerinfo += "\nW / L : " + record._gameswon + "/" + record._gameslost;
+                        playerinfo += "\nDotaMmr : " + record._dotammr;
+                        playerinfo += "\nGrinMmr : " + record._ihlmmr;
+                        playerinfo += "\nRoles : " + record._role1 + "," + record._role2;
+                        playerinfo += "\nRegion : " + record._region;
+                        playerinfo += "\nCoins : " + record._xp;
+
+                        await _profile.SendDm(playerinfo);
+                    }
+            });
+
+
+        }
+
+        [Command("playercoins")]
+        public async Task SetCoins(CommandContext context, string change, int number, string doesntmatter)
+        {
+
+            Profile _profile = new Profile(context);
+            await _conditions.TryConditionedAction(context, _profile,
+
+                new List<Arg> {
+                    Arg.HasAdminRole,
+                    Arg.HasMention
+                },
+
+                async () =>
+                {
+                    var ment = context.Message.MentionedUsers.First().Id;
+
+                    var record = await _context.player_data.FindAsync(ment);
+
+                    if (record == null)
+                    {
+                        await _profile.SendDm("Player mentioned in command wasn't found in database.");
+                    }
+                    else
+                    {
+                        if (change.ToLower() == "add" || change.ToLower() == "increase")
+                        {
+                            record._xp += number;
+                            await _context.SaveChangesAsync();
+                        }
+                        else if (change.ToLower() == "subtract" || change.ToLower() == "decrease")
+                        {
+                            record._xp -= number;
+                            await _context.SaveChangesAsync();
+                        }
+                        await _profile.SendDm("Player's coins changed.");
+
+                    }
+                });
+
+
+        }
+
+
+        [Command("playermmr")]
+        public async Task SetMMr(CommandContext context, string change, int number, string doesntmatter)
+        {
+
+            Profile _profile = new Profile(context);
+            await _conditions.TryConditionedAction(context, _profile,
+
+                new List<Arg> {
+                    Arg.HasAdminRole,
+                    Arg.HasMention
+                },
+
+                async () =>
+                {
+                    var ment = context.Message.MentionedUsers.First().Id;
+
+                    var record = await _context.player_data.FindAsync(ment);
+
+                    if (record == null)
+                    {
+                        await _profile.SendDm("Player mentioned in command wasn't found in database.");
+                    }
+                    else
+                    {
+                        if(change.ToLower() == "add" || change.ToLower() == "increase")
+                        {
+                            record._ihlmmr += number;
+                            await _context.SaveChangesAsync();
+                        }
+                        else if(change.ToLower() == "subtract" || change.ToLower() == "decrease")
+                        {
+                            record._ihlmmr -= number;
+                            await _context.SaveChangesAsync();
+                        }
+                        await _profile.SendDm("Player's mmr changed.");
+
+                    }
                 });
 
 

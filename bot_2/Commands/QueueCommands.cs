@@ -26,7 +26,8 @@ namespace bot_2.Commands
             var verified = await _conditions.AreMet(context, _profile,
                 new List<Arg> {
                     Arg.IsRegistered,
-                    Arg.IsInCommandChannel
+                    Arg.IsInCommandChannel,
+                    Arg.InhouseIsOpen
                 });
 
             if (!verified)
@@ -77,7 +78,8 @@ namespace bot_2.Commands
                 new List<Arg> {
                             Arg.IsRegistered,
                             Arg.IsInCommandChannel,
-                            Arg.IsSpectatorQueued
+                            Arg.IsSpectatorQueued,
+                            Arg.InhouseIsOpen
                 },
 
                 async () =>
@@ -135,7 +137,8 @@ namespace bot_2.Commands
                 new List<Arg> {
                             Arg.IsRegistered,
                             Arg.IsInCommandChannel,
-                            Arg.IsQueued
+                            Arg.IsQueued,
+                            Arg.InhouseIsOpen
                 },
 
                 async () =>
@@ -172,7 +175,8 @@ namespace bot_2.Commands
             var verified = await _conditions.AreMet(context, _profile,
                 new List<Arg> {
                     Arg.IsRegistered,
-                    Arg.IsInCommandChannel
+                    Arg.IsInCommandChannel,
+                    Arg.InhouseIsOpen
                 });
 
             if (!verified)
