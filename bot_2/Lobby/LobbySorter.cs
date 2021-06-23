@@ -98,7 +98,9 @@ namespace bot_2.Commands
                 Random rand = new Random(ms);
                 int decider = rand.Next(1, 3);
 
-                if(decider == 1)
+                players = players.OrderByDescending(p => p._truemmr).ToList();
+
+                /*if (decider == 1)
                 {
                     players = players.OrderByDescending(p => p._truemmr).ToList();
                 }
@@ -109,7 +111,7 @@ namespace bot_2.Commands
                 else
                 {
                     players = players.OrderBy(p => p._truemmr).ToList();
-                }
+                }*/
 
 
                 Player captain1 = players[0];

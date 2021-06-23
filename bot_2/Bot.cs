@@ -12,6 +12,7 @@ using bot_2.Commands;
 using DSharpPlus.Interactivity.Extensions;
 using Microsoft.Extensions.Logging;
 using System.Linq;
+using DSharpPlus.Entities;
 
 namespace bot_2
 {
@@ -39,7 +40,9 @@ CREATE TABLE primary_table(
 
         public static ChannelConfigJson Channels { get; set; }
 
+        public ReactMessageConfigJson ReactMessages { get; set; }
         private QOL QOL { get; set; }
+        private EmojiHandler _registration { get; set; }
         public Bot(IServiceProvider services)
         {
             QOL = new QOL();
@@ -61,6 +64,14 @@ CREATE TABLE primary_table(
 
             Channels = JsonConvert.DeserializeObject<ChannelConfigJson>(channeljson);
 
+            var reactjson = string.Empty;
+
+            using (var fs = File.OpenRead("reactConfig.json"))
+            using (var sr = new StreamReader(fs, new UTF8Encoding(false)))
+                reactjson = sr.ReadToEnd();
+
+            ReactMessages = JsonConvert.DeserializeObject<ReactMessageConfigJson>(reactjson);
+
             SetExistingChannelCheck();
 
             var config = new DiscordConfiguration
@@ -79,7 +90,7 @@ CREATE TABLE primary_table(
 
             Client.Resumed += OnClientReady;
             Client.MessageCreated += OnMessageCreated;
-
+            Client.MessageReactionAdded += OnReactionAdded;
             /*Client.UseInteractivity(new InteractivityConfiguration
             {
                 Timeout = TimeSpan.FromMinutes(2)
@@ -105,11 +116,55 @@ CREATE TABLE primary_table(
             Commands.RegisterCommands<QueueCommands>();
             Commands.RegisterCommands<LobbyCommands>();
 
+            _registration = new EmojiHandler(this);
+
+
             Client.ConnectAsync();
         }
 
+        private async Task OnReactionAdded(DiscordClient c, MessageReactionAddEventArgs args)
+        {
+            /*_ = args ?? throw new ArgumentNullException();
+
+            _ = args.Guild ?? throw new ArgumentNullException();
+
+
+            var channel = args.Guild.Channels[857007086311440414];
+
+            if (args.Channel != channel)
+                return;
+
+            if (!IsCorrect(args.Message.Id))
+                return;
+
+            await _registration._reactLogic[args.Message.Id](args);*/
+        }
+        private bool IsCorrect(ulong id)
+        {
+            if (id == 857007304758526014 ||
+                id == 857007319632183297 ||
+                id == 857007374963441694 ||
+                id == 857008472700747846 ||
+                id == 857008502127067186 ||
+                id == 857008523376197642 ||
+                id == 857008551545536532 ||
+                id == 857008579394535485 ||
+                id == 857008588925304842 ||
+                id == 857008592200269834 ||
+                id == 857008595873693777 ||
+                id == 857011121659052083 ||
+                id == 857011160741576704)
+            {
+                return true;
+            }
+            return false;
+        }
+
+
+
         private async Task OnClientReady(DiscordClient c, ReadyEventArgs e)
         {
+            await Task.CompletedTask;
             //await UpdatedQueue.ResetVariables();
             //Console.WriteLine("Variables reset, new update thread should've been started");
         }

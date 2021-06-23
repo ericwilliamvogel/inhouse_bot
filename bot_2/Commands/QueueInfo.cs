@@ -20,6 +20,8 @@ namespace bot_2.Commands
             this._context = context;
         }
         private string stringending = "----------";
+
+        MmrCalculator calculator = new MmrCalculator();
         public async Task<string> GetPlayerQueueInfo(CommandContext context)
         {
             var playersInQueue = await _context.player_queue.ToListAsync();
@@ -38,7 +40,7 @@ namespace bot_2.Commands
                     players += "-";
                 }
                 var startTime = player._start;
-                players += await DisplayData(player._id, startTime,
+                players += await DisplayData(context, player._id, startTime,
                     (TimeSpan timespan) => {
                         if (timespan.Minutes >= 45)
                         {
@@ -70,7 +72,7 @@ namespace bot_2.Commands
             foreach (var player in playersInQueue)
             {
                 var startTime = player._start;
-                players += await DisplayData(player._id, startTime,
+                players += await DisplayData(context, player._id, startTime,
                     (TimeSpan timespan) => {
                         //spectators not removed from queue
                     });
@@ -93,7 +95,7 @@ namespace bot_2.Commands
             foreach (var player in playersInQueue)
             {
                 var startTime = player._start;
-                players += await DisplayData(player._id, startTime,
+                players += await DisplayData(context, player._id, startTime,
                     (TimeSpan timespan) => {
                         //casters not removed from queue
                     });
@@ -109,7 +111,7 @@ namespace bot_2.Commands
         {
             return new TimeSpan(time.Days, time.Hours, time.Minutes, time.Seconds);
         }
-        public async Task<string> DisplayData(ulong id, DateTimeOffset playerStart, Action<TimeSpan> RemoveIdleRecords) //we need to use an action here in case we want to have queue timeouts in the future for the different queue variants, not just players
+        public async Task<string> DisplayData(CommandContext context, ulong id, DateTimeOffset playerStart, Action<TimeSpan> RemoveIdleRecords) //we need to use an action here in case we want to have queue timeouts in the future for the different queue variants, not just players
         {
             string playerList = "";
             DateTimeOffset end = DateTimeOffset.Now;
@@ -118,6 +120,9 @@ namespace bot_2.Commands
             var playerMMR = await _context.player_data.FindAsync(id);
 
             string mmr = "<mmr_not_found>";
+
+
+
             string othermmr = mmr;
 
             if (playerMMR != null)
@@ -125,6 +130,9 @@ namespace bot_2.Commands
                 mmr = playerMMR._ihlmmr.ToString();
                 othermmr = playerMMR._dotammr.ToString();
             }
+
+            //if (context.Guild.Members.ContainsKey(id))
+                //othermmr = calculator.GetMMR(context, context.Guild.Members[id]).ToString();
 
             if (playerStart != null)
             {

@@ -14,6 +14,48 @@ namespace bot_2
         public string Prefix { get; private set; }
     }
 
+    public struct ReactMessageConfigJson
+    {
+        [JsonProperty("positions")]
+        public ulong Positions { get; private set; }
+
+        [JsonProperty("favorite_position")]
+        public ulong FavoritePosition { get; private set; }
+
+        [JsonProperty("preferred_region")]
+        public ulong Region { get; private set; }
+
+        [JsonProperty("player_drafter")]
+        public ulong PlayerDrafter { get; private set; }
+
+        [JsonProperty("dota_drafter")]
+        public ulong DotaDrafter { get; private set; }
+
+        [JsonProperty("herald")]
+        public ulong Herald { get; private set; }
+
+        [JsonProperty("guardian")]
+        public ulong Guardian { get; private set; }
+
+        [JsonProperty("crusader")]
+        public ulong Crusader { get; private set; }
+
+        [JsonProperty("archon")]
+        public ulong Archon { get; private set; }
+
+        [JsonProperty("legend")]
+        public ulong Legend { get; private set; }
+
+        [JsonProperty("ancient")]
+        public ulong Ancient { get; private set; }
+
+        [JsonProperty("divine")]
+        public ulong Divine { get; private set; }
+
+        [JsonProperty("immortal")]
+        public ulong Immortal { get; private set; }
+    }
+
     public struct ChannelConfigJson
     {
         [JsonProperty("queue_channel")]
@@ -45,5 +87,8 @@ namespace bot_2
 
         [JsonProperty("admin_commands_channel")]
         public ulong AdminCommandsChannel { get; private set; }
+
+        [JsonProperty("registration_channel")]
+        public ulong RegistrationChannel { get; private set; }
     }
 }

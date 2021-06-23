@@ -19,6 +19,9 @@ namespace bot_2.Commands
         GeneralDatabaseInfo _info;
         QueueInfo _queueInfo;
         static bool started = false;
+
+        MmrCalculator calculator = new MmrCalculator();
+
         public ulong PreLoadedChannel { get; private set; }
         public ulong PreLoadedMessage { get; private set; }
 
@@ -175,7 +178,7 @@ namespace bot_2.Commands
 
                     var availableLeaderboardMessages = await _context.leaderboard_messages.ToListAsync();
 
-                    var leaderboardMessages = await GetSplitMessages();
+                    var leaderboardMessages = await GetSplitMessages(context);
 
                     int neededChannels = leaderboardMessages.Count() - availableLeaderboardMessages.Count();
                     for (int i = 0; i < neededChannels; i++)
@@ -214,8 +217,7 @@ namespace bot_2.Commands
                 
         }
 
-    
-        public async Task<List<string>> GetSplitMessages()
+        public async Task<List<string>> GetSplitMessages(CommandContext context)
         {
             var players = await _context.player_data.ToListAsync();
             players = players.OrderByDescending(p => p._ihlmmr).ToList();
@@ -223,10 +225,15 @@ namespace bot_2.Commands
             int counter = 0;
             List<string> allMessages = new List<string>();// = SeperateText(fulllist);
             int discordMessageCharLimit = 1000;
+
             foreach (var player in players)
             {
                 counter++;
-                string newstring = "-- #" + counter.ToString() + ": <@" + player._id + "> / " + player._ihlmmr + " grin mmr / " + player._dotammr + " dota mmr -- \n";
+
+                var member = context.Guild.Members[player._id];
+                int mmr = calculator.GetMMR(context, member);
+                
+                string newstring = "-- #" + counter.ToString() + ": <@" + player._id + "> / " + player._ihlmmr + " grin mmr / " + player._dotammr/*mmr*/ + " dota mmr / " + player._gameswon + "W/"+ player._gameslost +"L -- \n";
                 fulllist += newstring;
 
                 if (fulllist.Length > discordMessageCharLimit)

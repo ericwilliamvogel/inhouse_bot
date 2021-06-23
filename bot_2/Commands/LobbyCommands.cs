@@ -312,10 +312,28 @@ namespace bot_2.Commands
                 {
                     var playerid = context.Message.MentionedUsers.FirstOrDefault().Id;
 
+                    var gamerecordslist = await _context.game_record.ToListAsync();
+                    var newlist = gamerecordslist.FindAll(p => p._p1 == _profile._id).OrderByDescending(p => p._gameid).ToList();
 
-                    var record = await _context.game_record.FirstOrDefaultAsync(p => p._p1 == _profile._id && p._p5 == 0);
+                    if(newlist == null || newlist.Count == 0)
+                    {
+                        await _profile.SendDm("No game records were found~~ Please open a ticket and ping Pip.");
+                        return;
+                    }
+
+
+                    var record = newlist[0];
+
+                    //var record = await _context.game_record.FirstOrDefaultAsync(p => p._p1 == _profile._id && p._p5 == 0);
                     var list = await _context.lobby_pool.ToListAsync();
                     var player = await _context.lobby_pool.FirstOrDefaultAsync(p => p._discordid == playerid && p._gameid == record._gameid);
+
+
+                    int gameid = record._gameid;
+                    var side = (Side)record._side;
+
+                    var newRecord = await _context.game_record.FirstOrDefaultAsync(p => p._side != record._side && p._gameid == gameid);
+
 
                     if (player != null)
                     {
@@ -324,32 +342,58 @@ namespace bot_2.Commands
                             if (record._p2 == 0)
                             {
                                 record._p2 = playerid;
+                                if(side == Side.Team1)
+                                {
+                                    record._canpick = 0;
+                                    newRecord._canpick = 1;
+                                    await _context.SaveChangesAsync();
+                                }
+                                else
+                                {
+                                    //nothing?
+                                }
                             }
                             else if (record._p3 == 0)
                             {
                                 record._p3 = playerid;
+                                if (side == Side.Team1)
+                                {
+                                    //nothing?
+                                }
+                                else
+                                {
+                                    record._canpick = 0;
+                                    newRecord._canpick = 1;
+                                    await _context.SaveChangesAsync();
+                                }
                             }
                             else if (record._p4 == 0)
                             {
                                 record._p4 = playerid;
+                                if (side == Side.Team1)
+                                {
+                                    record._canpick = 0;
+                                    newRecord._canpick = 1;
+                                    await _context.SaveChangesAsync();
+                                }
+                                else
+                                {
+                                    //nothing?
+                                }
                             }
                             else if (record._p5 == 0)
                             {
                                 record._p5 = playerid;
+
+                                record._canpick = 0;
+                                newRecord._canpick = 1;
+                                await _context.SaveChangesAsync();
                             }
 
-                            var gameid = record._gameid;
-                            record._canpick = 0;
+   
                             _context.lobby_pool.Remove(player);
                             await _context.SaveChangesAsync();
-                            int side = record._side;
 
-
-                            //update
-
-                            //HERE
-
-                            var newRecord = await _context.game_record.FirstOrDefaultAsync(p => p._side != side && p._gameid == gameid);
                             if (record._p5 != 0 && newRecord._p5 != 0)
                             {
                                 LobbySorter sorter = new LobbySorter(_context);
@@ -358,11 +402,9 @@ namespace bot_2.Commands
                             }
                             else
                             {
-                                newRecord._canpick = 1;
-                                await _context.SaveChangesAsync();
-
+                                
                                 LobbySorter sorter = new LobbySorter(_context);
-                               await sorter.UpdateLobbyPool(context, _profile, gameid);
+                                await sorter.UpdateLobbyPool(context, _profile, gameid);
 
 
 

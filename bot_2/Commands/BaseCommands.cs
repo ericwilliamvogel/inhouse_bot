@@ -16,6 +16,7 @@ namespace bot_2.Commands
         protected QOL QOL;
         public BaseCommands(Context context)
         {
+            QOL = new QOL();
             _context = context;
             _conditions = new Conditions(context);
             _info = new GeneralDatabaseInfo(context);

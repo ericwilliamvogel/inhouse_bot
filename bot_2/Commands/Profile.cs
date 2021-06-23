@@ -61,12 +61,20 @@ namespace bot_2.Commands
         {
             _id = id;
 
-            if(context.Guild.Members.ContainsKey(id))
-            _member = context.Guild.Members[id];
+            if (context.Guild.Members.ContainsKey(id))
+                _member = context.Guild.Members[id];
 
 
         }
 
+        public Profile(DiscordGuild guild, DiscordUser user)
+        {
+            _id = user.Id;
+            var member = (DiscordMember)user;
+            _member = member;
+
+
+        }
         public async Task<bool> Exists(Context _context)
         {
 

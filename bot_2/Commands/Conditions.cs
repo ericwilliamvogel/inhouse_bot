@@ -429,6 +429,24 @@ namespace bot_2.Commands
             _check.Add(Arg.ProfileComplete,
                     async (CommandContext context, Profile _profile) =>
                     {
+                        /*
+                        var role1 = context.Guild.Roles.FirstOrDefault(p => p.Value.Name == "c_rank").Value;
+                        var role2 = context.Guild.Roles.FirstOrDefault(p => p.Value.Name == "c_region_pref").Value;
+                        var role3 = context.Guild.Roles.FirstOrDefault(p => p.Value.Name == "c_playercap_pref").Value;
+                        var role4 = context.Guild.Roles.FirstOrDefault(p => p.Value.Name == "c_dotacap_pref").Value;
+                        var role5 = context.Guild.Roles.FirstOrDefault(p => p.Value.Name == "c_favrole_pref").Value;
+                        var role6 = context.Guild.Roles.FirstOrDefault(p => p.Value.Name == "c_positions_pref").Value;
+
+                        if (!_profile._member.Roles.Contains(role1) &&
+                        !_profile._member.Roles.Contains(role2) &&
+                        !_profile._member.Roles.Contains(role3) &&
+                        !_profile._member.Roles.Contains(role4) &&
+                        !_profile._member.Roles.Contains(role5) &&
+                        !_profile._member.Roles.Contains(role6))
+                        {
+                            return true;
+                        }
+                        */
                         var record = await _context.player_data.FindAsync(_profile._id);
                         if (record._role1 != 0 && record._role2 != 0 && record._region != (int)Region.NONE && record._dotammr != 0)
                         {
@@ -610,6 +628,7 @@ namespace bot_2.Commands
                     await QOL.SendMessage(context, Bot.Channels.GeneralChannel, "Queueing is now closed for the night. GrinHouse will open again at 10pmEST tomorrow.");
                 });
             }
+            await Task.CompletedTask;
         }
 
     }

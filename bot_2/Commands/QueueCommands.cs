@@ -127,6 +127,12 @@ namespace bot_2.Commands
 
                 });
         }
+        [Command("l")]
+        public async Task LQueue(CommandContext context)
+        {
+            await LeaveQueue(context);
+        }
+
         [Command("leave")]
         public async Task LeaveQueue(CommandContext context)
         {

@@ -126,13 +126,12 @@ namespace bot_2.Commands
             await _conditions.TryConditionedAction(context, _profile,
 
             new List<Arg> {
-                            Arg.IsRegistered,
-                            Arg.IsInCommandChannel
+                    Arg.IsRegistered,
+                    Arg.IsInCommandChannel
             },
 
             async () =>
             {
-
                 await _profile.SendDm("!mmr is now deprecated. Use !profile instead!");
 
             });
@@ -598,7 +597,7 @@ namespace bot_2.Commands
                     TaskScheduler._inhouseOpen = true;
 
                     await QOL.SendMessage(context, Bot.Channels.GeneralChannel,
-                        "<@&852359190453288981 >, Queueing has been opened early by < @" + _profile._id + " >.Queueing will still close at 1amEST. \n\nReminder to use!pingme to be given the <@&852359190453288981 > role.If you change your mind use!dontpingme.");
+                        "<@&852359190453288981>, Queueing has been opened early by <@" + _profile._id + ">.Queueing will still close at 1amEST. \n\nReminder to use!pingme to be given the <@&852359190453288981> role. If you change your mind use!dontpingme.");
 
                     await _profile.SendDm("Inhouse has been opened early. Doors will close at 1amEST as scheduled.");
                 });

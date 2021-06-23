@@ -17,6 +17,8 @@ namespace bot_2.Commands
     {
         private LobbyUtilities _utilities;
         private Context _context;
+        private MmrCalculator calculator = new MmrCalculator();
+        
         public LobbyInfo(Context context, LobbyUtilities utilities)
         {
             _context = context;
@@ -272,49 +274,54 @@ namespace bot_2.Commands
 
             lobby += "\n";
 
-            lobby += "--- Team 1 ---\n\n" + await GetTeamDesc(team1) + "\n\n";
+            lobby += "--- Team 1 ---\n\n" + await GetTeamDesc(context, team1) + "\n\n";
 
-            lobby += "--- Team 2 --- \n\n" + await GetTeamDesc(team2) + "\n";
+            lobby += "--- Team 2 --- \n\n" + await GetTeamDesc(context, team2) + "\n";
 
 
             lobby += "\n\nPool = \n";
 
             foreach (var player in players)
             {
-                string des = await GetPlayerDesc(player._discordid);
+                string des = await GetPlayerDesc(context, player._discordid);
                 lobby += des;
             }
 
             lobby += "\n";
             lobby += "```Captains can pick players in the available pool using command !pick @mention ``` Example: **!pick** <@126922582208282624>\n";
             lobby += "```Did someone have to leave your game during draft phase or midgame? Use command !draw 0 to kill the discord channels and internally reset all players.``` Example: **!draw 0**\n";
-            lobby += "```Can some players not see the lobby? Simply !invite @mention so they can see the pick phase! These same players may also have trouble getting their lobby roles(team1, team2, etc...), refer below for info on how to invite them! ```" +
+            lobby += "```Can some players not see the lobby or want to spectate the game after it already popped? Simply !invite @mention so they can see the pick phase! These same players may also have trouble getting their lobby roles(team1, team2, etc...), refer below for info on how to invite them! ```" +
                 " Example: **!invite** <@126922582208282624>\n";
-            lobby += "```Are some players not able to see their respective discord voice channels? Simply !invite team1 @mention so they can get access to their voice channel! Example: **invite team1** <@126922582208282624>";
+            lobby += "```Are some players not able to see their respective discord voice channels? Simply !invite specified_team @mention so they can get access to their voice channel!``` Example: **invite** team1 <@126922582208282624>";
             return lobby;
         }
 
-        private async Task<string> GetTeamDesc(TeamRecord record)
+        private async Task<string> GetTeamDesc(CommandContext context, TeamRecord record)
         {
             string players = "";
 
-            players += await GetPlayerDesc(record._p1);
-            players += await GetPlayerDesc(record._p2);
-            players += await GetPlayerDesc(record._p3);
-            players += await GetPlayerDesc(record._p4);
-            players += await GetPlayerDesc(record._p5);
+            players += await GetPlayerDesc(context, record._p1);
+            players += await GetPlayerDesc(context, record._p2);
+            players += await GetPlayerDesc(context, record._p3);
+            players += await GetPlayerDesc(context, record._p4);
+            players += await GetPlayerDesc(context, record._p5);
 
             return players;
         }
 
-        private async Task<string> GetPlayerDesc(ulong id)
+        private async Task<string> GetPlayerDesc(CommandContext context, ulong id)
         {
             string player = "";
 
             var record = await _context.player_data.FindAsync(id);
 
+            int dotammr = record._dotammr;
+
+            //if (context.Guild.Members.ContainsKey(id))
+                //dotammr = calculator.GetMMR(context, context.Guild.Members[id]);
+
             if (record != null)
-                player += "<@" + record._id + ">, " + (Region)record._region + " - Dotammr = " + record._dotammr + ", Ihlmmr = " + record._ihlmmr + ", Preferred roles = " + record._role1 + "(Best), " + record._role2 + ".\n";
+                player += "<@" + record._id + ">, " + (Region)record._region + " - Dotammr = " + dotammr + ", Ihlmmr = " + record._ihlmmr + ", Preferred roles = " + record._role1 + "(Best), " + record._role2 + ".\n";
 
             return player;
         }
@@ -326,7 +333,7 @@ namespace bot_2.Commands
             for (int i = 0; i < team.Count; i++)
             {
                 string addon = "<not_found>";
-                addon = await GetPlayerDesc(team[i]._id);
+                addon = await GetPlayerDesc(context, team[i]._id);
                 //addon = "<@" + team[i]._id + ">" + " -- " + team[i]._ihlmmr + " inhouse mmr / " + team[i]._mmr + " dota mmr.\n";
                 text += addon + "\n";
             }
