@@ -93,7 +93,10 @@ namespace bot_2.Commands
             LobbyRoleTeam2 = await _utilities.RecursiveCreateRole(context, "team2");
             LobbyRoleSpectator = await _utilities.RecursiveCreateRole(context, "spectator");
             LobbyRoleCaster = await _utilities.RecursiveCreateRole(context, "caster");
+
             parent = await context.Guild.CreateChannelCategoryAsync("Lobby" + LobbyNumber);
+
+            //await parent.ModifyPositionAsync(0);
 
             generaltext = await context.Guild.CreateChannelAsync("general", DSharpPlus.ChannelType.Text, parent);
             team1voice = await context.Guild.CreateChannelAsync("Team1", DSharpPlus.ChannelType.Voice, parent);
@@ -103,9 +106,9 @@ namespace bot_2.Commands
             castervoice = await context.Guild.CreateChannelAsync("Caster", DSharpPlus.ChannelType.Voice, parent);
 
             LobbyInfo _info = new LobbyInfo(_context, _utilities);
-            await generaltext.SendMessageAsync(_info.GetLobbyPass("grinlobby" + LobbyNumber));
-            message = await generaltext.SendMessageAsync("Starting...");
 
+            message = await generaltext.SendMessageAsync("Starting...");
+            await generaltext.SendMessageAsync("", false, _info.GetLobbyPass("grinlobby" + LobbyNumber));
             Console.WriteLine("Perms...");
 
             await RevokeAllPermissions(team2voice, LobbyRoleSpectator);

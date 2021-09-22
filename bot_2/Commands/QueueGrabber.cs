@@ -48,7 +48,7 @@ namespace bot_2.Commands
             foreach (QueueData data in tempo)
             {
                 _context.player_queue.Remove(data);
-                await _context.SaveChangesAsync();
+                //await _context.SaveChangesAsync();
             }
             return temp;
         }
@@ -70,7 +70,7 @@ namespace bot_2.Commands
 
                 var c_record = await _context.player_data.FindAsync(id);
                 c_record._gamestatus = 0;
-                await _context.SaveChangesAsync();
+                //await _context.SaveChangesAsync();
 
                 var playerInfo = await _context.player_data.FindAsync(id);
 
@@ -80,7 +80,7 @@ namespace bot_2.Commands
             foreach (CasterQueueData data in tempo)
             {
                 _context.caster_queue.Remove(data);
-                await _context.SaveChangesAsync();
+                //await _context.SaveChangesAsync();
             }
             return temp;
         }
@@ -102,7 +102,7 @@ namespace bot_2.Commands
 
                 var s_record = await _context.player_data.FindAsync(id);
                 s_record._gamestatus = 0;
-                await _context.SaveChangesAsync();
+                //await _context.SaveChangesAsync();
 
                 var playerInfo = await _context.player_data.FindAsync(id);
 
@@ -112,7 +112,7 @@ namespace bot_2.Commands
             foreach (SpectatorQueueData data in tempo)
             {
                 _context.spectator_queue.Remove(data);
-                await _context.SaveChangesAsync();
+                //await _context.SaveChangesAsync();
             }
             return temp;
         }

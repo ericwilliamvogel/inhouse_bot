@@ -11,6 +11,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using OpenDotaDotNet;
+using static DSharpPlus.Entities.DiscordEmbedBuilder;
 
 namespace bot_2.Commands
 {
@@ -38,7 +39,7 @@ public async Task EnterQueue(CommandContext context, int number)
     if (relativeData != null)
     {
         relativeData._status = number;
-        await _context.SaveChangesAsync();
+        //await _context.SaveChangesAsync();
     }
     await context.Message.DeleteAsync();
 
@@ -101,8 +102,10 @@ public async Task EnterQueue(CommandContext context, int number)
                         var record = await _context.emote_unlocked.FirstOrDefaultAsync(p => p._playerid == player._id && p._emoteid == emoteType);
                         if (record == null)
                         {
-                            await _context.emote_unlocked.AddAsync(new EmoteUnlockedData { _playerid = player._id, _emoteid = emoteType });
-                            await _context.SaveChangesAsync();
+
+                                await _context.emote_unlocked.AddAsync(new EmoteUnlockedData { _playerid = player._id, _emoteid = emoteType });
+                                //await _context.SaveChangesAsync();
+
                         }
                     }
 
@@ -132,7 +135,7 @@ public async Task EnterQueue(CommandContext context, int number)
 
                         await _profile.SendDm("Emote powers granted.");
                         await _context.emote_unlocked.AddAsync(new EmoteUnlockedData { _playerid = ment, _emoteid = emoteType });
-                        await _context.SaveChangesAsync();
+                        //await _context.SaveChangesAsync();
                     }
                     else
                     {
@@ -160,7 +163,7 @@ public async Task EnterQueue(CommandContext context, int number)
                     {
                         record._gamestatus = 0;
                     }
-                    await _context.SaveChangesAsync();
+                    //await _context.SaveChangesAsync();
                 });
         }
 
@@ -203,7 +206,7 @@ public async Task EnterQueue(CommandContext context, int number)
                     else
                     {
                         _context.discord_channel_info.Remove(record);
-                        await _context.SaveChangesAsync();
+                        //await _context.SaveChangesAsync();
                     }
                 });
         }
@@ -259,7 +262,7 @@ public async Task EnterQueue(CommandContext context, int number)
                         {
                             LobbySorter sorter = new LobbySorter(_context);
                             string gHistory = await sorter._info.GetGameHistory(openDota, gameDetails);
-                            var channel = context.Guild.Channels[Bot.Channels.GameHistoryChannel];
+                            var channel = await Bot._validator.Get(context, "game-history");
                             await channel.SendMessageAsync(gHistory);
                         }
                         else
@@ -314,7 +317,7 @@ public async Task EnterQueue(CommandContext context, int number)
                     {
                         _context.player_queue.Remove(record);
                     }
-                    await _context.SaveChangesAsync();
+                    //await _context.SaveChangesAsync();
 
                     await _profile.SendDm("The queue has been cleared.").ConfigureAwait(false);
                 });
@@ -360,6 +363,24 @@ public async Task EnterQueue(CommandContext context, int number)
 
         }
 
+        [Command("testnewget")]
+        public async Task Channelasdasdlear(CommandContext context, string channel)
+        {
+            Profile _profile = new Profile(context);
+
+            await _conditions.TryConditionedAction(context, _profile,
+
+                new List<Arg> {
+                    Arg.HasAdminRole
+                },
+
+                async () =>
+                {
+                    var tempchannel = await Bot._validator.Get(context, channel);
+                    await tempchannel.SendMessageAsync("Test");
+                });
+
+        }
         public async Task DeleteLastMessage(DiscordChannel channel)
         {
             var list = await channel.GetMessagesAsync(100);
@@ -397,13 +418,15 @@ public async Task EnterQueue(CommandContext context, int number)
                     {
                         await _profile.SendDm("Player's queue status was reset.");
                         record._gamestatus = 0;
-                        await _context.SaveChangesAsync();
+                        //await _context.SaveChangesAsync();
                     }
 
                 });
 
 
         }
+
+
 
         [Command("getprofile")]
         public async Task GetProfile (CommandContext context, string doesntmatter)
@@ -435,8 +458,6 @@ public async Task EnterQueue(CommandContext context, int number)
                         playerinfo += "\nW / L : " + record._gameswon + "/" + record._gameslost;
                         playerinfo += "\nDotaMmr : " + record._dotammr;
                         playerinfo += "\nGrinMmr : " + record._ihlmmr;
-                        playerinfo += "\nRoles : " + record._role1 + "," + record._role2;
-                        playerinfo += "\nRegion : " + record._region;
                         playerinfo += "\nCoins : " + record._xp;
 
                         await _profile.SendDm(playerinfo);
@@ -473,16 +494,35 @@ public async Task EnterQueue(CommandContext context, int number)
                         if (change.ToLower() == "add" || change.ToLower() == "increase")
                         {
                             record._xp += number;
-                            await _context.SaveChangesAsync();
+                            //await _context.SaveChangesAsync();
                         }
                         else if (change.ToLower() == "subtract" || change.ToLower() == "decrease")
                         {
                             record._xp -= number;
-                            await _context.SaveChangesAsync();
+                            //await _context.SaveChangesAsync();
                         }
                         await _profile.SendDm("Player's coins changed.");
 
                     }
+                });
+
+
+        }
+
+        [Command("validatefiles")]
+        public async Task SetMMr(CommandContext context)
+        {
+
+            Profile _profile = new Profile(context);
+            await _conditions.TryConditionedAction(context, _profile,
+
+                new List<Arg> {
+                    Arg.HasAdminRole
+                },
+
+                async () =>
+                {
+                    await Bot._validator.Validate(context);
                 });
 
 
@@ -516,12 +556,12 @@ public async Task EnterQueue(CommandContext context, int number)
                         if(change.ToLower() == "add" || change.ToLower() == "increase")
                         {
                             record._ihlmmr += number;
-                            await _context.SaveChangesAsync();
+                            //await _context.SaveChangesAsync();
                         }
                         else if(change.ToLower() == "subtract" || change.ToLower() == "decrease")
                         {
                             record._ihlmmr -= number;
-                            await _context.SaveChangesAsync();
+                            //await _context.SaveChangesAsync();
                         }
                         await _profile.SendDm("Player's mmr changed.");
 
@@ -550,6 +590,296 @@ public async Task EnterQueue(CommandContext context, int number)
                 });
 
 
+        }
+
+        [Command("error")]
+        public async Task reporterror(CommandContext context)
+        {
+
+            Profile _profile = new Profile(context);
+            await _conditions.TryConditionedAction(context, _profile,
+
+                new List<Arg> {
+                    Arg.IsInAdminCommandChannel
+                },
+
+                async () =>
+                {
+                    await _profile.ReportError(context, "aoe");
+
+                });
+
+
+        }
+
+        [Command("removerolefromall")]
+        public async Task Geadfasasdasd12asdasd3dfasdfStu123ff(CommandContext context, string input)
+        {
+            Profile _profile = new Profile(context);
+            await _conditions.TryConditionedAction(context, _profile,
+
+                new List<Arg> {
+                    Arg.HasAdminRole
+                },
+
+                async () =>
+                {
+
+                    var list = await _context.player_data.ToListAsync();
+
+                    var role = context.Guild.Roles.FirstOrDefault(p => p.Value.Name == input).Value;
+                    foreach (var profile in list)
+                    {
+                        try
+                        {
+                            if (context.Guild.Members.ContainsKey(profile._id))
+                            {
+                                await context.Guild.Members[profile._id].RevokeRoleAsync(role);
+                            }
+
+                        }
+                        catch
+                        {
+
+                        }
+                    }
+
+                });
+        }
+
+        [Command("grantroletoall")]
+        public async Task Geadfasasdasd123dfasdasdfStu123ff(CommandContext context, string input)
+        {
+            Profile _profile = new Profile(context);
+            await _conditions.TryConditionedAction(context, _profile,
+
+                new List<Arg> {
+                    Arg.HasAdminRole
+                },
+
+                async () =>
+                {
+
+                    var list = await _context.player_data.ToListAsync();
+
+                    var role = context.Guild.Roles.FirstOrDefault(p => p.Value.Name == input).Value;
+                    foreach (var profile in list)
+                    {
+                        try
+                        {
+                            if (context.Guild.Members.ContainsKey(profile._id))
+                            {
+                                await context.Guild.Members[profile._id].GrantRoleAsync(role);
+                            }
+
+                        }
+                        catch
+                        {
+
+                        }
+                    }
+
+                });
+        }
+
+
+        [Command("assignregistered")]
+        public async Task Geadfasasdasd123dfasdfStu123ff(CommandContext context)
+        {
+            Profile _profile = new Profile(context);
+            await _conditions.TryConditionedAction(context, _profile,
+
+                new List<Arg> {
+                    Arg.HasAdminRole
+                },
+
+                async () =>
+                {
+
+                    var list = await _context.player_data.ToListAsync();
+
+                    var role = context.Guild.Roles.FirstOrDefault(p => p.Value.Name == "Registered").Value;
+                    foreach (var profile in list)
+                    {
+                        try
+                        {
+                            if (context.Guild.Members.ContainsKey(profile._id))
+                            {
+                                await context.Guild.Members[profile._id].GrantRoleAsync(role);
+                            }
+
+                        }
+                        catch
+                        {
+
+                        }
+                    }
+
+                });
+        }
+
+
+        [Command("vote")]
+        public async Task Geadfas123dfasdfStu123ff(CommandContext context, params string[] strings)
+        {
+            Profile _profile = new Profile(context);
+            await _conditions.TryConditionedAction(context, _profile,
+
+                new List<Arg> {
+                    Arg.HasAdminRole
+                },
+
+                async () =>
+                {
+
+                    string full = context.Message.Content.Substring(5);
+
+                    DiscordEmbedBuilder builder = new DiscordEmbedBuilder()
+                    .WithTitle("Vote")
+                    .AddField("Topic", full, false)
+                    .WithColor(DiscordColor.Gold);
+
+
+                    builder.Footer = new EmbedFooter() { Text = "" };
+
+                    DiscordEmbed embed = builder.Build();
+
+                    var message = await context.Channel.SendMessageAsync("", false, embed);
+
+                    await message.CreateReactionAsync(DiscordEmoji.FromName(context.Client, ":white_check_mark:"));
+                    await message.CreateReactionAsync(DiscordEmoji.FromName(context.Client, ":no_entry:"));
+
+
+                });
+        }
+
+        [Command("genSetup")]
+        public async Task GeadfasdfasdfStu123ff(CommandContext context)
+        {
+            Profile _profile = new Profile(context);
+            await _conditions.TryConditionedAction(context, _profile,
+
+                new List<Arg> {
+                    Arg.HasAdminRole
+                },
+
+                async () =>
+                {
+                    DiscordEmbedBuilder builder = new DiscordEmbedBuilder()
+                    .WithTitle("Example")
+                    .WithImageUrl("https://cdn.discordapp.com/attachments/889649751354671154/889650133740969994/unknown.png")
+                    .AddField("Command", "!register 182944770", false)
+                    .WithColor(DiscordColor.Gold);
+
+
+                    builder.Footer = new EmbedFooter() { Text = "" };
+
+                    DiscordEmbed embed = builder.Build();
+
+                    await context.Channel.SendMessageAsync("", false, embed);
+
+                    builder = new DiscordEmbedBuilder()
+                    .WithTitle("Registration")
+                    .AddField("Setup", "Find your *DOTA FRIEND ID*, then below use **!register youridhere** to register for this inhouse league.\n\nNote: This is required to play in the league. Do not use a fake ID.", false)
+                    .WithColor(DiscordColor.Gold);
+
+                    embed = builder.Build();
+
+                    await context.Channel.SendMessageAsync("", false, embed);
+
+
+                });
+        }
+
+        [Command("leaderboard")]
+        public async Task GeadfasdfasdfStasdu123ff(CommandContext context)
+        {
+            Profile _profile = new Profile(context);
+            await _conditions.TryConditionedAction(context, _profile,
+
+                new List<Arg> {
+                    Arg.HasAdminRole
+                },
+
+                async () =>
+                {
+                    await _updatedQueue.UpdateLeaderboard(context);
+
+
+                });
+        }
+
+        [Command("settingsSetup")]
+        public async Task GeadfaasdsdfasdfStu123ff(CommandContext context)
+        {
+            Profile _profile = new Profile(context);
+            await _conditions.TryConditionedAction(context, _profile,
+
+                new List<Arg> {
+                    Arg.HasAdminRole
+                },
+
+                async () =>
+                {
+                    DiscordEmbedBuilder builder = new DiscordEmbedBuilder()
+                        .WithTitle("Send Profile")
+                        .WithImageUrl("http://cdn.shopify.com/s/files/1/0554/2386/0930/collections/Wraith_king_arcana.png?v=1616383799")
+                        .AddField("React", ":white_check_mark: : Send me my profile.\n", false)
+                        .WithColor(DiscordColor.Gold);
+
+
+                    builder.Footer = new EmbedFooter() { Text = "" };
+
+                    DiscordEmbed embed = builder.Build();
+
+                    var message = await context.Channel.SendMessageAsync("", false, embed);
+
+                    await message.CreateReactionAsync(DiscordEmoji.FromName(context.Client, ":white_check_mark:"));
+
+
+                    builder = new DiscordEmbedBuilder()
+                    .WithTitle("Notifications")
+                    .WithImageUrl("https://i.pinimg.com/originals/88/5d/c0/885dc039da5d39ff4b6fdd1c28a18bd2.gif")
+                    .AddField("Settings", ":no_entry: : Turn off all inhouse notifications.\n" +
+                    ":white_check_mark: Enable all inhouse notifications.", false)
+                    .WithColor(DiscordColor.Gold);
+
+
+                    builder.Footer = new EmbedFooter() { Text = "" };
+
+                    embed = builder.Build();
+
+                    message = await context.Channel.SendMessageAsync("", false, embed);
+
+                    await message.CreateReactionAsync(DiscordEmoji.FromName(context.Client, ":white_check_mark:"));
+                    await message.CreateReactionAsync(DiscordEmoji.FromName(context.Client, ":no_entry:"));
+
+                });
+        }
+
+
+        [Command("embed")]
+        public async Task GeadfasdfasdfStuff(CommandContext context)
+        {
+            Profile _profile = new Profile(context);
+            await _conditions.TryConditionedAction(context, _profile,
+
+                new List<Arg> {
+                    Arg.HasAdminRole
+                },
+
+                async () =>
+                {
+                    EmbedDriver driver = new EmbedDriver();
+                    await driver.GeneratePositions(context);
+                    await driver.GenerateFavPositions(context);
+                    await driver.GenerateRegion(context);
+                    await driver.GenerateRank(context);
+                    await driver.GenerateRankProgress(context);
+
+
+
+                });
         }
 
         [Command("testlargeload")]

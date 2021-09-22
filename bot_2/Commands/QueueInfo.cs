@@ -24,7 +24,7 @@ namespace bot_2.Commands
         MmrCalculator calculator = new MmrCalculator();
         public async Task<string> GetPlayerQueueInfo(CommandContext context)
         {
-            var playersInQueue = await _context.player_queue.ToListAsync();
+            var playersInQueue = _context.player_queue.ToList();
             var count = playersInQueue.Count;
             string start = GetStringStart("Players", count);
 
@@ -176,10 +176,10 @@ namespace bot_2.Commands
         {
             string participationAward = "---Participation Award---\n";
             var list = await _context.player_data.ToListAsync();
-            var orderedList = list.OrderBy(p => p._ihlmmr).ToList();
+            var orderedList = list.OrderByDescending(p => p._totalgames).ToList();
 
             int rank = orderedList.Count;
-            participationAward += "#" + rank + "- <@" + orderedList[0]._id + ">, " + orderedList[0]._ihlmmr + " inhouse mmr\n";
+            participationAward += "<@" + orderedList[0]._id + ">, " + orderedList[0]._totalgames + " games played\n";
 
             participationAward += "---------------------\n\n";
 
@@ -196,14 +196,14 @@ namespace bot_2.Commands
             foreach (var player in recordsToBeRemoved)
             {
                 _context.player_queue.Remove(player);
-                await _context.SaveChangesAsync();
+                //await _context.SaveChangesAsync();
 
                 Profile profile = new Profile(context, player._id);
                 var member = await _context.player_data.FindAsync(player._id);
                 if (member != null)
                 {
                     member._gamestatus = 0;
-                    await _context.SaveChangesAsync();
+                    //await _context.SaveChangesAsync();
                 }
                 else
                 {

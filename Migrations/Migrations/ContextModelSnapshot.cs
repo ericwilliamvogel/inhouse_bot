@@ -103,15 +103,6 @@ namespace Migrations.Migrations
                 b.Property<int>("_gamestatus")
 .HasColumnType("int");
 
-                b.Property<int>("_region")
-.HasColumnType("int");
-
-                b.Property<int>("_role1")
-.HasColumnType("int");
-
-                b.Property<int>("_role2")
-.HasColumnType("int");
-
                 b.Property<long>("_xp")
 .HasColumnType("bigint");
 

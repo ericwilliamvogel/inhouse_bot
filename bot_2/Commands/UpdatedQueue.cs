@@ -1,4 +1,5 @@
-﻿using db;
+﻿using bot_2.Json;
+using db;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
@@ -10,6 +11,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static DSharpPlus.Entities.DiscordEmbedBuilder;
 
 namespace bot_2.Commands
 {
@@ -22,16 +24,16 @@ namespace bot_2.Commands
 
         MmrCalculator calculator = new MmrCalculator();
 
-        public ulong PreLoadedChannel { get; private set; }
-        public ulong PreLoadedMessage { get; private set; }
-
+        public ulong PreLoadedMessage { get; set; }
         
         public UpdatedQueue(Context context)
         {
             this._context = context;
             _info = new GeneralDatabaseInfo(context);
             _queueInfo = new QueueInfo(context);
-            ReadJsonFile();
+
+            JsonCommunicator comm = new JsonCommunicator();
+            PreLoadedMessage = comm.GetValue("misc", "queue_message");
         }
 
 
@@ -40,18 +42,6 @@ namespace bot_2.Commands
         {
             started = false;
             await Task.CompletedTask;
-        }
-        private void ReadJsonFile()
-        {
-            var json = string.Empty;
-
-            using (var fs = File.OpenRead("channelConfig.json"))
-            using (var sr = new StreamReader(fs, new UTF8Encoding(false)))
-                json = sr.ReadToEnd();
-
-            var channelConfigJson = JsonConvert.DeserializeObject<ChannelConfigJson>(json);
-            PreLoadedChannel = channelConfigJson.QueueChannel;
-            PreLoadedMessage = channelConfigJson.QueueMessage;
         }
 
         public async Task StartThread(CommandContext context)
@@ -87,12 +77,13 @@ namespace bot_2.Commands
                     return;
                 }
 
-                var queueMessage = await GetMessage(context, PreLoadedChannel, PreLoadedMessage);
+                var channel = await Bot._validator.Get(context, "queue");
+                var queueMessage = await GetMessage(context, channel.Id, PreLoadedMessage);
                 if (queueMessage == null)
                 {
                     return;
                 }
-
+                
 
 
                 List<QueueData> recordsToBeRemoved = new List<QueueData>();
@@ -122,7 +113,7 @@ namespace bot_2.Commands
                     open = "Closed";
                 }
 
-                string finalString = DateTime.Now.ToString() + " PST\nWelcome to GrinHouseLeague. Inhouse opens at 10pmEST and closes at 1amEST. Inhouse is currently **" + open + "**. There are **" + gamesBeingPlayed.Count + " games** currently being played.\n\n" + leaderboard + participationAward +
+                string finalString = DateTime.Now.ToString() + " PST\nWelcome to GrinHouseLeague. Inhouse opens at 8pmEST and closes at 1amEST. Inhouse is currently **" + open + "**. There are **" + gamesBeingPlayed.Count + " games** currently being played.\n\n" + leaderboard + participationAward +
                     players +
                     "\n\n" +
                     casters +
@@ -133,7 +124,17 @@ namespace bot_2.Commands
                     //"\n\n" +
                     currentGames;
 
-                await queueMessage.ModifyAsync(finalString);
+                DiscordEmbedBuilder builder = new DiscordEmbedBuilder()
+                    .AddField("Queue", finalString, false)
+                    .WithColor(DiscordColor.Blue);
+
+
+                builder.Footer = new EmbedFooter() { Text = "" };
+
+                DiscordEmbed embed = builder.Build();
+
+
+                await queueMessage.ModifyAsync("", embed);
 
                 //await UpdateLeaderboard(context);
 
@@ -163,53 +164,54 @@ namespace bot_2.Commands
         public async Task UpdateLeaderboard(CommandContext context)
         {
 
-                try
+            try
+            {
+
+                if(!await Bot._validator.Exists(context, "leaderboard"))
+                {
+                    return;
+                }
+
+
+
+                var leaderboardChannel = await Bot._validator.Get(context, "leaderboard");
+                //DiscordChannel leaderboardChannel = context.Guild.Channels[Bot.Channels.LeaderboardChannel];
+
+                var availableLeaderboardMessages = await _context.leaderboard_messages.ToListAsync();
+
+                var leaderboardMessages = await GetSplitMessages(context);
+
+                int neededChannels = leaderboardMessages.Count() - availableLeaderboardMessages.Count();
+                for (int i = 0; i < neededChannels; i++)
+                {
+                    var message = await leaderboardChannel.SendMessageAsync("Starting new message...");
+                    await _context.leaderboard_messages.AddAsync(new LeaderboardData { _message = message.Id });
+                    //await _context.SaveChangesAsync();
+                }
+
+                int counter = 0;
+                foreach (var message in availableLeaderboardMessages)
                 {
 
-
-                    if (!context.Guild.Channels.ContainsKey(Bot.Channels.LeaderboardChannel))
-                    {
-                        return;
-                    }
-
-
-
-                    DiscordChannel leaderboardChannel = context.Guild.Channels[Bot.Channels.LeaderboardChannel];
-
-                    var availableLeaderboardMessages = await _context.leaderboard_messages.ToListAsync();
-
-                    var leaderboardMessages = await GetSplitMessages(context);
-
-                    int neededChannels = leaderboardMessages.Count() - availableLeaderboardMessages.Count();
-                    for (int i = 0; i < neededChannels; i++)
-                    {
-                        var message = await leaderboardChannel.SendMessageAsync("Starting new message...");
-                        await _context.leaderboard_messages.AddAsync(new LeaderboardData { _message = message.Id });
-                        await _context.SaveChangesAsync();
-                    }
-
-                    int counter = 0;
-                    foreach (var message in availableLeaderboardMessages)
+                    var newMessage = await leaderboardChannel.GetMessageAsync(message._message);
+                    if (newMessage != null)
                     {
 
-                        var newMessage = await context.Guild.Channels[Bot.Channels.LeaderboardChannel].GetMessageAsync(message._message);
-                        if (newMessage != null)
-                        {
-                            await newMessage.ModifyAsync(leaderboardMessages[counter]);
-                        }
-
-                        counter++;
+                        await newMessage.ModifyAsync(leaderboardMessages[counter]);
                     }
-                }
-                catch (ServerErrorException e)
-                {
-                    await ReportErrorToAdmin(context, e);
 
+                    counter++;
                 }
-                catch (Exception e)
-                {
-                    await ReportErrorToAdmin(context, e);
-                }
+            }
+            catch (ServerErrorException e)
+            {
+                await ReportErrorToAdmin(context, e);
+
+            }
+            catch (Exception e)
+            {
+                await ReportErrorToAdmin(context, e);
+            }
 
 
 
@@ -230,8 +232,9 @@ namespace bot_2.Commands
             {
                 counter++;
 
-                var member = context.Guild.Members[player._id];
-                int mmr = calculator.GetMMR(context, member);
+                //this wont always return the player, since sometimes they are not considered a guild member.
+                //var member = context.Guild.Members[player._id];
+                //int mmr = calculator.GetMMR(context, member);
                 
                 string newstring = "-- #" + counter.ToString() + ": <@" + player._id + "> / " + player._ihlmmr + " grin mmr / " + player._dotammr/*mmr*/ + " dota mmr / " + player._gameswon + "W/"+ player._gameslost +"L -- \n";
                 fulllist += newstring;
@@ -308,9 +311,9 @@ namespace bot_2.Commands
             {
                 if (context.Guild != null)
                 {
-                    if (context.Guild.Members.ContainsKey(126922582208282624))
+                    if (context.Guild.Members.ContainsKey(Bot._admins.Admin))
                     {
-                        var pip = context.Guild.Members[126922582208282624];
+                        var pip = context.Guild.Members[Bot._admins.Admin];
                         await pip.SendMessageAsync(e.ToString());
                     }
                 }

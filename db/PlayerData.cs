@@ -24,12 +24,6 @@ namespace db
 
         public int _gamestatus { get; set; }//enum
 
-        public int _role1 { get; set; }
-
-        public int _role2 { get; set; }
-
-        public int _region { get; set; }
-
         public long _xp { get; set; }
         
 

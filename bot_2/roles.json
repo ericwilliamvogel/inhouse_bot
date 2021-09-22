@@ -1,0 +1,7 @@
+{
+  "key": "",
+  "gamesize" : "10",
+  "game" : "dota2",
+  "positions" : [Bot._positions.Pos1,Bot._positions.Pos2,Bot._positions.Pos3,Bot._positions.Pos4,Bot._positions.Pos5],
+  "tiers" : ["Moderator","Trusted","Member"]
+}

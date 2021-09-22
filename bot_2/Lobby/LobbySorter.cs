@@ -43,6 +43,8 @@ namespace bot_2.Commands
             Conditions._locked = true;
 
             await Task.Delay(3000); //to wait for updatethread to finish!
+            await _context.SaveChangesAsync(); //important to save db changes before bot crashes for x reason
+
             var maxPlayers = 10;
 
             Console.WriteLine("Forming player list...");
@@ -80,7 +82,7 @@ namespace bot_2.Commands
                 DateTimeOffset start = DateTimeOffset.Now;
 
                 await _context.game_data.AddAsync(new GameData { _host = leader._id, _start = start });
-                await _context.SaveChangesAsync();
+                //await _context.SaveChangesAsync();
 
 
                 Console.WriteLine("Grabbing game in db..");
@@ -92,7 +94,7 @@ namespace bot_2.Commands
 
                 Console.WriteLine("Creating DCI record...");
                 await _context.discord_channel_info.AddAsync(new ChannelInfo { _id = leader._id, _number = _perms.LobbyNumber, _gameid = gameid._id, _messageid = _perms.message.Id });
-                await _context.SaveChangesAsync();
+                //await _context.SaveChangesAsync();
 
                 int ms = DateTime.Now.Millisecond;
                 Random rand = new Random(ms);
@@ -100,6 +102,29 @@ namespace bot_2.Commands
 
                 players = players.OrderByDescending(p => p._truemmr).ToList();
 
+                /*List<Profile> profiles = new List<Profile>();
+                List<DiscordMember> members = new List<DiscordMember>();
+                List<DiscordMember> potentialCaptains = new List<DiscordMember>();
+
+                foreach (Player player in players)
+                {
+                    Profile profile = new Profile(context, player._id);
+                    profiles.Add(profile);
+                    members.Add(profile._member);
+                }
+
+                foreach(DiscordMember member in members)
+                {
+                    var role = context.Guild.Roles.FirstOrDefault(p => p.Value.Name == "Player Drafter").Value;
+                    if(member.Roles.Contains(role))
+                    {
+                        potentialCaptains.Add(member);
+                    }
+                }*/
+                
+
+                
+                //foreach payer that contains role
                 /*if (decider == 1)
                 {
                     players = players.OrderByDescending(p => p._truemmr).ToList();
@@ -121,26 +146,27 @@ namespace bot_2.Commands
                 players.Remove(captain2);
                 
                 var recordTeam1 = await _context.game_record.AddAsync(new TeamRecord { _side = (int)Side.Team1, _gameid = gameid._id, _p1 = captain2._id, _canpick = 1 });
-                await _context.SaveChangesAsync();
+                //await _context.SaveChangesAsync();
 
                 var recordTeam2 = await _context.game_record.AddAsync(new TeamRecord { _side = (int)Side.Team2, _gameid = gameid._id, _p1 = captain1._id, _canpick = 0 });
-                await _context.SaveChangesAsync();
+                //await _context.SaveChangesAsync();
                 
                 foreach(Player player in players)
                 {
                     await _context.lobby_pool.AddAsync(new LobbyPool { _gameid = gameid._id, _discordid = player._id });
-                    await _context.SaveChangesAsync();
+                    //await _context.SaveChangesAsync();
                 }
 
                 await UpdateLobbyPool(context, _profile, gameid._id);
             }
             catch (Exception e)
             {
+
                 var record = await _context.discord_channel_info.FindAsync(leader._id);
                 if(record!=null)
                 {
                     _context.discord_channel_info.Remove(record);
-                    await _context.SaveChangesAsync();
+                    //await _context.SaveChangesAsync();
                 }
                 await _profile.ReportError(context, e);
                 Console.WriteLine(e);
@@ -182,12 +208,12 @@ namespace bot_2.Commands
             team1._onwin = team1gain;
             team1._onlose = team1loss;
 
-            await _context.SaveChangesAsync();
+            //await _context.SaveChangesAsync();
 
             team2._onwin = team1loss;
             team2._onlose = team1gain;
 
-            await _context.SaveChangesAsync();
+            //await _context.SaveChangesAsync();
 
             await _utilities.RemoveSpectatorRoles(context, team1players, perms.LobbyNumber);
             await _utilities.RemoveSpectatorRoles(context, team2players, perms.LobbyNumber);

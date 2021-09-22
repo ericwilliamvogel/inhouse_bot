@@ -1,0 +1,17 @@
+{
+  "instructions":"For day, use a number 0 - 6 
+to specify what day that schedule will start. Sunday = 0,
+Monday = 1, Tuesday = 2, Wednesday = 3, Thursday = 4,
+Friday = 5, Saturday = 6",
+  "instructions2":"For minute, use what minute you intend to start on, 0 - 59.",
+  "instructions3":"For hour, use military time.",
+  "schedule": [
+  {
+	"day" : "0",
+        "starthour" : "20",
+        "startminute" : "0",
+        "endhour" : "22",
+        "endminute" : "0"
+  },
+  ]
+}

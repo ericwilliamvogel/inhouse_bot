@@ -230,7 +230,7 @@ namespace bot_2.Commands
                 foreach(var record in toBeRemovedFromQueue)
                 {
                     _context.player_queue.Remove(record);
-                    await _context.SaveChangesAsync();
+                    //await _context.SaveChangesAsync();
                 }
 
                                 await DrawGame(context, 0);
@@ -239,13 +239,13 @@ namespace bot_2.Commands
                 foreach (var id in priorityPlayers)
                 {
                     await _context.player_queue.AddAsync(new QueueData { _id = id, _start = myDateTime }).ConfigureAwait(false);
-                    await _context.SaveChangesAsync();
+                    //await _context.SaveChangesAsync();
                 }
 
                 foreach(var record in backlogPlayers)
                 {
                     await _context.player_queue.AddAsync(new QueueData { _id = record._id, _start = record._start }).ConfigureAwait(false);
-                    await _context.SaveChangesAsync();
+                    //await _context.SaveChangesAsync();
                 }
 
 
@@ -346,7 +346,7 @@ namespace bot_2.Commands
                                 {
                                     record._canpick = 0;
                                     newRecord._canpick = 1;
-                                    await _context.SaveChangesAsync();
+                                    //await _context.SaveChangesAsync();
                                 }
                                 else
                                 {
@@ -364,7 +364,7 @@ namespace bot_2.Commands
                                 {
                                     record._canpick = 0;
                                     newRecord._canpick = 1;
-                                    await _context.SaveChangesAsync();
+                                    //await _context.SaveChangesAsync();
                                 }
                             }
                             else if (record._p4 == 0)
@@ -374,7 +374,7 @@ namespace bot_2.Commands
                                 {
                                     record._canpick = 0;
                                     newRecord._canpick = 1;
-                                    await _context.SaveChangesAsync();
+                                    //await _context.SaveChangesAsync();
                                 }
                                 else
                                 {
@@ -387,12 +387,12 @@ namespace bot_2.Commands
 
                                 record._canpick = 0;
                                 newRecord._canpick = 1;
-                                await _context.SaveChangesAsync();
+                                //await _context.SaveChangesAsync();
                             }
 
    
                             _context.lobby_pool.Remove(player);
-                            await _context.SaveChangesAsync();
+                            //await _context.SaveChangesAsync();
 
                             if (record._p5 != 0 && newRecord._p5 != 0)
                             {

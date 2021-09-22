@@ -34,9 +34,9 @@ namespace bot_2.Commands
 
                 async () =>
                 {
-                    if (context.Guild.Channels.ContainsKey(Bot.Channels.GameHistoryChannel))
+                    if (await Bot._validator.Exists(context, "game-history"))//context.Guild.Channels.ContainsKey(Bot.Channels.GameHistoryChannel))
                     {
-                        var channel = context.Guild.Channels[Bot.Channels.GameHistoryChannel];
+                        var channel = await Bot._validator.Get(context, "game-history");// context.Guild.Channels[Bot.Channels.GameHistoryChannel];
                         var msg = await channel.GetMessageAsync(messageid);
                         if(msg != null)
                         {
@@ -98,7 +98,7 @@ namespace bot_2.Commands
                     await _context.caster_queue.AddAsync(new CasterQueueData { _id = _profile._id, _start = myDateTime }).ConfigureAwait(false);
                     var record = await _context.player_data.FindAsync(_profile._id);
                     record._gamestatus = 1;
-                    await _context.SaveChangesAsync().ConfigureAwait(false);
+                    //await _context.SaveChangesAsync().ConfigureAwait(false);
 
 
                     await _updatedQueue.StartThread(context);
@@ -147,7 +147,7 @@ namespace bot_2.Commands
 
                     var c_record = await _context.player_data.FindAsync(_profile._id);
                     c_record._gamestatus = 0;
-                    await _context.SaveChangesAsync();
+                    //await _context.SaveChangesAsync();
 
 
                     await _profile.SendDm("You've been removed from queue.");

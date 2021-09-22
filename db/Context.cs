@@ -8,7 +8,6 @@ namespace db
     public class Context : DbContext
     {
         public Context(DbContextOptions<Context> options) : base(options) { }
-        public DbSet<DataSet> primary_table { get; set; } //test
 
         public DbSet<PlayerData> player_data { get; set; }
 

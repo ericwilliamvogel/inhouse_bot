@@ -1,0 +1,20 @@
+{
+  "Channels": [
+    {
+      "Id": 839336496484974622,
+      "Name": "admin-commands"
+    },
+    {
+      "Id": 841775923707379723,
+      "Name": "admins-chat"
+    },
+    {
+      "Id": 844949177347604531,
+      "Name": "error-logs"
+    },
+    {
+      "Id": 855534665582641162,
+      "Name": "commands-playback"
+    }
+  ]
+}

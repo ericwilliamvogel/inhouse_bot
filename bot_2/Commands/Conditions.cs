@@ -1,6 +1,10 @@
-﻿using db;
+﻿using bot_2.Json;
+using db;
 using DSharpPlus.CommandsNext;
+using DSharpPlus.Entities;
+using DSharpPlus.EventArgs;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,9 +15,11 @@ namespace bot_2.Commands
 {
     public class ContextualAction
     {
-        public ContextualAction(CommandContext context, Func<Task> action)
+        Context _context;
+        public ContextualAction(CommandContext context, Func<Task> action, Context dbContext)
         {
             Profile profile = new Profile(context);
+            _context = dbContext;
             _commandContext = context;
             _action = action;
             _profile = profile;
@@ -37,31 +43,36 @@ namespace bot_2.Commands
     public class ActionIterator
     {
         public List<Func<Task>> _actions = new List<Func<Task>>();
-        public async Task AddAction(ContextualAction action)
+        public async Task AddAction(Func<Task> action)
         {
+            bool start = false;
+            if(_actions.Count == 0)
+            {
+                start = true;
+            }
             _actions.Add(async () =>
             {
-                await action._action();
-                await action._commandContext.Message.DeleteAsync();
+                await action();
                 await CompleteAction();
             });
 
-
-            await CompleteAction();
+            if(start)
+            {
+                await CompleteAction();
+            }
+            
         }
-        public async Task AddDelayedAction(int ms, ContextualAction action)
+        public async Task AddDelayedAction(int ms, Func<Task> action)
         {
             await Task.Delay(ms);
 
             _actions.Add(async () =>
             {
-                await action._action();
-                await action._commandContext.Message.DeleteAsync();
+                await action();
                 await CompleteAction();
             });
 
 
-            await CompleteAction();
         }
         private bool active = false;
         public async Task CompleteAction()
@@ -109,7 +120,8 @@ namespace bot_2.Commands
         ProfileComplete,
         IsLobbyHost,
         CanEmote,
-        InhouseIsOpen
+        InhouseIsOpen,
+        IsInRegistrationChannel
     }
     public class Conditions
     {
@@ -143,7 +155,7 @@ namespace bot_2.Commands
                     }
                     else //occ
                     {
-                        await _profile.SendDm("Our records show that you are already in a game/already in a queue. Some restrictions apply if you are already occupied, an example being you cannot queue.");
+                        await _profile.SendIncompleteDm("Our records show that you are already in a game/already in a queue. Some restrictions apply if you are already occupied, an example being you cannot queue.");
                     }
 
                     return false;
@@ -162,7 +174,7 @@ namespace bot_2.Commands
                         }
                         else
                         {
-                            await _profile.SendDm("You need to be a lobby host, and our records show that you aren't the host of any lobby.");
+                            await _profile.SendIncompleteDm("You need to be a lobby host, and our records show that you aren't the host of any lobby.");
                         }
 
                         return false;
@@ -180,7 +192,7 @@ namespace bot_2.Commands
                     }
                     else
                     {
-                        await _profile.SendDm("You aren't registered. Register by going to the #commands channel and typing !register your_steam_id_here to get signed up. We need you to register in order to track your GHL mmr after every game.");
+                        await _profile.SendIncompleteDm("You aren't registered. Register by going to the #commands channel and typing !register your_steam_id_here to get signed up. We need you to register in order to track your GHL mmr after every game.");
                     }
 
                     return false;
@@ -199,7 +211,7 @@ namespace bot_2.Commands
                     }
                     else
                     {
-                        await _profile.SendDm("You're already registered.");
+                        await _profile.SendIncompleteDm("You're already registered.");
                     }
 
                     return false;
@@ -220,7 +232,7 @@ namespace bot_2.Commands
                         }
                         else
                         {
-                            await _profile.SendDm("You cannot issue this command in this channel. This command can only be executed in channel '#commands'.");
+                            await _profile.SendIncompleteDm("You cannot issue this command in this channel. This command can only be executed in channel '#commands'.");
                         }
                         return false;
                     }
@@ -240,7 +252,7 @@ namespace bot_2.Commands
                     }
                     else
                     {
-                        await _profile.SendDm("You're already in queue.");
+                        await _profile.SendIncompleteDm("You cannot execute this command because you're in queue.");
                         return false;
                     }
                 }
@@ -257,7 +269,7 @@ namespace bot_2.Commands
                     }
                     else
                     {
-                        await _profile.SendDm("You're not in any queue.");
+                        await _profile.SendIncompleteDm("You're not in any queue.");
                         return false;
                     }
                 }
@@ -274,7 +286,7 @@ namespace bot_2.Commands
                     }
                     else
                     {
-                        await _profile.SendDm("You're already in queue.");
+                        await _profile.SendIncompleteDm("You're already in queue.");
                         return false;
                     }
                 }
@@ -291,7 +303,7 @@ namespace bot_2.Commands
                     }
                     else
                     {
-                        await _profile.SendDm("You're not in any queue.");
+                        await _profile.SendIncompleteDm("You're not in any queue.");
                         return false;
                     }
                 }
@@ -308,7 +320,7 @@ namespace bot_2.Commands
                     }
                     else
                     {
-                        await _profile.SendDm("You're already in queue.");
+                        await _profile.SendIncompleteDm("You're already in queue.");
                         return false;
                     }
                 }
@@ -325,7 +337,7 @@ namespace bot_2.Commands
                     }
                     else
                     {
-                        await _profile.SendDm("You're not in any queue.");
+                        await _profile.SendIncompleteDm("You're not in any queue.");
                         return false;
                     }
                 }
@@ -359,7 +371,7 @@ namespace bot_2.Commands
                     var record = await _context.game_record.FirstOrDefaultAsync(p => p._p1 == _profile._id && p._p5 == 0);
                     if(record == null)
                     {
-                        await _profile.SendDm("You were not found as a leader in any database records.");
+                        await _profile.SendIncompleteDm("You were not found as a leader in any database records.");
                         return false;
                     }
                     else
@@ -377,7 +389,7 @@ namespace bot_2.Commands
 
                     if (record == null)
                     {
-                        await _profile.SendDm("You do not have emote permissions.");
+                        await _profile.SendIncompleteDm("You do not have emote permissions.");
                         return false;
                     }
                     else
@@ -394,7 +406,7 @@ namespace bot_2.Commands
                     var record = await _context.game_record.FirstOrDefaultAsync(p => p._p1 == _profile._id && p._p5 == 0);
                     if (record == null)
                     {
-                        await _profile.SendDm("You were not found as a leader in any database records.");
+                        await _profile.SendIncompleteDm("You were not found as a leader in any database records.");
                         return false;
                     }
 
@@ -404,7 +416,7 @@ namespace bot_2.Commands
                     }
                     else if(record._canpick == 0)
                     {
-                        await _profile.SendDm("It's not your turn to pick.");
+                        await _profile.SendIncompleteDm("It's not your turn to pick.");
                         return false;
                     }
 
@@ -421,40 +433,31 @@ namespace bot_2.Commands
                         return true;
                     }
 
-                    await _profile.SendDm("There were no mentions recognized in your command.");
+                    await _profile.SendIncompleteDm("There were no mentions recognized in your command.");
                     return false;
 
                 });
 
             _check.Add(Arg.ProfileComplete,
                     async (CommandContext context, Profile _profile) =>
-                    {
-                        /*
-                        var role1 = context.Guild.Roles.FirstOrDefault(p => p.Value.Name == "c_rank").Value;
-                        var role2 = context.Guild.Roles.FirstOrDefault(p => p.Value.Name == "c_region_pref").Value;
-                        var role3 = context.Guild.Roles.FirstOrDefault(p => p.Value.Name == "c_playercap_pref").Value;
-                        var role4 = context.Guild.Roles.FirstOrDefault(p => p.Value.Name == "c_dotacap_pref").Value;
-                        var role5 = context.Guild.Roles.FirstOrDefault(p => p.Value.Name == "c_favrole_pref").Value;
-                        var role6 = context.Guild.Roles.FirstOrDefault(p => p.Value.Name == "c_positions_pref").Value;
+                    {  
+                        var progress = _profile._member.Roles.FirstOrDefault(p => p.Name == "0" || p.Name == "1" || p.Name == "2" || p.Name == "3" || p.Name == "4" || p.Name == "5");
 
-                        if (!_profile._member.Roles.Contains(role1) &&
-                        !_profile._member.Roles.Contains(role2) &&
-                        !_profile._member.Roles.Contains(role3) &&
-                        !_profile._member.Roles.Contains(role4) &&
-                        !_profile._member.Roles.Contains(role5) &&
-                        !_profile._member.Roles.Contains(role6))
+                        var rank = _profile._member.Roles.FirstOrDefault(p => p.Name == "Herald" || p.Name == "Guardian" || p.Name == "Crusader" || p.Name == "Archon" || p.Name == "Legend" || p.Name == "Ancient" || p.Name == "Divine" || p.Name == "Immortal");
+
+                        var region = _profile._member.Roles.FirstOrDefault(p => p.Name.Contains("US "));
+
+                        var pos = _profile._member.Roles.FirstOrDefault(p => p.Name == Bot._positions.Pos1 || p.Name == Bot._positions.Pos2 ||  p.Name == Bot._positions.Pos3 || p.Name == Bot._positions.Pos4 || p.Name == Bot._positions.Pos5 );
+
+                        var prefpos = _profile._member.Roles.FirstOrDefault(p => p.Name == Bot._positions.Pos1 + "(Favorite)" || p.Name == Bot._positions.Pos2 + "(Favorite)" || p.Name == Bot._positions.Pos3 + "(Favorite)" || p.Name == Bot._positions.Pos4 + "(Favorite)" || p.Name == Bot._positions.Pos5 + "(Favorite)" );
+
+                        if(progress == null || rank == null || region == null || pos == null || prefpos == null)
                         {
-                            return true;
-                        }
-                        */
-                        var record = await _context.player_data.FindAsync(_profile._id);
-                        if (record._role1 != 0 && record._role2 != 0 && record._region != (int)Region.NONE && record._dotammr != 0)
-                        {
-                            return true;
+                            await _profile.SendIncompleteDm("Your profile is incomplete, please type !profile for information on how to complete your profile.");
+                            return false;
                         }
 
-                        await _profile.SendDm("Your profile is incomplete, please type !preferences for information on how to complete your profile.");
-                        return false;
+                        return true;
 
                     });
 
@@ -466,8 +469,21 @@ namespace bot_2.Commands
                         return true;
                     }
 
-                    await _profile.SendDm("The inhouse isn't open right now. Inhouse opens at 10pmEST and closes at 1amEST.");
+                    await _profile.SendIncompleteDm("The inhouse isn't open right now. See scheduling details under #scheduling.");
                     return false;
+
+                });
+
+            _check.Add(Arg.IsInRegistrationChannel,
+                async (CommandContext context, Profile _profile) =>
+                {
+                    if(context.Channel != await Bot._validator.Get(context, "registration"))
+                    {
+                        await _profile.SendIncompleteDm("You can only register in the registration channel.");
+                        return false;
+                    }
+
+                    return true;
 
                 });
             /*
@@ -501,7 +517,7 @@ namespace bot_2.Commands
                 }
                 else
                 {
-                    await _profile.SendDm("You cannot issue this command in this channel. This command can only be executed in channel '" + channelName + "'.");
+                    await _profile.SendIncompleteDm("You cannot issue this command in this channel. This command can only be executed in channel '" + channelName + "'.");
                 }
                 return false;
             };
@@ -517,7 +533,7 @@ namespace bot_2.Commands
                 var role = context.Guild.Roles.FirstOrDefault(p => p.Value.Name == roleName).Value; //i dont think we can access value if it returns null? could cause errors, kinda spooky
                 if(role == null)
                 {
-                    await _profile.SendDm("Role check for '" + roleName + "' was not found. The check for the role is case sensitive, this may be on the dev end to fix! Please open a ticket to report the issue.");
+                    await _profile.SendIncompleteDm("Role check for '" + roleName + "' was not found. The check for the role is case sensitive, this may be on the dev end to fix! Please open a ticket to report the issue.");
                     return false;
                 }
 
@@ -528,7 +544,7 @@ namespace bot_2.Commands
                 }
                 else
                 {
-                    await _profile.SendDm("You don't have the minimum role necessary to execute this command.");
+                    await _profile.SendIncompleteDm("You don't have the minimum role necessary to execute this command.");
                 }
                 return false;
             };
@@ -560,9 +576,10 @@ namespace bot_2.Commands
 
         }
 
+
         public static bool _locked = false;
 
-        public async Task TryConditionedAction(CommandContext context, Profile _profile, List<Arg> tasks, Func<Task> action)
+        public async Task TryConditionedAction(CommandContext context, Profile _profile, List<Arg> tasks, DbDependentAction action)
         {
             var conditions = await AreMet(context, _profile, tasks);
 
@@ -574,7 +591,7 @@ namespace bot_2.Commands
 
             if(_locked)
             {
-                await _profile.SendDm("The bot is currently in the middle of a large action. Try running this command again in a few seconds.");
+                await _profile.SendIncompleteDm("The bot is currently busy doing routine database update / running a large action. Try running this command again in a few seconds.");
                 await context.Message.DeleteAsync();
                 return;
             }
@@ -582,7 +599,12 @@ namespace bot_2.Commands
             try
             {
                 await AssureSchedulingIsRunning(context);
-                await action();
+
+
+                    await action();
+
+
+                //await action();
                 await context.Message.DeleteAsync();
             }
             catch(DSharpPlus.Exceptions.NotFoundException e)
@@ -591,45 +613,160 @@ namespace bot_2.Commands
             }
             catch (Exception e)
             {
-                await _profile.SendDm("The command you entered may have encountered an error(probably from a large amount of commands coming from different users). Try entering it again. If it still doesn't work, create a ticket and detail the problem. Thank you.");
+                await _profile.SendIncompleteDm("The command you entered may have encountered an error(probably from a large amount of commands coming from different users). Try entering it again. If it still doesn't work, create a ticket and detail the problem. Thank you.");
                 await _profile.ReportError(context, e);
             }
 
 
         }
 
+
+        private async Task StartSaveChangesLoop(CommandContext context)
+        {
+            var channel = await Bot._validator.Get(context, "error-logs");// context.Guild.Channels[Bot.Channels.ErrorChannel];
+
+            Task task = await Task.Factory.StartNew(async () =>
+            {
+                await SaveChangesEvery(channel, 5000);
+            }, TaskCreationOptions.LongRunning);
+
+        }
+
+        public async Task SaveChanges()
+        {
+            _locked = true;
+            await Task.Delay(300);
+
+            await _context.SaveChangesAsync();
+
+            await Task.Delay(50);
+            _locked = false;
+        }
+        private async Task SaveChangesEvery(DiscordChannel channel, int ms)
+        {
+            await Task.Delay(ms);
+            if(!_locked)
+            {
+
+                await SaveChanges();
+            }
+            else
+            {
+                await channel.SendMessageAsync("Changes skipped");
+            }
+
+            await SaveChangesEvery(channel, ms);
+        }
         private async Task AssureSchedulingIsRunning(CommandContext context)
         {
             if (!TaskScheduler.active)
             {
-                TaskScheduler.Instance.ScheduleTask(17, 0, 24, async () =>
-                {
-                    if (!TaskScheduler._inhouseOpen)
-                        await QOL.SendMessage(context, Bot.Channels.GeneralChannel, "Inhouse queue opens in 2 hours.");
-                });
 
-                TaskScheduler.Instance.ScheduleTask(18, 0, 24, async () =>
-                {
-                    if (!TaskScheduler._inhouseOpen)
-                        await QOL.SendMessage(context, Bot.Channels.GeneralChannel, "Inhouse queue opens in 1 hour.");
-                });
-                TaskScheduler.Instance.ScheduleTask(19, 0, 24, async () =>
-                {
-                    if (!TaskScheduler._inhouseOpen)
-                        await QOL.SendMessage(context, Bot.Channels.GeneralChannel, "<@&852359190453288981>, Queueing is now available tonight from 10pmEST to 1amEST. \n\nReminder to use !pingme to be given the <@&852359190453288981> role. If you change your mind use !dontpingme.");
+                await StartSaveChangesLoop(context);
 
-                    TaskScheduler._inhouseOpen = true;
+                JsonCommunicator comm = new JsonCommunicator();
+                string serialized = comm.GetStringValue("schedule", "schedule");
 
-                });
-
-                TaskScheduler.Instance.ScheduleTask(23, 0, 24, async () =>
+                ScheduleJson schedule = JsonConvert.DeserializeObject<ScheduleJson>(serialized);
+                foreach (var day in schedule.Schedule)
                 {
-                    TaskScheduler._inhouseOpen = false;
-                    await QOL.SendMessage(context, Bot.Channels.GeneralChannel, "Queueing is now closed for the night. GrinHouse will open again at 10pmEST tomorrow.");
+                    await ScheduleTasks(day, context);
+                }
+
+
+                TaskScheduler.Instance.ScheduleTask(5, 0, 24, async () =>
+                {
+                    try
+                    {
+                        foreach (var day in schedule.Schedule)
+                        {
+                            await ScheduleTasks(day, context);
+                        }
+
+                    }
+                    catch (Exception e)
+                    {
+
+                    }
+
                 });
             }
             await Task.CompletedTask;
         }
 
+        private async Task ScheduleTasks(DayScheduleJson day, CommandContext context)
+        {
+            if (DateTime.Now.DayOfWeek == (System.DayOfWeek)day.Day)
+            {
+                Console.WriteLine("Schedule set for " + (System.DayOfWeek)day.Day);
+                TaskScheduler.Instance.ScheduleTask(day.StartHour - 2, day.StartMinute, 1144, async () =>
+                {
+                    try
+                    {
+                        if (!TaskScheduler._inhouseOpen)
+                        {
+                            await QOL.SendMessage(context, "inhouse-general", "Inhouse queue opens in 2 hours.");
+                        }
+
+                    }
+                    catch (Exception e)
+                    {
+
+                    }
+
+                });
+
+                TaskScheduler.Instance.ScheduleTask(day.StartHour - 1, day.StartMinute, 1144, async () =>
+                {
+                    try
+                    {
+                        if (!TaskScheduler._inhouseOpen)
+                        {
+                            await QOL.SendMessage(context, "inhouse-general", "Inhouse queue opens in 1 hour.");
+                        }
+
+                    }
+                    catch (Exception e)
+                    {
+
+                    }
+
+                });
+                TaskScheduler.Instance.ScheduleTask(day.StartHour, day.StartMinute, 1144, async () =>
+                {
+                    try
+                    {
+                        if (!TaskScheduler._inhouseOpen)
+                        {
+                            await QOL.SendMessage(context, "inhouse-general", "<@&775151515442741258>, Queueing is now available. \n\nReminder to go to the control-panel tab to disable notifications if you don't want to be pinged.");
+                        }
+
+                    }
+                    catch (Exception e)
+                    {
+
+                    }
+
+
+                    TaskScheduler._inhouseOpen = true;
+
+                });
+
+                TaskScheduler.Instance.ScheduleTask(day.EndHour, day.EndMinute, 1144, async () =>
+                {
+                    TaskScheduler._inhouseOpen = false;
+                    try
+                    {
+                        await QOL.SendMessage(context, "inhouse-general", "Queueing is now closed for the night. Refer to #scheduling for inhouse hours.");
+                    }
+                    catch (Exception e)
+                    {
+
+                    }
+
+                });
+            }
+            await Task.CompletedTask;
+        }
     }
 }

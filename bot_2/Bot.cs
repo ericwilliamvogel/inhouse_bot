@@ -13,22 +13,17 @@ using DSharpPlus.Interactivity.Extensions;
 using Microsoft.Extensions.Logging;
 using System.Linq;
 using DSharpPlus.Entities;
+using Newtonsoft.Json.Linq;
 
 namespace bot_2
 {
-    /*
-      SELECT * FROM primary_table;
 
-INSERT INTO primary_table (_id, _name, _desc) VALUES(1, 'swag', 'bag');
+    public enum GameType
+    {
+        Dota2,
+        PokemonUnite
+    }
 
-DROP TABLE primary_table;
-
-CREATE TABLE primary_table(
-	_id INT NOT NULL IDENTITY(1,1) PRIMARY KEY,
-	_name varchar(25) NOT NULL,
-	_desc varchar(25)
-);
-    */
     public class Bot
     {
         public DiscordClient Client { get; private set; }
@@ -36,16 +31,20 @@ CREATE TABLE primary_table(
         public InteractivityExtension Interactivity { get; private set; }
         public CommandsNextExtension Commands { get; private set; }
 
-        public DotaClient DotaClient { get; set; }
-
-        public static ChannelConfigJson Channels { get; set; }
-
-        public ReactMessageConfigJson ReactMessages { get; set; }
         private QOL QOL { get; set; }
         private EmojiHandler _registration { get; set; }
+
+        public static FileValidator _validator;
+
+        public static Positions _positions;
+
+        public static Admins _admins;
         public Bot(IServiceProvider services)
         {
             QOL = new QOL();
+
+            _positions = new Positions();
+            _validator = new FileValidator();
 
             var json = string.Empty;
 
@@ -56,23 +55,35 @@ CREATE TABLE primary_table(
             var configJson = JsonConvert.DeserializeObject<ConfigJson>(json);
 
 
-            var channeljson = string.Empty;
-
-            using (var fs = File.OpenRead("channelConfig.json"))
+            using (var fs = File.OpenRead("positions.json"))
             using (var sr = new StreamReader(fs, new UTF8Encoding(false)))
-                channeljson = sr.ReadToEnd();
+                json = sr.ReadToEnd();
 
-            Channels = JsonConvert.DeserializeObject<ChannelConfigJson>(channeljson);
+            _positions = JsonConvert.DeserializeObject<Positions>(json);
 
-            var reactjson = string.Empty;
+            var temptemp = JObject.Parse(json);
+            if ((string)temptemp["Pos1"] == "")
+            {
+                string exception = "\n\n\n\n !!!! Position names have not been assigned. Go into positions.json to assign the names, then restart the bot. \n\n\n\n !! \n\n";
+                Console.WriteLine(exception);
+            }
 
-            using (var fs = File.OpenRead("reactConfig.json"))
+            using (var fs = File.OpenRead("admins.json"))
             using (var sr = new StreamReader(fs, new UTF8Encoding(false)))
-                reactjson = sr.ReadToEnd();
+                json = sr.ReadToEnd();
 
-            ReactMessages = JsonConvert.DeserializeObject<ReactMessageConfigJson>(reactjson);
+            _admins = JsonConvert.DeserializeObject<Admins>(json);
 
-            SetExistingChannelCheck();
+            temptemp = JObject.Parse(json);
+            if ((string)temptemp["admin"] == "")
+            {
+                string exception = "\n\n\n\n !!!! Main admin has not been assigned. Go into admins.json to assign the id, then restart the bot. \n\n\n\n !! \n\n";
+                Console.WriteLine(exception);
+            }
+
+
+
+            //SetExistingChannelCheck();
 
             var config = new DiscordConfiguration
             {
@@ -91,10 +102,10 @@ CREATE TABLE primary_table(
             Client.Resumed += OnClientReady;
             Client.MessageCreated += OnMessageCreated;
             Client.MessageReactionAdded += OnReactionAdded;
-            /*Client.UseInteractivity(new InteractivityConfiguration
+            Client.UseInteractivity(new InteractivityConfiguration
             {
-                Timeout = TimeSpan.FromMinutes(2)
-            });*/
+                Timeout = TimeSpan.FromDays(7)
+            });
 
             var commandsConfig = new CommandsNextConfiguration
             {
@@ -115,29 +126,53 @@ CREATE TABLE primary_table(
             Commands.RegisterCommands<CasterCommands>();
             Commands.RegisterCommands<QueueCommands>();
             Commands.RegisterCommands<LobbyCommands>();
+            Commands.RegisterCommands<ShopCommands>();
 
-            _registration = new EmojiHandler(this);
+            _registration = new EmojiHandler(this, services);
 
 
             Client.ConnectAsync();
         }
 
+        ActionIterator actions = new ActionIterator();
         private async Task OnReactionAdded(DiscordClient c, MessageReactionAddEventArgs args)
         {
-            /*_ = args ?? throw new ArgumentNullException();
+            _ = args ?? throw new ArgumentNullException();
 
             _ = args.Guild ?? throw new ArgumentNullException();
 
 
-            var channel = args.Guild.Channels[857007086311440414];
+            /*var channel = args.Guild.Channels[857308958300569661];
 
             if (args.Channel != channel)
                 return;
 
             if (!IsCorrect(args.Message.Id))
-                return;
+                return;*/
 
-            await _registration._reactLogic[args.Message.Id](args);*/
+            var channel = args.Channel;
+
+            /*if (channel == await _validator.Get(args.Guild, "control-panel"))
+            {
+
+            }*/
+
+
+            if(_validator._messages.ContainsKey(args.Message.Id))
+            {
+                await actions.AddAction(async () =>
+                {
+                    await _registration._reactLogic[_validator._messages[args.Message.Id]](args);
+                });
+            }
+
+
+
+
+
+
+
+
         }
         private bool IsCorrect(ulong id)
         {
@@ -153,6 +188,7 @@ CREATE TABLE primary_table(
                 id == 857008592200269834 ||
                 id == 857008595873693777 ||
                 id == 857011121659052083 ||
+                id == 857310960377528320 ||
                 id == 857011160741576704)
             {
                 return true;
@@ -169,52 +205,47 @@ CREATE TABLE primary_table(
             //Console.WriteLine("Variables reset, new update thread should've been started");
         }
 
-        private List<ulong> _existingChannelCheck;
-
-        private void SetExistingChannelCheck()
-        {
-            _existingChannelCheck = new List<ulong>();
-            _existingChannelCheck.Add(Channels.CommandsChannel);
-            _existingChannelCheck.Add(Channels.QueueChannel);
-            _existingChannelCheck.Add(Channels.CommandsPlaybackChannel);
-            _existingChannelCheck.Add(Channels.AdminCommandsChannel);
-
-        }
         private async Task OnMessageCreated(DiscordClient c, MessageCreateEventArgs e)
         {
             try
             {
-                _ = e ?? throw new ArgumentNullException();
+                //_ = e ?? throw new ArgumentNullException();
 
-                _ = e.Guild ?? throw new ArgumentNullException();
+                //_ = e.Guild ?? throw new ArgumentNullException();
 
-
-                if (QOL.ChannelsExist(e, _existingChannelCheck))
+                if(e == null)
                 {
-                    if (e.Channel == e.Guild.Channels[Channels.CommandsChannel] ||
-                        e.Channel == e.Guild.Channels[Channels.QueueChannel] ||
-                        e.Channel == e.Guild.Channels[Channels.AdminCommandsChannel])
-                    {
-                        Task task = await Task.Factory.StartNew(async () =>
-                        {
-                            await Task.Delay(4000);
-
-                            var channel = e.Guild.Channels[Channels.CommandsPlaybackChannel];
-                            await channel.SendMessageAsync("<@" + e.Message.Author.Id + "> : " + e.Message.Content);
-                            if (e != null)
-                            {
-                                if (e.Message != null)
-                                {
-                                    await e.Message.DeleteAsync();
-                                }
-                            }
-
-                        }, TaskCreationOptions.LongRunning);
-
-
-
-                    }
+                    return;
                 }
+                if(e.Guild == null)
+                {
+                    return;
+                }
+
+                if (e.Channel == await _validator.Get(e, "commands") ||
+                    e.Channel == await _validator.Get(e, "queue") ||
+                    e.Channel == await _validator.Get(e, "admin-commands") )
+                {
+                    Task task = await Task.Factory.StartNew(async () =>
+                    {
+                        await Task.Delay(4000);
+
+                        var channel = await _validator.Get(e, "commands-playback");
+                        await channel.SendMessageAsync("<@" + e.Message.Author.Id + "> : " + e.Message.Content);
+                        if (e != null)
+                        {
+                            if (e.Message != null)
+                            {
+                                await e.Message.DeleteAsync();
+                            }
+                        }
+
+                    }, TaskCreationOptions.LongRunning);
+
+
+
+                }
+                
 
 
 

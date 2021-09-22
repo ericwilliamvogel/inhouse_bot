@@ -3,15 +3,15 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30503.244
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "bot_2", "bot_2\bot_2.csproj", "{2BECDEB8-058B-48C8-81CC-E9013B586B25}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "bot_2", "bot_2\bot_2.csproj", "{2BECDEB8-058B-48C8-81CC-E9013B586B25}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Bot", "Bot", "{DE71D838-1825-4E95-9402-246634D3C8E3}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Database", "Database", "{A510AE0B-899B-437A-9D3B-9A2F24206E36}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "db", "db\db.csproj", "{59F2C5D8-E1AD-463F-A0FF-B794B44E58EB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "db", "db\db.csproj", "{59F2C5D8-E1AD-463F-A0FF-B794B44E58EB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Migrations", "Migrations\Migrations.csproj", "{2A77BE3A-6759-4D78-B8E5-F6E644DB8071}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Migrations", "Migrations\Migrations.csproj", "{2A77BE3A-6759-4D78-B8E5-F6E644DB8071}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

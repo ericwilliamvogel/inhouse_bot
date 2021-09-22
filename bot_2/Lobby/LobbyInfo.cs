@@ -10,6 +10,7 @@ using DSharpPlus.CommandsNext.Attributes;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using OpenDotaDotNet;
+using static DSharpPlus.Entities.DiscordEmbedBuilder;
 
 namespace bot_2.Commands
 {
@@ -196,11 +197,18 @@ namespace bot_2.Commands
             int team1mmr = _utilities.GetTeamTrueMmr(team1);
             int team2mmr = _utilities.GetTeamTrueMmr(team2);
 
+            int team1dotammr = _utilities.GetDotaMmrAverage(team1);
+            int team1ihlmmr = _utilities.GetIhlMmrAverage(team1);
+
+            int team2dotammr = _utilities.GetDotaMmrAverage(team2);
+            int team2ihlmmr = _utilities.GetIhlMmrAverage(team2);
+
+
             int team1gain = basemmr * team2mmr / team1mmr;
 
             int team1loss = basemmr * team1mmr / team2mmr;
 
-            Region region = GetRegion(team1, team2);
+            Region region = GetRegion(context, team1, team2);
 
             string hostMention = "<host_not_found>";
             if (context.Guild.Members.ContainsKey(leaderid))
@@ -210,9 +218,9 @@ namespace bot_2.Commands
             }
 
             string team1Mention = "Team1 = \n" +
-                "Win: " + team1gain + " mmr /// Lose: " + team1loss + " mmr \n" + await GetTeamLineup(context, team1);
+                "Win: " + team1gain + " mmr /// Lose: " + team1loss + " mmr /// Average mmr: "+team1dotammr+" / Average ihlmmr: " + team1ihlmmr +"\n" + await GetTeamLineup(context, team1);
             string team2Mention = "Team2 = \n" +
-                "Win: " + team1loss + " mmr /// Lose: " + team1gain + " mmr \n" + await GetTeamLineup(context, team2);
+                "Win: " + team1loss + " mmr /// Lose: " + team1gain + " mmr /// Average mmr: " + team2dotammr + " / Average ihlmmr: " + team2ihlmmr + "\n" + await GetTeamLineup(context, team2);
 
             /*string casterMention = "Casters = \n" +
                 _utilities.GetTeamLineup(context, casters);
@@ -222,7 +230,7 @@ namespace bot_2.Commands
 
 
             string instructions = "After the game, the host can report the winner by command '!team1 game_id_here' , '!team2 game_id_here', or !draw 'game_id_here. If you need any help or something isn't working please contact an admin/mod.";
-            instructions += "If a player cannot play / abandons, the LOBBY HOST can kick that player using !kick @mention ... Example: !kick <@126922582208282624>";
+            instructions += "If a player cannot play / abandons, the LOBBY HOST can kick that player using !kick @mention ... Example: !kick <@" + Bot._admins.Admin  + "> ";
 
             string final = "Server = " + region + "\n" +
                 "Game ID = " + gameid + ". \n\n" +
@@ -235,14 +243,23 @@ namespace bot_2.Commands
             return final;
         }
 
-        public string GetLobbyPass(string lobbyname)
+        public DiscordEmbed GetLobbyPass(string lobbyname)
         {
             string lobbyName = lobbyname;//"grin" + gameid;
             string lobbyPass = "grin" + DateTime.Now.Millisecond;
 
-            string preinstructions = "\n\n**LobbyName = " + lobbyName + "**\n**Password = " + lobbyPass + "**.\n\n";
+            string preinstructions = "\n\n**LobbyName = " + lobbyName + "**\n**Password = " + lobbyPass + "**\n\n";
 
-            return preinstructions;
+            DiscordEmbedBuilder builder = new DiscordEmbedBuilder()
+                .AddField("Lobby Info", "preinstructions", false)
+                .WithColor(DiscordColor.Gold);
+
+
+            builder.Footer = new EmbedFooter() { Text = "" };
+
+            DiscordEmbed embed = builder.Build();
+
+            return embed;
         }
 
         public async Task<string> GetLobbyPoolInfo(CommandContext context, int gameid)
@@ -261,22 +278,27 @@ namespace bot_2.Commands
 
             lobby += "Team1 Captain = <@" + team1._p1 + ">\n";
             lobby += "Team2 Captain = <@" + team2._p1 + ">\n\n";
-            
 
+            var team1picking = string.Empty;
+            var team2picking = string.Empty;
+
+            string picking = "**PICKING**";
             if (team1._canpick == 1)
             {
-                lobby += "Picking = team1\n";
+                team1picking = picking;
+                lobby += "Picking = <@" + team1._p1+ ">\n";
             }
             if (team2._canpick == 1)
             {
-                lobby += "Picking = team2\n";
+                team2picking = picking;
+                lobby += "Picking = <@"+team2._p1+">\n";
             }
 
             lobby += "\n";
 
-            lobby += "--- Team 1 ---\n\n" + await GetTeamDesc(context, team1) + "\n\n";
+            lobby += "--- Team 1 "+team1picking+" ---\n\n" + await GetTeamDesc(context, team1) + "\n\n";
 
-            lobby += "--- Team 2 --- \n\n" + await GetTeamDesc(context, team2) + "\n";
+            lobby += "--- Team 2 " + team2picking + " --- \n\n" + await GetTeamDesc(context, team2) + "\n";
 
 
             lobby += "\n\nPool = \n";
@@ -288,11 +310,11 @@ namespace bot_2.Commands
             }
 
             lobby += "\n";
-            lobby += "```Captains can pick players in the available pool using command !pick @mention ``` Example: **!pick** <@126922582208282624>\n";
+            lobby += "```Captains can pick players in the available pool using command !pick @mention ``` Example: **!pick** <@" + Bot._admins.Admin  + ">\n";
             lobby += "```Did someone have to leave your game during draft phase or midgame? Use command !draw 0 to kill the discord channels and internally reset all players.``` Example: **!draw 0**\n";
             lobby += "```Can some players not see the lobby or want to spectate the game after it already popped? Simply !invite @mention so they can see the pick phase! These same players may also have trouble getting their lobby roles(team1, team2, etc...), refer below for info on how to invite them! ```" +
-                " Example: **!invite** <@126922582208282624>\n";
-            lobby += "```Are some players not able to see their respective discord voice channels? Simply !invite specified_team @mention so they can get access to their voice channel!``` Example: **invite** team1 <@126922582208282624>";
+                " Example: **!invite** <@" + Bot._admins.Admin + ">\n";
+            lobby += "```Are some players not able to see their respective discord voice channels? Simply !invite specified_team @mention so they can get access to their voice channel!``` Example: **invite** team1 <@" + Bot._admins.Admin  + "> ";
             return lobby;
         }
 
@@ -313,15 +335,48 @@ namespace bot_2.Commands
         {
             string player = "";
 
+            
             var record = await _context.player_data.FindAsync(id);
+            if(context.Guild.Members.ContainsKey(id))
+            {
+                var roleslist = context.Guild.Members[id].Roles.ToList();
 
-            int dotammr = record._dotammr;
+                var roles = roleslist.FindAll(p => p.Name == Bot._positions.Pos1 || p.Name == Bot._positions.Pos2 || p.Name == Bot._positions.Pos3 || p.Name == Bot._positions.Pos4 || p.Name == Bot._positions.Pos5);
 
-            //if (context.Guild.Members.ContainsKey(id))
-                //dotammr = calculator.GetMMR(context, context.Guild.Members[id]);
+                string desc = "Roles = | ";
+                foreach (var role in roles)
+                {
+                    desc += role.Name + " | ";
+                }
+                desc += ",";
 
-            if (record != null)
-                player += "<@" + record._id + ">, " + (Region)record._region + " - Dotammr = " + dotammr + ", Ihlmmr = " + record._ihlmmr + ", Preferred roles = " + record._role1 + "(Best), " + record._role2 + ".\n";
+                var bestrole = context.Member.Roles.FirstOrDefault(p => p.Name.Contains("(Favorite)"));
+
+                string bestdesc = "Best role = | ** ";
+                if (bestrole != null)
+                {
+                    bestdesc += bestrole.Name;
+                }
+                else
+                {
+                    bestdesc += "not_found";
+                }
+                bestdesc += "** |";
+                if (record != null)
+                {
+                    int dotammr = record._dotammr;
+
+
+
+                    //if (context.Guild.Members.ContainsKey(id))
+                    //dotammr = calculator.GetMMR(context, context.Guild.Members[id]);
+
+                    if (record != null)
+                        player += "<@" + record._id + ">, " + " - Dotammr = " + dotammr + ", Ihlmmr = " + record._ihlmmr + ", " + desc + bestdesc + "\n";
+
+                }
+            }
+            
 
             return player;
         }
@@ -341,36 +396,37 @@ namespace bot_2.Commands
             return text;
         }
 
-        private Region GetRegion(List<Player> team1, List<Player> team2)
+        private Region GetRegion(CommandContext context, List<Player> team1, List<Player> team2)
         {
             int east = 0;
             int west = 0;
             foreach (Player player in team1)
             {
-                var rec = _context.player_data.Find(player._id);
-                if (rec != null)
+                if(context.Guild.Members.ContainsKey(player._id))
                 {
-                    if (rec._region == (int)Region.USEAST)
+                    var temp = context.Guild.Members[player._id];
+                    if(temp.Roles.FirstOrDefault(p => p.Name == "US East") != null)
                     {
                         east++;
                     }
-                    if (rec._region == (int)Region.USWEST)
+                    else
                     {
                         west++;
                     }
                 }
+
             }
 
             foreach (Player player in team2)
             {
-                var rec = _context.player_data.Find(player._id);
-                if (rec != null)
+                if (context.Guild.Members.ContainsKey(player._id))
                 {
-                    if (rec._region == (int)Region.USEAST)
+                    var temp = context.Guild.Members[player._id];
+                    if (temp.Roles.FirstOrDefault(p => p.Name == "US East") != null)
                     {
                         east++;
                     }
-                    if (rec._region == (int)Region.USWEST)
+                    else
                     {
                         west++;
                     }

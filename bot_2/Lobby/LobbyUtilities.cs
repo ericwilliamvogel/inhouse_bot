@@ -17,7 +17,7 @@ namespace bot_2.Commands
         Context _context;
         public LobbyUtilities(Context context)
         {
-            this._context = context;
+            _context = context;
         }
 
         public async Task RemoveSpectatorRoles(CommandContext context, List<Player> team, int number)
@@ -134,7 +134,28 @@ namespace bot_2.Commands
 
             return counter;
         }
+        public int GetIhlMmrAverage(List<Player> team)
+        {
+            int counter = 0;
+            foreach (Player player in team)
+            {
+                counter += player._ihlmmr;
+            }
+            counter = counter / team.Count;
 
+            return counter;
+        }
+        public int GetDotaMmrAverage(List<Player> team)
+        {
+            int counter = 0;
+            foreach (Player player in team)
+            {
+                counter += player._mmr;
+            }
+            counter = counter / team.Count;
+
+            return counter;
+        }
         public async Task GrantRole(CommandContext context, List<Player> players, DiscordRole role)
         {
             var members = context.Guild.Members;
@@ -162,9 +183,24 @@ namespace bot_2.Commands
             return target;
         }
 
+        public static void Shuffle<T>(IList<T> list)
+        {
+            Random rng = new Random(DateTime.Now.Millisecond);
+            int n = list.Count;
+            while (n > 1)
+            {
+                n--;
+                int k = rng.Next(n + 1);
+                T value = list[k];
+                list[k] = list[n];
+                list[n] = value;
+            }
+        }
+
         public Player GetLeader(CommandContext context, List<Player> players)
         {
             Player leader = null;
+            List<Player> leaders = new List<Player>();
             foreach (Player player in players)
             {
                 if (context.Guild.Members.ContainsKey(player._id))
@@ -174,13 +210,17 @@ namespace bot_2.Commands
 
                     if (member.Roles.Contains(role))
                     {
+                        leaders.Add(player);
                         leader = player;
-                        break;
+                        //break;
                     }
                 }
-
-
             }
+
+            Shuffle(leaders);
+
+            if(leaders.Count > 0)
+                leader = leaders[0];
 
             if (leader == null)
             {
@@ -204,7 +244,7 @@ namespace bot_2.Commands
             await ChangeGameStatus(record._p3, status);
             await ChangeGameStatus(record._p4, status);
             await ChangeGameStatus(record._p5, status);
-            await _context.SaveChangesAsync();
+            //await _context.SaveChangesAsync();
         }
         public async Task ChangeGameStatus(ulong player, int status) //0 for notocc //1 for occ
         {
@@ -212,7 +252,7 @@ namespace bot_2.Commands
             if (record != null)
             {
                 record._gamestatus = status;
-                await _context.SaveChangesAsync();
+                //await _context.SaveChangesAsync();
             }
 
         }

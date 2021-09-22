@@ -9,6 +9,8 @@ using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
+using DSharpPlus.EventArgs;
+using static DSharpPlus.Entities.DiscordEmbedBuilder;
 
 namespace bot_2.Commands
 {
@@ -56,6 +58,14 @@ namespace bot_2.Commands
 
         }
 
+        public Profile(MessageCreateEventArgs context)
+        {
+            ulong id = context.Author.Id;
+            _id = id;
+
+            _member = context.Guild.Members[id];
+        }
+
 
         public Profile(CommandContext context, ulong id)
         {
@@ -97,7 +107,16 @@ namespace bot_2.Commands
                 {
                     var channel = await _member.CreateDmChannelAsync();
 
-                    await channel.SendMessageAsync("```" + input + "```").ConfigureAwait(false);
+                    DiscordEmbedBuilder builder = new DiscordEmbedBuilder()
+                        .AddField("--Inhouse Message--", input, false)
+                        .WithColor(DiscordColor.Gold);
+
+
+                    builder.Footer = new EmbedFooter() { Text = "" };
+
+                    DiscordEmbed embed = builder.Build();
+
+                    await channel.SendMessageAsync("", false, embed).ConfigureAwait(false);
                 }
 
             }
@@ -108,6 +127,33 @@ namespace bot_2.Commands
             }
         }
 
+        public async Task SendCompleteDm(string input)
+        {
+            await SendDm(":white_check_mark: " + input);
+        }
+
+        public async Task SendIncompleteDm(string input)
+        {
+            await SendDm(":no_entry: " + input);
+        }
+        public async Task SendDm(string input, DiscordEmbed embed)
+        {
+            try
+            {
+                if (_member != null)
+                {
+                    var channel = await _member.CreateDmChannelAsync();
+
+                    await channel.SendMessageAsync(input, false, embed).ConfigureAwait(false);
+                }
+
+            }
+            catch
+            {
+
+
+            }
+        }
         public async Task SendDmNaked(string input)
         {
             try
@@ -126,16 +172,23 @@ namespace bot_2.Commands
 
             }
         }
+
+        public async Task ReportError(MessageCreateEventArgs context, string input)
+        {
+            var channel = await Bot._validator.Get(context, "error-logs");
+            await channel.SendMessageAsync("<@"  + Bot._admins.Admin + "> : " + input);
+        }
+
         public async Task ReportError(CommandContext context, Exception input)
         {
-            QOL QOL = new QOL();
-            await QOL.SendMessage(context, Bot.Channels.ErrorChannel, "<@126922582208282624> : " + input.ToString());
+            var channel = await Bot._validator.Get(context, "error-logs");
+            await channel.SendMessageAsync("<@" + Bot._admins.Admin  + "> : " + input);
         }
 
         public async Task ReportError(CommandContext context, string input)
         {
-            QOL QOL = new QOL();
-            await QOL.SendMessage(context, Bot.Channels.ErrorChannel, "<@126922582208282624> : " + input);
+            var channel = await Bot._validator.Get(context, "error-logs");
+            await channel.SendMessageAsync("<@" + Bot._admins.Admin + "> : " + input);
         }
     }
 }

@@ -73,7 +73,7 @@ namespace bot_2.Commands
                         var game = await _context.game_data.FindAsync(gameProfile._gameid);
                         var id = game._id;
                         game._winner = (int)Side.Draw;
-                        await _context.SaveChangesAsync();
+                        //await _context.SaveChangesAsync();
                         //var record1 = await _context.game_record.FirstOrDefaultAsync(p => p._gameid == game._id && p._side == (int)Side.Radiant);
                         //var record2 = await _context.game_record.FirstOrDefaultAsync(p => p._gameid == game._id && p._side == (int)Side.Dire);
 
@@ -81,6 +81,20 @@ namespace bot_2.Commands
                             await _utilities.ChangeTeamStatus(record1, 0);
                         if (record2 != null)
                             await _utilities.ChangeTeamStatus(record2, 0);
+
+                        var list = await _context.lobby_pool.ToListAsync();
+                        var records = list.FindAll(p => p._gameid == id);
+                        if(records != null)
+                        {
+                            if(records.Count > 0)
+                            {
+                                foreach (LobbyPool pool in records)
+                                {
+                                    await _utilities.ChangeGameStatus(pool._discordid, 0);
+                                }
+
+                            }
+                        }
 
                         try //this is nested so this doesnt crash bot
                         {
@@ -93,13 +107,13 @@ namespace bot_2.Commands
                                     if (playerRecord != null)
                                     {
                                         playerRecord._xp += betRecord._amount;
-                                        await _context.SaveChangesAsync();
+                                        //await _context.SaveChangesAsync();
                                     }
 
                                 
 
                                 _context.game_bets.Remove(betRecord);
-                                await _context.SaveChangesAsync();
+                                //await _context.SaveChangesAsync();
                             }
 
                         }
@@ -109,7 +123,7 @@ namespace bot_2.Commands
                         }
 
                         _context.game_data.Remove(game);
-                        await _context.SaveChangesAsync();
+                        //await _context.SaveChangesAsync();
                     }
                     else
                     {
@@ -117,7 +131,7 @@ namespace bot_2.Commands
                     }
 
 
-                    await QOL.SendMessage(context, Bot.Channels.GameHistoryChannel,
+                    await QOL.SendMessage(context, "game-history",
                         "waiting for opendota api to pick up game under id " + steamid);
 
                     await WrapUp(context, gameProfile._number);
@@ -133,7 +147,7 @@ namespace bot_2.Commands
                             if (gameDetails != null)
                             {
                                 string gHistory = await _info.GetGameHistory(openDota, gameID, gameDetails);
-                                await QOL.SendMessage(context, Bot.Channels.GameHistoryChannel, gHistory);
+                                await QOL.SendMessage(context, "game-history", gHistory);
                             }
                             else
                             {
@@ -174,7 +188,7 @@ namespace bot_2.Commands
         {
             var player = await _context.player_data.FindAsync(id);
             player._xp += xpincrement;
-            await _context.SaveChangesAsync();
+            //await _context.SaveChangesAsync();
         }
 
         public async Task WrapUp(CommandContext context, int lobbyNumber)
@@ -197,7 +211,7 @@ namespace bot_2.Commands
 
             var game = await _context.game_data.FindAsync(gameid);
             game._steamid = steamid;
-            await _context.SaveChangesAsync();
+            //await _context.SaveChangesAsync();
         }
         public async Task RemoveHostRecord(CommandContext context)
         {
@@ -205,7 +219,7 @@ namespace bot_2.Commands
             if(record != null)
             {
                 _context.discord_channel_info.Remove(record);
-                await _context.SaveChangesAsync();
+                //await _context.SaveChangesAsync();
             }
 
         }
@@ -213,7 +227,7 @@ namespace bot_2.Commands
         {
             var game = await _context.game_data.FindAsync(gameProfile._gameid);
             game._winner = (int)side;
-            await _context.SaveChangesAsync();
+            //await _context.SaveChangesAsync();
             var record = await _context.game_record.FirstOrDefaultAsync(p => p._gameid == game._id && p._side == (int)side);
 
             var increment = record._onwin; // change
@@ -225,7 +239,7 @@ namespace bot_2.Commands
             await CreditPlayer(record._p5, increment);
 
             await _utilities.ChangeTeamStatus(record, 0);
-            await _context.SaveChangesAsync();
+            //await _context.SaveChangesAsync();
 
             try //this is nested so this doesnt crash bot
             {
@@ -233,9 +247,9 @@ namespace bot_2.Commands
                 var specificList = largeBetList.FindAll(p => p._gameid == gameProfile._gameid);
 
                 DiscordChannel channel = null;
-                if (context.Guild.Channels.ContainsKey(Bot.Channels.BetChannel))
+                if(await Bot._validator.Exists(context, "bet-history"))
                 {
-                    channel = context.Guild.Channels[Bot.Channels.BetChannel];
+                    channel = await Bot._validator.Get(context, "bet-history");
                 }
 
                 foreach (var betRecord in specificList)
@@ -247,7 +261,7 @@ namespace bot_2.Commands
                         {
                             int payout = betRecord._amount * 2;
                             playerRecord._xp += payout;
-                            await _context.SaveChangesAsync();
+                            //await _context.SaveChangesAsync();
 
                             if(channel != null)
                                 await channel.SendMessageAsync("<@" + betRecord._discordid + "> won their bet, paid" + payout + " coins.");
@@ -262,7 +276,7 @@ namespace bot_2.Commands
                     }
 
                     _context.game_bets.Remove(betRecord);
-                    await _context.SaveChangesAsync();
+                    //await _context.SaveChangesAsync();
                 }
 
             }
@@ -278,7 +292,7 @@ namespace bot_2.Commands
         {
             var game = await _context.game_data.FindAsync(gameProfile._gameid);
             //game._winner = (int)side;
-            //await _context.SaveChangesAsync();
+            ////await _context.SaveChangesAsync();
             var record = await _context.game_record.FirstOrDefaultAsync(p => p._gameid == game._id && p._side == (int)side);
 
             var increment = record._onlose; // change
@@ -290,13 +304,17 @@ namespace bot_2.Commands
             await DiscreditPlayer(record._p5, increment);
 
             await _utilities.ChangeTeamStatus(record, 0);
-            await _context.SaveChangesAsync();
+            //await _context.SaveChangesAsync();
         }
         public async Task CreditPlayer(ulong player, int increment)
         {
             var playerRecord = await _context.player_data.FindAsync(player);
             if (playerRecord != null)
             {
+                if(playerRecord._totalgames == 0)
+                {
+                    playerRecord._ihlmmr = 400;
+                }
                 playerRecord._ihlmmr += increment;
                 playerRecord._gameswon += 1;
                 playerRecord._totalgames += 1;
@@ -310,6 +328,10 @@ namespace bot_2.Commands
             var playerRecord = await _context.player_data.FindAsync(player);
             if (playerRecord != null)
             {
+                if (playerRecord._totalgames == 0)
+                {
+                    playerRecord._ihlmmr = 400;
+                }
                 playerRecord._ihlmmr -= increment;
                 playerRecord._gameslost += 1;
                 playerRecord._totalgames += 1;

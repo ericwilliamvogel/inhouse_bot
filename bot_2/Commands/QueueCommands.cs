@@ -51,7 +51,7 @@ namespace bot_2.Commands
                     await _context.spectator_queue.AddAsync(new SpectatorQueueData { _id = _profile._id, _start = myDateTime }).ConfigureAwait(false);
                     var record = await _context.player_data.FindAsync(_profile._id);
                     record._gamestatus = 1;
-                    await _context.SaveChangesAsync().ConfigureAwait(false);
+                    //await _context.SaveChangesAsync().ConfigureAwait(false);
 
 
                     await _updatedQueue.StartThread(context);
@@ -99,7 +99,7 @@ namespace bot_2.Commands
 
                     var s_record = await _context.player_data.FindAsync(_profile._id);
                     s_record._gamestatus = 0;
-                    await _context.SaveChangesAsync();
+                    //await _context.SaveChangesAsync();
 
 
                     await _profile.SendDm("You've been removed from queue.");
@@ -151,7 +151,7 @@ namespace bot_2.Commands
                 {
 
 
-                    var record = _context.player_queue.FirstOrDefault(p => p._id == _profile._id);
+                    var record = await _context.player_queue.FindAsync(_profile._id);
                     if (record == null)
                     {
                         await _profile.SendDm("Error, I have no idea how this could happen. DM an admin or something to get it fixed.");
@@ -161,7 +161,7 @@ namespace bot_2.Commands
 
                     var p_record = await _context.player_data.FindAsync(_profile._id);
                     p_record._gamestatus = 0;
-                    await _context.SaveChangesAsync();
+                    //await _context.SaveChangesAsync();
                     await _profile.SendDm("You've been removed from queue.");
 
 
@@ -202,22 +202,22 @@ namespace bot_2.Commands
 
                 async () =>
                 {
-
+                    
                     var myDateTime = DateTimeOffset.Now;
                     //string sqlFormattedDate = myDateTime.ToString("HH:mm:ss");
                     await _context.player_queue.AddAsync(new QueueData { _id = _profile._id, _start = myDateTime }).ConfigureAwait(false);
                     
-                    await _context.SaveChangesAsync();
+                    //await _context.SaveChangesAsync();
                     var record = await _context.player_data.FindAsync(_profile._id);
                     record._gamestatus = 1;
 
-                    await _context.SaveChangesAsync();
+                    //await _context.SaveChangesAsync();
 
 
                     var list = await _context.player_queue.ToListAsync();
                     int count = list.Count();
 
-                     await _updatedQueue.StartThread(context);
+                    await _updatedQueue.StartThread(context);
 
                     if (count >= 10)
                     {
@@ -230,7 +230,7 @@ namespace bot_2.Commands
 
                     }
 
-
+                    
 
                 });
 

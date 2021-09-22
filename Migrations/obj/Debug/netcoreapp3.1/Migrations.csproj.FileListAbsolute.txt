@@ -10,3 +10,6 @@ C:\Users\Jonathan\source\repos\bot_2\Migrations\obj\Debug\netcoreapp3.1\Migratio
 C:\Users\Jonathan\source\repos\bot_2\Migrations\bin\Debug\netcoreapp3.1\db.dll
 C:\Users\Jonathan\source\repos\bot_2\Migrations\bin\Debug\netcoreapp3.1\db.pdb
 C:\Users\Jonathan\source\repos\bot_2\Migrations\obj\Debug\netcoreapp3.1\Migrations.csproj.CopyComplete
+C:\Users\Jonathan\source\repos\bot_2\Migrations\bin\Debug\netcoreapp3.1\Migrations.runtimeconfig.json
+C:\Users\Jonathan\source\repos\bot_2\Migrations\bin\Debug\netcoreapp3.1\Migrations.runtimeconfig.dev.json
+C:\Users\Jonathan\source\repos\bot_2\Migrations\obj\Debug\netcoreapp3.1\Migrations.genruntimeconfig.cache

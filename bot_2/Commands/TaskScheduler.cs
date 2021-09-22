@@ -37,7 +37,6 @@ namespace bot_2.Commands
             {
                 task.Invoke();
             }, null, timeToGo, TimeSpan.FromHours(intervalInHour));
-
             timers.Add(timer);
         }
     }
