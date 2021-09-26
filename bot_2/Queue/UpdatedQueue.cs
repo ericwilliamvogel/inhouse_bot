@@ -15,6 +15,15 @@ using static DSharpPlus.Entities.DiscordEmbedBuilder;
 
 namespace bot_2.Commands
 {
+    public enum QueueMessageSegment
+    {
+        Introduction,
+        Leaderboard,
+        Queue,
+        SpectatorQueue,
+        CasterQueue,
+        OngoingGames
+    }
     public class UpdatedQueue
     {
         Context _context;
@@ -24,16 +33,32 @@ namespace bot_2.Commands
 
         MmrCalculator calculator = new MmrCalculator();
 
-        public ulong PreLoadedMessage { get; set; }
+        public Dictionary<QueueMessageSegment, ulong> PreLoadedMessages { get; set; }
+        public Dictionary<QueueMessageSegment, string> PreLoadedTitles { get; set; }
         
         public UpdatedQueue(Context context)
         {
+            PreLoadedMessages = new Dictionary<QueueMessageSegment, ulong>();
+            PreLoadedTitles = new Dictionary<QueueMessageSegment, string>();
+
             this._context = context;
             _info = new GeneralDatabaseInfo(context);
             _queueInfo = new QueueInfo(context);
 
             JsonCommunicator comm = new JsonCommunicator();
-            PreLoadedMessage = comm.GetValue("misc", "queue_message");
+            PreLoadedMessages.Add(QueueMessageSegment.Introduction, comm.GetValue("misc", "queue_message_intro"));
+            PreLoadedMessages.Add(QueueMessageSegment.Queue, comm.GetValue("misc", "queue_message_queue"));
+            PreLoadedMessages.Add(QueueMessageSegment.SpectatorQueue, comm.GetValue("misc", "queue_message_spectator"));
+            PreLoadedMessages.Add(QueueMessageSegment.CasterQueue, comm.GetValue("misc", "queue_message_caster"));
+            PreLoadedMessages.Add(QueueMessageSegment.OngoingGames, comm.GetValue("misc", "queue_message_ongoing"));
+            PreLoadedMessages.Add(QueueMessageSegment.Leaderboard, comm.GetValue("misc", "queue_message_leaderboard"));
+
+            PreLoadedTitles.Add(QueueMessageSegment.Introduction, "Intro");
+            PreLoadedTitles.Add(QueueMessageSegment.Queue, "Queue");
+            PreLoadedTitles.Add(QueueMessageSegment.SpectatorQueue, "Spectator Queue");
+            PreLoadedTitles.Add(QueueMessageSegment.CasterQueue, "Caster Queue");
+            PreLoadedTitles.Add(QueueMessageSegment.OngoingGames, "Ongoing Games");
+            PreLoadedTitles.Add(QueueMessageSegment.Leaderboard, "Leaderboard");
         }
 
 
@@ -67,6 +92,8 @@ namespace bot_2.Commands
             }
             return null;
         }
+
+        public static bool _update = false;
         public async Task UpdateQueue(CommandContext context)
         {
 
@@ -78,34 +105,21 @@ namespace bot_2.Commands
                 }
 
                 var channel = await Bot._validator.Get(context, "queue");
-                var queueMessage = await GetMessage(context, channel.Id, PreLoadedMessage);
-                if (queueMessage == null)
-                {
-                    return;
-                }
                 
-
-
-                List<QueueData> recordsToBeRemoved = new List<QueueData>();
-
                 var players = await _queueInfo.GetPlayerQueueInfo(context);
                 var casters = await _queueInfo.GetCasterQueueInfo(context);
                 var spectators = await _queueInfo.GetSpectatorQueueInfo(context);
 
-                //this await triggers threading issue??
                 var gamesBeingPlayed = await _context.discord_channel_info.ToListAsync();
 
                 string currentGames = await _info.CreateGameProfile(context, gamesBeingPlayed);
-
                 var leaderboard = await _queueInfo.GetLeaderboard();
-
                 var participationAward = await _queueInfo.GetParticipationAward();
 
                 string open = string.Empty;
 
                 if(TaskScheduler._inhouseOpen)
                 {
-
                     open = "Open";
                 }
                 else
@@ -113,32 +127,29 @@ namespace bot_2.Commands
                     open = "Closed";
                 }
 
-                string finalString = DateTime.Now.ToString() + " PST\nWelcome to GrinHouseLeague. Inhouse opens at 8pmEST and closes at 1amEST. Inhouse is currently **" + open + "**. There are **" + gamesBeingPlayed.Count + " games** currently being played.\n\n" + leaderboard + participationAward +
-                    players +
-                    "\n\n" +
-                    casters +
-                    "\n\n" +
-                    spectators +
-                    "\n\n" +
-                    //availableplayers +
-                    //"\n\n" +
-                    currentGames;
+                string intro = DateTime.Now.ToString() + " PST\nWelcome to GrinHouseLeague. Inhouse opens at 8pmEST and closes at 1amEST. Inhouse is currently **" + open + "**. There are **" + gamesBeingPlayed.Count + " games** currently being played.\n\n";
 
-                DiscordEmbedBuilder builder = new DiscordEmbedBuilder()
-                    .AddField("Queue", finalString, false)
-                    .WithColor(DiscordColor.Blue);
+                await ModifySegment(channel, intro, QueueMessageSegment.Introduction);
 
+                if(await _queueInfo.MoreThanZeroPlayersIn(QueueType.Player) || _update)
+                    await ModifySegment(channel, players, QueueMessageSegment.Queue);
 
-                builder.Footer = new EmbedFooter() { Text = "" };
+                await ModifySegment(channel, leaderboard + participationAward, QueueMessageSegment.Leaderboard);
 
-                DiscordEmbed embed = builder.Build();
+                if (await _queueInfo.MoreThanZeroPlayersIn(QueueType.Spectator) || _update)
+                    await ModifySegment(channel, spectators, QueueMessageSegment.SpectatorQueue);
 
+                if (await _queueInfo.MoreThanZeroPlayersIn(QueueType.Caster) || _update)
+                    await ModifySegment(channel, casters, QueueMessageSegment.CasterQueue);
 
-                await queueMessage.ModifyAsync("", embed);
-
-                //await UpdateLeaderboard(context);
+                if(gamesBeingPlayed.Count > 0)
+                {
+                    var ongoing = await channel.GetMessageAsync(PreLoadedMessages[QueueMessageSegment.OngoingGames]);
+                    await ongoing.ModifyAsync(currentGames);
+                }
 
 
+                _update = false;
             }
             catch (ServerErrorException e)
             {
@@ -161,6 +172,21 @@ namespace bot_2.Commands
 
         }
 
+        public async Task ModifySegment(DiscordChannel channel, string message, QueueMessageSegment segment)
+        {
+            DiscordEmbedBuilder builder = new DiscordEmbedBuilder()
+            .AddField(PreLoadedTitles[segment], message, false)
+            .WithColor(DiscordColor.Blue);
+
+
+            builder.Footer = new EmbedFooter() { Text = "" };
+
+            DiscordEmbed embed = builder.Build();
+
+            var discordmessage = await channel.GetMessageAsync(PreLoadedMessages[segment]);
+            await discordmessage.ModifyAsync("", embed);
+        }
+
         public async Task UpdateLeaderboard(CommandContext context)
         {
 
@@ -172,10 +198,7 @@ namespace bot_2.Commands
                     return;
                 }
 
-
-
                 var leaderboardChannel = await Bot._validator.Get(context, "leaderboard");
-                //DiscordChannel leaderboardChannel = context.Guild.Channels[Bot.Channels.LeaderboardChannel];
 
                 var availableLeaderboardMessages = await _context.leaderboard_messages.ToListAsync();
 
@@ -185,8 +208,8 @@ namespace bot_2.Commands
                 for (int i = 0; i < neededChannels; i++)
                 {
                     var message = await leaderboardChannel.SendMessageAsync("Starting new message...");
-                    await _context.leaderboard_messages.AddAsync(new LeaderboardData { _message = message.Id });
-                    //await _context.SaveChangesAsync();
+                    await _context.leaderboard_messages.AddAsync(new LeaderboardData { _message = message.Id }); //TO BE SAVED IN THE LOOP! hopefully does not crash uwu
+
                 }
 
                 int counter = 0;

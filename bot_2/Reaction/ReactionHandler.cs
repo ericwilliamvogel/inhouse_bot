@@ -233,6 +233,27 @@ namespace bot_2
                 await args.Message.DeleteReactionAsync(args.Emoji, args.User);
 
             });
+
+            _reactLogic.Add("extended", async (MessageReactionAddEventArgs args) =>
+            {
+                var member = (DiscordMember)args.User;
+
+                Dictionary<DiscordEmoji, DiscordRole> roles = new Dictionary<DiscordEmoji, DiscordRole>();
+                roles.Add(yes, args.Guild.Roles.FirstOrDefault(p => p.Value.Name == "Extended").Value);
+                roles.Add(no, args.Guild.Roles.FirstOrDefault(p => p.Value.Name == "Extended").Value);
+
+                if (args.Emoji == yes)
+                {
+                    await member.GrantRoleAsync(roles[args.Emoji]);
+                }
+                if (args.Emoji == no)
+                {
+                    await member.RevokeRoleAsync(roles[args.Emoji]);
+                }
+
+                await args.Message.DeleteReactionAsync(args.Emoji, args.User);
+
+            });
         }
 
         public async Task AddRemove(Dictionary<DiscordEmoji, DiscordRole> roles, DiscordMember member, DiscordEmoji emoji)

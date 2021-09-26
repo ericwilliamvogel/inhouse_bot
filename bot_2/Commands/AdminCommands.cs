@@ -18,37 +18,27 @@ namespace bot_2.Commands
 
     public class AdminCommands : BaseCommands
     {
-        /*[Command("role")]
-public async Task EnterQueue(CommandContext context, int number)
-{
-    Profile _profile = new Profile(context);
-
-    var verified = await _conditions.AreMet(context, _profile,
-        new List<Argument> {
-            _conditions.IsRegistered,
-            _conditions.IsInAdminCommandChannel
-        });
-
-    if (!verified)
-    {
-        await context.Message.DeleteAsync();
-        return;
-    }
-
-    var relativeData = await _context.player_data.FindAsync(_profile._id);
-    if (relativeData != null)
-    {
-        relativeData._status = number;
-        //await _context.SaveChangesAsync();
-    }
-    await context.Message.DeleteAsync();
-
-}
-*/
         public AdminCommands(Context context) : base(context)
         {
 
 
+        }
+
+        [Command("generatemessage123")]
+        public async Task Generateasd(CommandContext context)
+        {
+            Profile _profile = new Profile(context);
+            await _conditions.TryConditionedAction(context, _profile,
+
+                new List<Arg> {
+                    Arg.HasAdminRole
+                },
+
+                async () =>
+                {
+                    var message = await context.Channel.SendMessageAsync("placeholder");
+
+                });
         }
 
         [Command("createreact")]
@@ -339,25 +329,6 @@ public async Task EnterQueue(CommandContext context, int number)
                 async () =>
                 {
                     await DeleteLastMessage(context.Channel);
-                    await _profile.SendDm("Channel cleared.");
-                });
-
-        }
-
-        [Command("channelclear")]
-        public async Task ChannelClear(CommandContext context, int number)
-        {
-            Profile _profile = new Profile(context);
-
-            await _conditions.TryConditionedAction(context, _profile,
-
-                new List<Arg> {
-                    Arg.HasAdminRole
-                },
-
-                async () =>
-                {
-                    await DeleteLastMessage(context.Channel, number);
                     await _profile.SendDm("Channel cleared.");
                 });
 
@@ -854,6 +825,41 @@ public async Task EnterQueue(CommandContext context, int number)
                     await message.CreateReactionAsync(DiscordEmoji.FromName(context.Client, ":white_check_mark:"));
                     await message.CreateReactionAsync(DiscordEmoji.FromName(context.Client, ":no_entry:"));
 
+
+                    await GenExtended(context);
+                });
+        }
+
+
+        [Command("settingsSetup2")]
+        public async Task GenExtended(CommandContext context)
+        {
+            Profile _profile = new Profile(context);
+            await _conditions.TryConditionedAction(context, _profile,
+
+                new List<Arg> {
+                    Arg.HasAdminRole
+                },
+
+                async () =>
+                {
+                    DiscordEmbedBuilder builder = new DiscordEmbedBuilder()
+                        .WithTitle("Enable extended inhouse")
+                        .WithImageUrl("https://cdn.discordapp.com/attachments/889649751354671154/891524901364715561/unknown.png")
+                        .AddField("React", ":white_check_mark: : Enable extended inhouse.\n :no_entry: : Disable extended inhouse.", false)
+                        .WithColor(DiscordColor.Gold);
+
+
+                    builder.Footer = new EmbedFooter() { Text = "" };
+
+                    DiscordEmbed embed = builder.Build();
+
+                    var message = await context.Channel.SendMessageAsync("", false, embed);
+
+                    await message.CreateReactionAsync(DiscordEmoji.FromName(context.Client, ":white_check_mark:"));
+                    await message.CreateReactionAsync(DiscordEmoji.FromName(context.Client, ":no_entry:"));
+
+
                 });
         }
 
@@ -871,6 +877,28 @@ public async Task EnterQueue(CommandContext context, int number)
                 async () =>
                 {
                     EmbedDriver driver = new EmbedDriver();
+
+                    DiscordEmbedBuilder builder = new DiscordEmbedBuilder()
+                        .AddField("Setup your inhouse account here!", "React to all of the prompts below to finish your registration.\n\n" +
+                        ":exclamation: Go to #control-panel and request your profile to see if you missed anything.\n\n" +
+                        ":exclamation: All roles can be found on your discord profile. \n\n" +
+                        ":exclamation: Only 'Positions you can play' can have multiple values. Any other message will only accept one reaction. If you react again to those messages, it'll reassign the correct Discord role.\n\n" +
+                        ":exclamation: If you're ranked Immortal, for 'Rank Progress': Use 1-4 if you're < 6k, 5 if you're 6k+.", false)
+                        .WithColor(DiscordColor.Gold)
+                        .WithImageUrl("https://cdn.discordapp.com/attachments/889649751354671154/891778362165559306/unknown.png");
+
+
+                    builder.Footer = new EmbedFooter() { Text = "" };
+
+                    DiscordEmbed embed = builder.Build();
+                    var message = await context.Channel.SendMessageAsync("", false, embed);
+
+                    await context.Channel.SendMessageAsync("______________");
+                    await context.Channel.SendMessageAsync("______________");
+                    await context.Channel.SendMessageAsync("______________");
+                    await context.Channel.SendMessageAsync("______________");
+                    await context.Channel.SendMessageAsync("______________");
+
                     await driver.GeneratePositions(context);
                     await driver.GenerateFavPositions(context);
                     await driver.GenerateRegion(context);

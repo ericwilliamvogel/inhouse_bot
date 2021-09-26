@@ -50,9 +50,11 @@ namespace bot_2.Commands
         }
         public async Task<string> CreateGameProfile(CommandContext context, List<ChannelInfo> records)
         {
-            string completeString = "";
+            string completeString = "Current games = \n";
+            string none = "/none available/";
             foreach (ChannelInfo record in records)
             {
+                none = "";
                 var gameid = record._gameid;
 
                 var hostMention = "<not_found>";
@@ -116,7 +118,8 @@ namespace bot_2.Commands
 
                 completeString += finalString;
             }
-            return completeString;
+            return completeString + none;
+
 
         }
     }

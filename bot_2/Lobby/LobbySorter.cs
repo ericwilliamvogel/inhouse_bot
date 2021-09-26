@@ -82,7 +82,7 @@ namespace bot_2.Commands
                 DateTimeOffset start = DateTimeOffset.Now;
 
                 await _context.game_data.AddAsync(new GameData { _host = leader._id, _start = start });
-                //await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync();
 
 
                 Console.WriteLine("Grabbing game in db..");
@@ -94,7 +94,7 @@ namespace bot_2.Commands
 
                 Console.WriteLine("Creating DCI record...");
                 await _context.discord_channel_info.AddAsync(new ChannelInfo { _id = leader._id, _number = _perms.LobbyNumber, _gameid = gameid._id, _messageid = _perms.message.Id });
-                //await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync();
 
                 int ms = DateTime.Now.Millisecond;
                 Random rand = new Random(ms);
@@ -146,15 +146,15 @@ namespace bot_2.Commands
                 players.Remove(captain2);
                 
                 var recordTeam1 = await _context.game_record.AddAsync(new TeamRecord { _side = (int)Side.Team1, _gameid = gameid._id, _p1 = captain2._id, _canpick = 1 });
-                //await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync();
 
                 var recordTeam2 = await _context.game_record.AddAsync(new TeamRecord { _side = (int)Side.Team2, _gameid = gameid._id, _p1 = captain1._id, _canpick = 0 });
-                //await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync();
                 
                 foreach(Player player in players)
                 {
                     await _context.lobby_pool.AddAsync(new LobbyPool { _gameid = gameid._id, _discordid = player._id });
-                    //await _context.SaveChangesAsync();
+                    await _context.SaveChangesAsync();
                 }
 
                 await UpdateLobbyPool(context, _profile, gameid._id);
@@ -166,7 +166,7 @@ namespace bot_2.Commands
                 if(record!=null)
                 {
                     _context.discord_channel_info.Remove(record);
-                    //await _context.SaveChangesAsync();
+                    await _context.SaveChangesAsync();
                 }
                 await _profile.ReportError(context, e);
                 Console.WriteLine(e);

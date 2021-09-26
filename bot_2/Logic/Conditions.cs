@@ -13,33 +13,8 @@ using System.Threading.Tasks;
 
 namespace bot_2.Commands
 {
-    public class ContextualAction
-    {
-        Context _context;
-        public ContextualAction(CommandContext context, Func<Task> action, Context dbContext)
-        {
-            Profile profile = new Profile(context);
-            _context = dbContext;
-            _commandContext = context;
-            _action = action;
-            _profile = profile;
-        }
-        public Func<Task> _action { get; set; }
-        public Profile _profile { get; set; }
 
-        public CommandContext _commandContext { get; set; }
 
-        public Func<Task> GetAction()
-        {
-            Func<Task> action = async () =>
-            {
-
-                await _action();
-            };
-
-            return action;
-        }
-    }
     public class ActionIterator
     {
         public List<Func<Task>> _actions = new List<Func<Task>>();
@@ -123,16 +98,11 @@ namespace bot_2.Commands
         InhouseIsOpen,
         IsInRegistrationChannel
     }
+
+
     public class Conditions
     {
         Context _context;
-
-        /// <summary>
-        /// 
-        /// We should make an argument dictionary and an enum key????
-        /// 
-        /// </summary>
-        /// 
 
         private QOL QOL = new QOL();
         public Dictionary<Arg, Argument> _check;
@@ -143,7 +113,7 @@ namespace bot_2.Commands
             _check = new Dictionary<Arg, Argument>();
             _check.Add(
                 Arg.IsReady,
-                async (CommandContext context, Profile _profile) =>
+                async (CustomContext context, Profile _profile) =>
                 {
                     var record = await _context.player_data.FindAsync(_profile._id);
                     if (record == null)
@@ -165,7 +135,7 @@ namespace bot_2.Commands
 
                 _check.Add(
                     Arg.IsLobbyHost,
-                    async (CommandContext context, Profile _profile) =>
+                    async (CustomContext context, Profile _profile) =>
                     {
                         var checkIfHost = await _context.discord_channel_info.FindAsync(_profile._id);
                         if (checkIfHost != null)
@@ -183,7 +153,7 @@ namespace bot_2.Commands
                 );
                         _check.Add(
                 Arg.IsRegistered,
-                async (CommandContext context, Profile _profile) =>
+                async (CustomContext context, Profile _profile) =>
                 {
                     var checkIfRegistered = await _context.player_data.FindAsync(_profile._id);
                     if (checkIfRegistered != null)
@@ -202,7 +172,7 @@ namespace bot_2.Commands
 
             _check.Add(
                 Arg.IsntRegistered,
-                async (CommandContext context, Profile _profile) =>
+                async (CustomContext context, Profile _profile) =>
                 {
                     var checkIfRegistered = await _context.player_data.FindAsync(_profile._id);
                     if (checkIfRegistered == null)
@@ -221,7 +191,7 @@ namespace bot_2.Commands
             _check.Add(
                 Arg.IsInCommandChannel,
 
-                    async (CommandContext context, Profile _profile) =>
+                    async (CustomContext context, Profile _profile) =>
                     {
                         ulong channel = 839331703776083989;
                         ulong channel2 = 839336462431289374;
@@ -243,7 +213,7 @@ namespace bot_2.Commands
 
             _check.Add(
                 Arg.IsntQueued,
-                async (CommandContext context, Profile _profile) =>
+                async (CustomContext context, Profile _profile) =>
                 {
                     var player = await _context.player_queue.FindAsync(_profile._id);
                     if (player == null)
@@ -260,7 +230,7 @@ namespace bot_2.Commands
             );
             _check.Add(
                 Arg.IsQueued,
-                async (CommandContext context, Profile _profile) =>
+                async (CustomContext context, Profile _profile) =>
                 {
                     var player = await _context.player_queue.FindAsync(_profile._id);
                     if (player != null)
@@ -277,7 +247,7 @@ namespace bot_2.Commands
                 );
             _check.Add(
                 Arg.IsntCasterQueued,
-                async (CommandContext context, Profile _profile) =>
+                async (CustomContext context, Profile _profile) =>
                 {
                     var player = await _context.caster_queue.FindAsync(_profile._id);
                     if (player == null)
@@ -292,9 +262,10 @@ namespace bot_2.Commands
                 }
 
                 );
+
             _check.Add(
                 Arg.IsCasterQueued,
-                async (CommandContext context, Profile _profile) =>
+                async (CustomContext context, Profile _profile) =>
                 {
                     var player = await _context.caster_queue.FindAsync(_profile._id);
                     if (player != null)
@@ -311,7 +282,7 @@ namespace bot_2.Commands
                 );
             _check.Add(
                 Arg.IsntSpectatorQueued,
-                async (CommandContext context, Profile _profile) =>
+                async (CustomContext context, Profile _profile) =>
                 {
                     var player = await _context.spectator_queue.FindAsync(_profile._id);
                     if (player == null)
@@ -328,7 +299,7 @@ namespace bot_2.Commands
                 );
             _check.Add(
                 Arg.IsSpectatorQueued,
-                async (CommandContext context, Profile _profile) =>
+                async (CustomContext context, Profile _profile) =>
                 {
                     var player = await _context.spectator_queue.FindAsync(_profile._id);
                     if (player != null)
@@ -366,7 +337,7 @@ namespace bot_2.Commands
             );
 
             _check.Add(Arg.IsLobbyCaptain,
-                async (CommandContext context, Profile _profile) =>
+                async (CustomContext context, Profile _profile) =>
                 { 
                     var record = await _context.game_record.FirstOrDefaultAsync(p => p._p1 == _profile._id && p._p5 == 0);
                     if(record == null)
@@ -383,7 +354,7 @@ namespace bot_2.Commands
             );
 
             _check.Add(Arg.CanEmote,
-                async (CommandContext context, Profile _profile) =>
+                async (CustomContext context, Profile _profile) =>
                 {
                     var record = await _context.emote_unlocked.FindAsync(_profile._id);
 
@@ -401,7 +372,7 @@ namespace bot_2.Commands
             );
 
             _check.Add(Arg.CanPick,
-                async (CommandContext context, Profile _profile) =>
+                async (CustomContext context, Profile _profile) =>
                 {
                     var record = await _context.game_record.FirstOrDefaultAsync(p => p._p1 == _profile._id && p._p5 == 0);
                     if (record == null)
@@ -426,7 +397,7 @@ namespace bot_2.Commands
                 });
 
             _check.Add(Arg.HasMention,
-                async (CommandContext context, Profile _profile) =>
+                async (CustomContext context, Profile _profile) =>
                 {
                     if (context.Message.MentionedUsers.Count > 0)
                     {
@@ -439,7 +410,7 @@ namespace bot_2.Commands
                 });
 
             _check.Add(Arg.ProfileComplete,
-                    async (CommandContext context, Profile _profile) =>
+                    async (CustomContext context, Profile _profile) =>
                     {  
                         var progress = _profile._member.Roles.FirstOrDefault(p => p.Name == "0" || p.Name == "1" || p.Name == "2" || p.Name == "3" || p.Name == "4" || p.Name == "5");
 
@@ -462,7 +433,7 @@ namespace bot_2.Commands
                     });
 
             _check.Add(Arg.InhouseIsOpen,
-                async (CommandContext context, Profile _profile) =>
+                async (CustomContext context, Profile _profile) =>
                 {
                     if (TaskScheduler._inhouseOpen)
                     {
@@ -475,9 +446,9 @@ namespace bot_2.Commands
                 });
 
             _check.Add(Arg.IsInRegistrationChannel,
-                async (CommandContext context, Profile _profile) =>
+                async (CustomContext context, Profile _profile) =>
                 {
-                    if(context.Channel != await Bot._validator.Get(context, "registration"))
+                    if(context.Channel != await Bot._validator.Get(context.Guild, "registration"))
                     {
                         await _profile.SendIncompleteDm("You can only register in the registration channel.");
                         return false;
@@ -501,7 +472,7 @@ namespace bot_2.Commands
 
         public Argument CorrectChannel(ulong id)
         {
-            Argument args = async (CommandContext context, Profile _profile) =>
+            Argument args = async (CustomContext context, Profile _profile) =>
             {
                 ulong channel = id;
                 string channelName = "<channel_not+found>";
@@ -527,7 +498,7 @@ namespace bot_2.Commands
 
         public Argument CorrectRole(string roleName)
         {
-            Argument args = async (CommandContext context, Profile _profile) =>
+            Argument args = async (CustomContext context, Profile _profile) =>
             {
 
                 var role = context.Guild.Roles.FirstOrDefault(p => p.Value.Name == roleName).Value; //i dont think we can access value if it returns null? could cause errors, kinda spooky
@@ -552,7 +523,7 @@ namespace bot_2.Commands
             return args;
         }
 
-        public async Task<bool> AreMet(CommandContext context, Profile _profile, List<Arg> tasks)
+        public async Task<bool> AreMet(CustomContext context, Profile _profile, List<Arg> tasks)
         {
             bool pass = true;
             foreach (Arg task in tasks)
@@ -575,11 +546,37 @@ namespace bot_2.Commands
             return true;
 
         }
+        public async Task<bool> AreMet(CommandContext context, Profile _profile, List<Arg> tasks)
+        {
+            bool pass = true;
+            foreach (Arg task in tasks)
+            {
 
+                var conf = await _check[task](new CustomContext(context), _profile);
+                if (conf == false)
+                {
+                    return false;
+                }
+            }
+
+
+            //deprecated, but may need in future 5/20/21 
+            if (!pass)
+            {
+                return false;
+            }
+
+            return true;
+
+        }
 
         public static bool _locked = false;
 
         public async Task TryConditionedAction(CommandContext context, Profile _profile, List<Arg> tasks, DbDependentAction action)
+        {
+            await TryConditionedAction(new CustomContext(context), _profile, tasks, action);
+        }
+        public async Task TryConditionedAction(CustomContext context, Profile _profile, List<Arg> tasks, DbDependentAction action)
         {
             var conditions = await AreMet(context, _profile, tasks);
 
@@ -621,13 +618,13 @@ namespace bot_2.Commands
         }
 
 
-        private async Task StartSaveChangesLoop(CommandContext context)
+        private async Task StartSaveChangesLoop(CustomContext context)
         {
-            var channel = await Bot._validator.Get(context, "error-logs");// context.Guild.Channels[Bot.Channels.ErrorChannel];
+            var channel = await Bot._validator.Get(context.Guild, "error-logs");// context.Guild.Channels[Bot.Channels.ErrorChannel];
 
             Task task = await Task.Factory.StartNew(async () =>
             {
-                await SaveChangesEvery(channel, 5000);
+                await SaveChangesEvery(channel, 30000);
             }, TaskCreationOptions.LongRunning);
 
         }
@@ -657,7 +654,7 @@ namespace bot_2.Commands
 
             await SaveChangesEvery(channel, ms);
         }
-        private async Task AssureSchedulingIsRunning(CommandContext context)
+        private async Task AssureSchedulingIsRunning(CustomContext context)
         {
             if (!TaskScheduler.active)
             {
@@ -694,7 +691,7 @@ namespace bot_2.Commands
             await Task.CompletedTask;
         }
 
-        private async Task ScheduleTasks(DayScheduleJson day, CommandContext context)
+        private async Task ScheduleTasks(DayScheduleJson day, CustomContext context)
         {
             if (DateTime.Now.DayOfWeek == (System.DayOfWeek)day.Day)
             {

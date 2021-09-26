@@ -1,0 +1,6 @@
+{
+  "Description": "If you plan on hosting multiple inhouse bots in your server,
+differentiate the roles that each bot uses a prefix. If you don't use a prefix while hosting multiple bots, you will encounter serious
+functionality problems.",
+  "Prefix":""
+}

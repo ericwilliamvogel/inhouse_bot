@@ -121,3 +121,6 @@ C:\Users\Jonathan\source\repos\bot_2\bot_2\bin\Debug\netcoreapp3.1\misc.json
 C:\Users\Jonathan\source\repos\bot_2\bot_2\bin\Debug\netcoreapp3.1\schedule.json
 C:\Users\Jonathan\source\repos\bot_2\bot_2\bin\Debug\netcoreapp3.1\admins.json
 C:\Users\Jonathan\source\repos\bot_2\bot_2\bin\Debug\netcoreapp3.1\positions.json
+C:\Users\Jonathan\source\repos\bot_2\bot_2\bin\Debug\netcoreapp3.1\game.json
+C:\Users\Jonathan\source\repos\bot_2\bot_2\bin\Debug\netcoreapp3.1\subsection.json
+C:\Users\Jonathan\source\repos\bot_2\bot_2\bin\Debug\netcoreapp3.1\inhouse-extended.json

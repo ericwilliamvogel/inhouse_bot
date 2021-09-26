@@ -6,12 +6,12 @@ Friday = 5, Saturday = 6",
   "instructions2":"For minute, use what minute you intend to start on, 0 - 59.",
   "instructions3":"For hour, use military time.",
   "schedule": [
-  {
-	"day" : "0",
-        "starthour" : "20",
-        "startminute" : "0",
-        "endhour" : "22",
-        "endminute" : "0"
-  },
+{
+    "day":"6",
+    "starthour":"18",
+    "endhour":"21",
+    "startminute":"0",
+    "endminute":"0"
+}
   ]
 }

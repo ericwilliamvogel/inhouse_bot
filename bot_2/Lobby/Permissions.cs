@@ -56,7 +56,7 @@ namespace bot_2.Commands
             TrustedRole = _utilities.GetRole(context, "Trusted");
 
             //HERE
-            var record =  _context.discord_channel_info.First(p => p._gameid == gameid);
+            var record =  await _context.discord_channel_info.FirstOrDefaultAsync(p => p._gameid == gameid);
 
             LobbyNumber = record._number;
 

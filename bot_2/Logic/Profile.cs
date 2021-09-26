@@ -17,10 +17,9 @@ namespace bot_2.Commands
     public class Player
     {
         public ulong _id { get; set; }
-        public int _status { get; set; }
 
         public DateTimeOffset _start { get; set; }
-        //ihlmmr starts at 400? increments by 20.
+
         public Player(ulong _id, int _mmr, int _ihlmmr)
         {
             this._id = _id;
@@ -49,6 +48,16 @@ namespace bot_2.Commands
         public ulong _id { get; set; }
         public DiscordMember _member { get; set; }
         public Profile(CommandContext context)
+        {
+            ulong id = context.Member.Id;
+            _id = id;
+
+            _member = context.Guild.Members[id];
+
+
+        }
+
+        public Profile(CustomContext context)
         {
             ulong id = context.Member.Id;
             _id = id;
@@ -188,6 +197,17 @@ namespace bot_2.Commands
         public async Task ReportError(CommandContext context, string input)
         {
             var channel = await Bot._validator.Get(context, "error-logs");
+            await channel.SendMessageAsync("<@" + Bot._admins.Admin + "> : " + input);
+        }
+
+        public async Task ReportError(CustomContext context, string input)
+        {
+            var channel = await Bot._validator.Get(context.Guild, "error-logs");
+            await channel.SendMessageAsync("<@" + Bot._admins.Admin + "> : " + input);
+        }
+        public async Task ReportError(CustomContext context, Exception input)
+        {
+            var channel = await Bot._validator.Get(context.Guild, "error-logs");
             await channel.SendMessageAsync("<@" + Bot._admins.Admin + "> : " + input);
         }
     }

@@ -36,6 +36,7 @@ namespace bot_2
 
         public static FileValidator _validator;
 
+        public static GameType _game;
         public static Positions _positions;
 
         public static Admins _admins;
@@ -75,15 +76,18 @@ namespace bot_2
             _admins = JsonConvert.DeserializeObject<Admins>(json);
 
             temptemp = JObject.Parse(json);
-            if ((string)temptemp["admin"] == "")
+            if ((string)temptemp["Admin"] == "")
             {
                 string exception = "\n\n\n\n !!!! Main admin has not been assigned. Go into admins.json to assign the id, then restart the bot. \n\n\n\n !! \n\n";
                 Console.WriteLine(exception);
             }
 
+            using (var fs = File.OpenRead("game.json"))
+            using (var sr = new StreamReader(fs, new UTF8Encoding(false)))
+                json = sr.ReadToEnd();
 
-
-            //SetExistingChannelCheck();
+            temptemp = JObject.Parse(json);
+            _game = (GameType)(int)temptemp["Game"];
 
             var config = new DiscordConfiguration
             {
@@ -93,9 +97,6 @@ namespace bot_2
                 MinimumLogLevel = LogLevel.Debug,
                 //UseInternalLogHandler = true,
             };
-
-            //DotaClient = new DotaClient();
-            //DotaClient.Connect("zg12958703", "fuckiiou.");
 
             Client = new DiscordClient(config);
 
@@ -174,28 +175,6 @@ namespace bot_2
 
 
         }
-        private bool IsCorrect(ulong id)
-        {
-            if (id == 857007304758526014 ||
-                id == 857007319632183297 ||
-                id == 857007374963441694 ||
-                id == 857008472700747846 ||
-                id == 857008502127067186 ||
-                id == 857008523376197642 ||
-                id == 857008551545536532 ||
-                id == 857008579394535485 ||
-                id == 857008588925304842 ||
-                id == 857008592200269834 ||
-                id == 857008595873693777 ||
-                id == 857011121659052083 ||
-                id == 857310960377528320 ||
-                id == 857011160741576704)
-            {
-                return true;
-            }
-            return false;
-        }
-
 
 
         private async Task OnClientReady(DiscordClient c, ReadyEventArgs e)
@@ -224,7 +203,8 @@ namespace bot_2
 
                 if (e.Channel == await _validator.Get(e, "commands") ||
                     e.Channel == await _validator.Get(e, "queue") ||
-                    e.Channel == await _validator.Get(e, "admin-commands") )
+                    e.Channel == await _validator.Get(e, "admin-commands") /*||
+                    e.Channel == await _validator.Get(e, "setup")*/)
                 {
                     Task task = await Task.Factory.StartNew(async () =>
                     {

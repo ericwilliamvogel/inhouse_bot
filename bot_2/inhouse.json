@@ -13,36 +13,8 @@
       "Name": "inhouse-general"
     },
     {
-      "Id": 839336462431289374,
-      "Name": "commands"
-    },
-    {
-      "Id": 842870150994591764,
-      "Name": "game-history"
-    },
-    {
-      "Id": 839333907509936128,
-      "Name": "streams"
-    },
-    {
-      "Id": 839377338688864256,
-      "Name": "memes"
-    },
-    {
-      "Id": 842851255503814706,
-      "Name": "feedback"
-    },
-    {
       "Id": 851934555350630420,
       "Name": "leaderboard"
-    },
-    {
-      "Id": 852929890780840007,
-      "Name": "bet-history"
-    },
-    {
-      "Id": 855868016380870676,
-      "Name": "shop"
     }
   ]
 }

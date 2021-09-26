@@ -131,12 +131,14 @@ namespace bot_2.Commands
                     }
 
 
-                    await QOL.SendMessage(context, "game-history",
-                        "waiting for opendota api to pick up game under id " + steamid);
+ 
 
                     await WrapUp(context, gameProfile._number);
 
-
+                    if (Bot._game == GameType.Dota2)
+                    {
+                        await QOL.SendMessage(context, "game-history",
+                        "waiting for opendota api to pick up game under id " + steamid);
 
 
                         var openDota = new OpenDotaApi();
@@ -158,12 +160,8 @@ namespace bot_2.Commands
                         {
                             await _profile.SendDm("The game wasn't found with a OpenDota api search which means it was most likely not ticketed. Be sure to ticket games in the future to keep pip from pulling his hair out!!");
                         }
-
-
-
+                    }
                     
-
-
                 }
 
 

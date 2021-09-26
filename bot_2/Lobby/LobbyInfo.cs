@@ -372,7 +372,7 @@ namespace bot_2.Commands
                     //dotammr = calculator.GetMMR(context, context.Guild.Members[id]);
 
                     if (record != null)
-                        player += "<@" + record._id + ">, " + " - Dotammr = " + dotammr + ", Ihlmmr = " + record._ihlmmr + ", " + desc + bestdesc + "\n";
+                        player += "<@" + record._id + ">, " + " - Game mmr = " + dotammr + ", Ihlmmr = " + record._ihlmmr + ", " + desc + bestdesc + "\n";
 
                 }
             }

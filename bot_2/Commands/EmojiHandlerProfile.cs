@@ -132,11 +132,16 @@ namespace bot_2.Commands
             }
 
             string profile = "---Player Profile---\n";
-            profile += "\nDotaFriendID = " + playerrecord._steamid;
+
+            if(Bot._game == GameType.Dota2)
+            {
+                profile += "\nDotaFriendID = " + playerrecord._steamid;
+            }
+
             profile += rolesdesc;
             profile += bestdesc;
-            profile += "\nGHL mmr: " + playerrecord._ihlmmr;
-            profile += "\nDota mmr: " + playerrecord._dotammr;
+            profile += "\nIHL mmr: " + playerrecord._ihlmmr;
+            profile += "\nIG mmr: " + playerrecord._dotammr;
             profile += "\nW/L: " + playerrecord._gameswon + "/" + playerrecord._gameslost;
             profile += "\nTotal games: " + playerrecord._totalgames;
 

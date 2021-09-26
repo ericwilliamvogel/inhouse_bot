@@ -150,6 +150,7 @@ namespace bot_2.Commands
                     //await _context.SaveChangesAsync();
 
 
+                    UpdatedQueue._update = true;
                     await _profile.SendDm("You've been removed from queue.");
 
 

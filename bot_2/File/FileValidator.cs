@@ -14,11 +14,7 @@ using System.Threading.Tasks;
 
 namespace bot_2
 {
-    public enum GameType
-    {
-        Dota2,
-        PokemonUnite
-    }
+
 
     public class DiscordRoleValidation //THIS needs to be json'd 
     {
@@ -38,10 +34,10 @@ namespace bot_2
         {
             _roleNames = new List<string>();
 
-            /*_roleNames.Add("Member");
+            _roleNames.Add("Member");
             _roleNames.Add("Trusted");
             _roleNames.Add("Moderator");
-            */
+            
             _roleNames.Add(Bot._positions.Pos1);
             _roleNames.Add(Bot._positions.Pos2);
             _roleNames.Add(Bot._positions.Pos3);
@@ -53,7 +49,7 @@ namespace bot_2
             _roleNames.Add(Bot._positions.Pos3 + "(Favorite)");
             _roleNames.Add(Bot._positions.Pos4 + "(Favorite)");
             _roleNames.Add(Bot._positions.Pos5 + "(Favorite)");
-            /*
+            
             _roleNames.Add("Player Drafter");
             _roleNames.Add("Dota Drafter");
 
@@ -73,7 +69,7 @@ namespace bot_2
             _roleNames.Add("Divine");
             _roleNames.Add("Immortal");
 
-            _roleNames.Add("Registered");*/
+            _roleNames.Add("Registered");
         }
 
         public async Task ReportErrorToAdmin(CommandContext context, string e)
@@ -186,6 +182,7 @@ namespace bot_2
             dic.Add(DicPair("Pos").Key, DicPair("Pos").Value);
             dic.Add(DicPair("misc", "notifications").Key, DicPair("misc", "notifications").Value);
             dic.Add(DicPair("misc", "profile").Key, DicPair("misc", "profile").Value);
+            dic.Add(DicPair("misc", "extended").Key, DicPair("misc", "extended").Value);
 
             return dic;
         }
@@ -213,7 +210,9 @@ namespace bot_2
 
             _channelCollection.Add(new DiscordCategoryValidation("setup", new List<string>() { "setup", "registration" }));
 
-            _channelCollection.Add(new DiscordCategoryValidation("inhouse", new List<string>() { "control-panel", "queue", "inhouse-general", "commands", "game-history", "streams", "memes", "feedback", "leaderboard", "bet-history", "shop" }));
+            _channelCollection.Add(new DiscordCategoryValidation("inhouse", new List<string>() { "control-panel", "queue", "inhouse-general", "leaderboard" }));
+
+            _channelCollection.Add(new DiscordCategoryValidation("inhouse-extended", new List<string>() { "commands", "game-history", "streams", "memes", "feedback", "bet-history", "shop" }));
 
             _channelCollection.Add(new DiscordCategoryValidation("admin", new List<string>() { "admin-commands", "admins-chat", "error-logs", "commands-playback" }));
 
@@ -320,6 +319,26 @@ namespace bot_2
             {
                 Profile profile = new Profile(context);
                 await profile.ReportError(context, "Channel not found under ID!");
+                return false;
+            }
+
+        }
+
+        public async Task<bool> Exists(DiscordGuild context, string channelName)
+        {
+            if (_channelCollection.Count <= 0)
+            {
+                SetNames();
+                await Validate(context);
+            }
+
+            var record = _records.FirstOrDefault(p => p.Name == channelName);
+            if (record != null)
+            {
+                return true;
+            }
+            else
+            {
                 return false;
             }
 

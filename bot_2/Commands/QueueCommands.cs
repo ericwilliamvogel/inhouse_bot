@@ -53,6 +53,7 @@ namespace bot_2.Commands
                     record._gamestatus = 1;
                     //await _context.SaveChangesAsync().ConfigureAwait(false);
 
+                    await _conditions.SaveChanges();
 
                     await _updatedQueue.StartThread(context);
                     await _profile.SendDm("You've been placed in SPECTATOR queue. You will be notified via DM when it pops. In the server's command channel type !spectatorleave if you would like to leave the queue.");
@@ -101,7 +102,7 @@ namespace bot_2.Commands
                     s_record._gamestatus = 0;
                     //await _context.SaveChangesAsync();
 
-
+                    UpdatedQueue._update = true;
                     await _profile.SendDm("You've been removed from queue.");
 
 
@@ -162,6 +163,9 @@ namespace bot_2.Commands
                     var p_record = await _context.player_data.FindAsync(_profile._id);
                     p_record._gamestatus = 0;
                     //await _context.SaveChangesAsync();
+
+                    UpdatedQueue._update = true;
+
                     await _profile.SendDm("You've been removed from queue.");
 
 
@@ -212,7 +216,7 @@ namespace bot_2.Commands
                     record._gamestatus = 1;
 
                     //await _context.SaveChangesAsync();
-
+                    await _conditions.SaveChanges();
 
                     var list = await _context.player_queue.ToListAsync();
                     int count = list.Count();
@@ -240,6 +244,57 @@ namespace bot_2.Commands
 
         }
 
+
+        [Command("start")]
+        public async Task EnterQasdueue(CommandContext context)
+        {
+            Profile _profile = new Profile(context);
+            var verified = await _conditions.AreMet(context, _profile,
+                new List<Arg> {
+                    Arg.IsRegistered,
+                    Arg.IsInCommandChannel,
+                    Arg.InhouseIsOpen
+                });
+
+            if (!verified)
+            {
+                await context.Message.DeleteAsync();
+                return;
+            }
+
+            //we need to seperate the two bundles of arguments because we'll return a null error if the user doesn't have a record under player_data/player_record
+            await _conditions.TryConditionedAction(context, _profile,
+
+                new List<Arg> {
+                       Arg.ProfileComplete
+                },
+
+                async () =>
+                {
+                    await _conditions.SaveChanges();
+
+                    var list = await _context.player_queue.ToListAsync();
+                    int count = list.Count();
+
+                    if (count >= 10)
+                    {
+                        LobbySorter sorter = new LobbySorter(_context);
+                        await sorter.Setup(context, _profile);
+                    }
+                    else
+                    {
+                        await context.Channel.SendMessageAsync("start");
+                    }
+
+
+
+                });
+
+
+
+
+
+        }
 
 
 

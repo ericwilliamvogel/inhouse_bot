@@ -10,9 +10,20 @@ namespace bot_2.Commands
     public class QOL
     {
 
+        public async Task SendMessage(CustomContext context, string channelname, string message)
+        {
+            if (await Bot._validator.Exists(context.Guild, channelname))
+            {
+                var channel = await Bot._validator.Get(context.Guild, channelname);
+                await channel.SendMessageAsync(message);
+            }
+
+
+        }
+
         public async Task SendMessage(CommandContext context, string channelname, string message)
         {
-            if(await Bot._validator.Exists(context, channelname))
+            if (await Bot._validator.Exists(context, channelname))
             {
                 var channel = await Bot._validator.Get(context, channelname);
                 await channel.SendMessageAsync(message);

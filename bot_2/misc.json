@@ -1,5 +1,11 @@
 {
-  "queue_message" : "839338609463001088",
-  "notifications" : "889695768015945758",
-  "profile" : "889695766552150026"
+  "queue_message_intro" : "891721578285527120",
+  "queue_message_leaderboard" : "891721583931064360",
+  "queue_message_queue" : "891721581141848084",
+  "queue_message_spectator" : "891721586598637608",
+  "queue_message_caster" : "891721589278801920",
+  "queue_message_ongoing" : "891723112708726794",
+  "notifications" : "891525680976781403",
+  "profile" : "891525679483584522",
+  "extended" : "891525684713885717"
 }

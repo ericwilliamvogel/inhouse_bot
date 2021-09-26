@@ -307,7 +307,7 @@ namespace bot_2.Commands
                     }
                     else
                     {
-                        await _context.player_data.AddAsync(new PlayerData { _id = _profile._id, _steamid = steamid, _status = 1, _ihlmmr = 0, _dotammr = 0 });
+                        await _context.player_data.AddAsync(new PlayerData { _id = _profile._id, _steamid = steamid, _ihlmmr = 0, _dotammr = 0 });
 
                         await _profile._member.GrantRoleAsync(context.Guild.Roles.FirstOrDefault(p => p.Value.Name == "Registered").Value);
                         await _profile._member.GrantRoleAsync(context.Guild.Roles.FirstOrDefault(p => p.Value.Name == "Member").Value);

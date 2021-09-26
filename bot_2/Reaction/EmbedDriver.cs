@@ -106,7 +106,7 @@ namespace bot_2
             var channel = context.Channel;
 
             DiscordEmbedBuilder builder = new DiscordEmbedBuilder()
-            .WithTitle("Favorite Position")
+            .WithTitle("Region")
             .AddField("React with your preferred region.", ":regional_indicator_e: = US EAST\n:regional_indicator_w: = US WEST", false)
             .WithColor(DiscordColor.Purple);
 

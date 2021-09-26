@@ -12,6 +12,12 @@ using System.Threading.Tasks;
 
 namespace bot_2.Commands
 {
+    public enum QueueType
+    {
+        Caster,
+        Player,
+        Spectator
+    }
     public class QueueInfo
     {
         Context _context;
@@ -22,9 +28,34 @@ namespace bot_2.Commands
         private string stringending = "----------";
 
         MmrCalculator calculator = new MmrCalculator();
+
+        public async Task<bool> MoreThanZeroPlayersIn(QueueType type)
+        {
+            int count = 0;
+            switch(type)
+            {
+                case QueueType.Caster:
+                    var cQ = await _context.caster_queue.ToListAsync();
+                    count = cQ.Count;
+                    break;
+                case QueueType.Player:
+                    var pQ = await _context.player_queue.ToListAsync();
+                    count = pQ.Count;
+                    break;
+                case QueueType.Spectator:
+                    var sQ = await _context.spectator_queue.ToListAsync();
+                    count = sQ.Count;
+                    break;
+            }
+            if (count > 0)
+            {
+                return true;
+            }
+            return false;
+        }
         public async Task<string> GetPlayerQueueInfo(CommandContext context)
         {
-            var playersInQueue = _context.player_queue.ToList();
+            var playersInQueue = await _context.player_queue.ToListAsync();
             var count = playersInQueue.Count;
             string start = GetStringStart("Players", count);
 
